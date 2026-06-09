@@ -2,7 +2,7 @@
 
 import { Chip } from "@/components/ui/Chip";
 
-const DEFAULT_SUGGESTIONS = ["about", "projects", "resume", "contact"];
+const DEFAULT_SUGGESTIONS = ["about", "projects", "resume", "contact", "help"];
 
 /** The most common next moves, as clickable chips under the greeting. */
 export function SuggestionChips({

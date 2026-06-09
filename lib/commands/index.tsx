@@ -5,6 +5,7 @@ import { help } from "./help";
 import { about } from "./about";
 import { now } from "./now";
 import { uses } from "./uses";
+import { neofetch } from "./neofetch";
 import { resume } from "./resume";
 import { experience } from "./experience";
 import { projects } from "./projects";
@@ -16,7 +17,11 @@ import { theme } from "./theme";
 import { themes } from "./themes";
 import { clear } from "./clear";
 import { whoami } from "./whoami";
+import { man } from "./man";
 import { ls } from "./ls";
+import { cd } from "./cd";
+import { pwd } from "./pwd";
+import { cat } from "./cat";
 import { echo } from "./echo";
 import { history } from "./history";
 import { sudo } from "./sudo";
@@ -30,6 +35,7 @@ export const commandModules: CommandModule[] = [
   about,
   now,
   uses,
+  neofetch,
   resume,
   experience,
   projects,
@@ -41,7 +47,11 @@ export const commandModules: CommandModule[] = [
   themes,
   clear,
   whoami,
+  man,
   ls,
+  cd,
+  pwd,
+  cat,
   echo,
   history,
   sudo,

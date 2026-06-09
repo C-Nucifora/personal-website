@@ -8,6 +8,7 @@ export type IconName =
   | "globe"
   | "external"
   | "download"
+  | "printer"
   | "terminal"
   | "close"
   | "live";
@@ -61,6 +62,16 @@ const paths: Record<IconName, React.ReactNode> = {
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+    />
+  ),
+  printer: (
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M6 14h12v7H6z"
     />
   ),
   terminal: (

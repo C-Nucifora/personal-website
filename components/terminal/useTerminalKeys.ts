@@ -11,6 +11,13 @@ interface Options {
   onHelp: () => void;
   onCycleTheme: () => void;
   onPalette: () => void;
+  /** prefix 0-9: jump to a window by number. */
+  onSelectWindow: (id: number) => void;
+  /** prefix n / prefix p: next / previous window. */
+  onNextWindow: () => void;
+  onPrevWindow: () => void;
+  /** prefix s / prefix w: open the window switcher overlay. */
+  onWindowSwitcher: () => void;
 }
 
 /**
@@ -28,6 +35,9 @@ interface Options {
  *   prefix ?     open the guide
  *   prefix t     cycle the theme
  *   prefix [     enter scroll (NORMAL) mode
+ *   prefix 0-9   jump to window N
+ *   prefix n / p next / previous window
+ *   prefix s / w open the window switcher
  *
  * vim motions only fire when nothing else holds focus, so buttons, the theme
  * select, and the help dialog keep their normal keyboard behaviour.
@@ -39,6 +49,10 @@ export function useTerminalKeys({
   onHelp,
   onCycleTheme,
   onPalette,
+  onSelectWindow,
+  onNextWindow,
+  onPrevWindow,
+  onWindowSwitcher,
 }: Options) {
   const [mode, setMode] = useState<VimMode>("insert");
   const [prefix, setPrefix] = useState(false);
@@ -93,6 +107,10 @@ export function useTerminalKeys({
       if (prefixRef.current) {
         e.preventDefault();
         clearPrefix();
+        if (/^[0-9]$/.test(e.key)) {
+          onSelectWindow(Number(e.key));
+          return;
+        }
         switch (e.key) {
           case "c":
             onClear();
@@ -105,6 +123,16 @@ export function useTerminalKeys({
             break;
           case "[":
             blurInput();
+            break;
+          case "n":
+            onNextWindow();
+            break;
+          case "p":
+            onPrevWindow();
+            break;
+          case "s":
+          case "w":
+            onWindowSwitcher();
             break;
         }
         return;
@@ -184,7 +212,18 @@ export function useTerminalKeys({
       window.removeEventListener("keydown", onKey);
       if (prefixTimer.current) clearTimeout(prefixTimer.current);
     };
-  }, [inputRef, bodyRef, onClear, onHelp, onCycleTheme, onPalette]);
+  }, [
+    inputRef,
+    bodyRef,
+    onClear,
+    onHelp,
+    onCycleTheme,
+    onPalette,
+    onSelectWindow,
+    onNextWindow,
+    onPrevWindow,
+    onWindowSwitcher,
+  ]);
 
   return { mode, prefix };
 }

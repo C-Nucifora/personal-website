@@ -32,6 +32,8 @@ export interface CommandContext {
   /** Run another command line programmatically (used by "show everything"). */
   run: (input: string) => void;
   history: string[]; // past command lines, oldest first
+  /** Current working directory for the prompt, e.g. `~` or `~/projects`. */
+  cwd: string;
 
   // Theme
   getThemeId: () => string;

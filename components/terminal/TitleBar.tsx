@@ -4,11 +4,11 @@ import { profile } from "@/data/profile";
 /** Faux window title bar: decorative dots, the prompt label, theme switcher. */
 export function TitleBar({ onHelp }: { onHelp?: () => void }) {
   return (
-    <div className="flex items-center gap-3 border-b border-border bg-elevated px-3 py-2.5">
-      <div className="flex items-center gap-2" aria-hidden="true">
-        <span className="h-3 w-3 rounded-full bg-ansi-red" />
-        <span className="h-3 w-3 rounded-full bg-ansi-yellow" />
-        <span className="h-3 w-3 rounded-full bg-ansi-green" />
+    <div className="flex items-center gap-3 border-b border-border bg-elevated px-3 py-1.5">
+      <div className="flex items-center gap-1.5" aria-hidden="true">
+        <span className="h-2.5 w-2.5 rounded-full bg-ansi-red" />
+        <span className="h-2.5 w-2.5 rounded-full bg-ansi-yellow" />
+        <span className="h-2.5 w-2.5 rounded-full bg-ansi-green" />
       </div>
 
       <p className="flex-1 truncate text-center font-mono text-xs text-muted">

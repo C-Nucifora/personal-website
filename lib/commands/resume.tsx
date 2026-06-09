@@ -1,7 +1,6 @@
 import type { CommandModule } from "./types";
 import { Resume } from "@/components/content/Resume";
 import { Line } from "@/components/content/messages";
-import { profile } from "@/data/profile";
 
 export const resume: CommandModule = {
   meta: {
@@ -14,9 +13,9 @@ export const resume: CommandModule = {
   run: (ctx) => {
     if (ctx.args.includes("--download")) {
       if (typeof window !== "undefined") {
-        window.open(profile.resumePdf, "_blank", "noopener,noreferrer");
+        window.print();
       }
-      return <Line>Opening the resume PDF in a new tab…</Line>;
+      return <Line>Opening the print dialog — choose “Save as PDF”…</Line>;
     }
     return <Resume />;
   },
