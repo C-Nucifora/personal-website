@@ -33,6 +33,21 @@ npm run typecheck
 The exported `./out` directory is a plain static site — deploy it to any static
 host (Vercel, Netlify, GitHub Pages, S3, …).
 
+## Deploy
+
+Set `profile.siteUrl` in `data/profile.ts` first — SEO metadata, the sitemap,
+`robots.txt`, and the generated Open Graph image all read from it.
+
+- **Vercel / Netlify** — import the repo; they detect Next.js and build it. No
+  config needed. (Delete `.github/workflows/deploy.yml` if you go this route.)
+- **GitHub Pages** — the included workflow (`.github/workflows/deploy.yml`)
+  builds and publishes `./out` on every push to `main`. Enable Pages →
+  "GitHub Actions" in repo settings. For a custom domain, add a `public/CNAME`
+  file containing the domain (e.g. `christiannucifora.com`).
+
+SEO is wired up: `/sitemap.xml`, `/robots.txt`, a generated `/opengraph-image`,
+JSON-LD `Person` data, and canonical/Open Graph/Twitter metadata.
+
 ## Editing content
 
 All content is data, not markup. Edit these files and the UI updates:

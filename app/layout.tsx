@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { profile } from "@/data/profile";
+import { socials } from "@/data/socials";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { themeInitScript } from "@/lib/themes/init-script";
 
@@ -17,19 +18,46 @@ const inter = Inter({
   display: "swap",
 });
 
+const role = profile.role.replace(/^TODO\s*/, "");
+
 const description =
   profile.tagline && !profile.tagline.startsWith("TODO")
     ? profile.tagline
-    : `${profile.name} — ${profile.role.replace(/^TODO\s*/, "")}. A terminal-style developer portfolio.`;
+    : `${profile.name} — ${role}. A terminal-style developer portfolio.`;
 
 export const metadata: Metadata = {
-  title: `${profile.name} — ${profile.role.replace(/^TODO\s*/, "")}`,
+  metadataBase: new URL(profile.siteUrl),
+  title: `${profile.name} — ${role}`,
   description,
+  applicationName: `${profile.name} — portfolio`,
+  authors: [{ name: profile.name, url: profile.siteUrl }],
+  creator: profile.name,
+  keywords: [profile.name, role, "developer", "portfolio", "software engineer"],
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   openGraph: {
-    title: `${profile.name} — developer portfolio`,
-    description,
     type: "website",
+    url: profile.siteUrl,
+    siteName: `${profile.name} — portfolio`,
+    title: `${profile.name} — ${role}`,
+    description,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `${profile.name} — ${role}`,
+    description,
+  },
+};
+
+// JSON-LD Person schema for richer search results.
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  url: profile.siteUrl,
+  email: `mailto:${profile.email}`,
+  jobTitle: role,
+  sameAs: socials.filter((s) => s.url.startsWith("http")).map((s) => s.url),
 };
 
 export default function RootLayout({
@@ -48,6 +76,10 @@ export default function RootLayout({
       <body>
         {/* Apply the saved theme before first paint to avoid a colour flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
