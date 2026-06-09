@@ -10,6 +10,7 @@ import { experience } from "./experience";
 import { projects } from "./projects";
 import { contact } from "./contact";
 import { socials } from "./socials";
+import { copy } from "./copy";
 import { homelab } from "./homelab";
 import { theme } from "./theme";
 import { themes } from "./themes";
@@ -18,6 +19,10 @@ import { whoami } from "./whoami";
 import { ls } from "./ls";
 import { echo } from "./echo";
 import { history } from "./history";
+import { sudo } from "./sudo";
+import { sl } from "./sl";
+import { cowsay } from "./cowsay";
+import { exit } from "./exit";
 
 /** Registration order = the order commands appear where iterated. */
 export const commandModules: CommandModule[] = [
@@ -30,6 +35,7 @@ export const commandModules: CommandModule[] = [
   projects,
   contact,
   socials,
+  copy,
   homelab,
   theme,
   themes,
@@ -38,6 +44,10 @@ export const commandModules: CommandModule[] = [
   ls,
   echo,
   history,
+  sudo,
+  sl,
+  cowsay,
+  exit,
 ];
 
 export const commandMetas: CommandMeta[] = commandModules.map((m) => m.meta);

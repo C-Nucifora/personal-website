@@ -10,6 +10,7 @@ interface Options {
   onClear: () => void;
   onHelp: () => void;
   onCycleTheme: () => void;
+  onPalette: () => void;
 }
 
 /**
@@ -31,7 +32,14 @@ interface Options {
  * vim motions only fire when nothing else holds focus, so buttons, the theme
  * select, and the help dialog keep their normal keyboard behaviour.
  */
-export function useTerminalKeys({ inputRef, bodyRef, onClear, onHelp, onCycleTheme }: Options) {
+export function useTerminalKeys({
+  inputRef,
+  bodyRef,
+  onClear,
+  onHelp,
+  onCycleTheme,
+  onPalette,
+}: Options) {
   const [mode, setMode] = useState<VimMode>("insert");
   const [prefix, setPrefix] = useState(false);
 
@@ -74,6 +82,13 @@ export function useTerminalKeys({ inputRef, bodyRef, onClear, onHelp, onCycleThe
     };
 
     const onKey = (e: KeyboardEvent) => {
+      // 0) ⌘K / Ctrl-K opens the command palette from anywhere.
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        onPalette();
+        return;
+      }
+
       // 1) A tmux prefix is pending: consume the next key as an action.
       if (prefixRef.current) {
         e.preventDefault();
@@ -169,7 +184,7 @@ export function useTerminalKeys({ inputRef, bodyRef, onClear, onHelp, onCycleThe
       window.removeEventListener("keydown", onKey);
       if (prefixTimer.current) clearTimeout(prefixTimer.current);
     };
-  }, [inputRef, bodyRef, onClear, onHelp, onCycleTheme]);
+  }, [inputRef, bodyRef, onClear, onHelp, onCycleTheme, onPalette]);
 
   return { mode, prefix };
 }

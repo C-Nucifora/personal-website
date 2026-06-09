@@ -7,8 +7,8 @@ export const theme: CommandModule = {
   meta: {
     name: "theme",
     aliases: ["color", "colour"],
-    description: "Switch the colour theme. Try `theme tokyo-night-day`.",
-    usage: "theme [name]",
+    description: "Switch the colour theme. Try `theme tokyo-night-day` or `theme random`.",
+    usage: "theme [name|random]",
     group: "Customize",
   },
   run: (ctx) => {
@@ -17,6 +17,14 @@ export const theme: CommandModule = {
     // No name → show the picker.
     if (!name) {
       return <ThemesOutput currentId={ctx.getThemeId()} onSet={ctx.setTheme} />;
+    }
+
+    // `theme random` → pick a different theme at random.
+    if (name === "random") {
+      const others = themes.filter((t) => t.id !== ctx.getThemeId());
+      const pick = others[Math.floor(Math.random() * others.length)] ?? themes[0];
+      ctx.setTheme(pick.id);
+      return <OkLine>Theme set to {pick.label} (random).</OkLine>;
     }
 
     const ok = ctx.setTheme(name);

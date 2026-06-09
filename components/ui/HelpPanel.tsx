@@ -158,6 +158,9 @@ export function HelpPanel({ open, onClose, onRun }: HelpPanelProps) {
                 <span className="font-mono text-accent">↑ / ↓</span> — previous commands
               </li>
               <li>
+                <span className="font-mono text-accent">⌘K / Ctrl-K</span> — command palette
+              </li>
+              <li>
                 <span className="font-mono text-accent">clear</span> — reset the screen
               </li>
             </ul>

@@ -11,6 +11,7 @@ import { StatusBar } from "./StatusBar";
 import { useTerminalKeys } from "./useTerminalKeys";
 import type { LogEntry } from "./types";
 import { HelpPanel } from "@/components/ui/HelpPanel";
+import { CommandPalette } from "@/components/ui/CommandPalette";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { themes } from "@/lib/themes";
 import { runCommandLine, type SessionActions } from "@/lib/commands";
@@ -19,6 +20,7 @@ export function Terminal() {
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const { themeId, setTheme } = useTheme();
 
@@ -45,6 +47,7 @@ export function Terminal() {
     onClear: () => setEntries([]),
     onHelp: () => setHelpOpen(true),
     onCycleTheme: cycleTheme,
+    onPalette: () => setPaletteOpen(true),
   });
 
   useEffect(() => {
@@ -137,6 +140,7 @@ export function Terminal() {
       <StatusBar mode={mode} prefix={prefix} />
 
       <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} onRun={runLine} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onRun={runLine} />
     </div>
   );
 }
