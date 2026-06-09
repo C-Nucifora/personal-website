@@ -7,9 +7,12 @@ import { Greeting } from "./Greeting";
 import { SuggestionChips } from "./SuggestionChips";
 import { OutputLog } from "./OutputLog";
 import { CommandInput } from "./CommandInput";
+import { StatusBar } from "./StatusBar";
+import { useTerminalKeys } from "./useTerminalKeys";
 import type { LogEntry } from "./types";
 import { HelpPanel } from "@/components/ui/HelpPanel";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { themes } from "@/lib/themes";
 import { runCommandLine, type SessionActions } from "@/lib/commands";
 
 export function Terminal() {
@@ -26,6 +29,23 @@ export function Terminal() {
   const runLineRef = useRef<(line: string) => void>(() => {});
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Cycle to the next theme in the registry (used by the tmux `prefix t`).
+  const cycleTheme = useCallback(() => {
+    const ids = themes.map((t) => t.id);
+    const next = ids[(ids.indexOf(themeIdRef.current) + 1) % ids.length];
+    setTheme(next);
+  }, [setTheme]);
+
+  // vim/tmux keyboard layer (modes, motions, and the Ctrl-b prefix).
+  const { mode, prefix } = useTerminalKeys({
+    inputRef,
+    bodyRef,
+    onClear: () => setEntries([]),
+    onHelp: () => setHelpOpen(true),
+    onCycleTheme: cycleTheme,
+  });
 
   useEffect(() => {
     themeIdRef.current = themeId;
@@ -99,6 +119,7 @@ export function Terminal() {
       <NavBar onRun={runLine} />
 
       <div
+        ref={bodyRef}
         className="max-h-[min(78vh,720px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-5"
         onClick={focusOnBlankClick}
       >
@@ -112,6 +133,8 @@ export function Terminal() {
         </p>
         <div ref={bottomRef} aria-hidden="true" />
       </div>
+
+      <StatusBar mode={mode} prefix={prefix} />
 
       <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} onRun={runLine} />
     </div>

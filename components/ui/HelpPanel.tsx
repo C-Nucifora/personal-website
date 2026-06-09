@@ -162,6 +162,45 @@ export function HelpPanel({ open, onClose, onRun }: HelpPanelProps) {
               </li>
             </ul>
           </div>
+
+          <div className="space-y-1.5 border-t border-border pt-4">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-muted">
+              vim &amp; tmux navigation
+            </h3>
+            <p className="font-sans text-sm text-muted">
+              Press <span className="font-mono text-accent">Esc</span> to leave the prompt and enter
+              NORMAL mode, then:
+            </p>
+            <ul className="space-y-1 font-sans text-sm text-fg">
+              <li>
+                <span className="font-mono text-accent">j / k</span> — scroll down / up
+              </li>
+              <li>
+                <span className="font-mono text-accent">Ctrl-d / Ctrl-u</span> — half page down / up
+              </li>
+              <li>
+                <span className="font-mono text-accent">gg / G</span> — jump to top / bottom
+              </li>
+              <li>
+                <span className="font-mono text-accent">i</span> &nbsp;
+                <span className="font-mono text-accent">/</span> &nbsp;
+                <span className="font-mono text-accent">:</span> — back to the prompt (INSERT)
+              </li>
+            </ul>
+            <p className="pt-1 font-sans text-sm text-muted">
+              tmux prefix <span className="font-mono text-accent">Ctrl-b</span>, then:
+            </p>
+            <ul className="space-y-1 font-sans text-sm text-fg">
+              <li>
+                <span className="font-mono text-accent">c</span> — clear &nbsp;
+                <span className="font-mono text-accent">?</span> — this guide
+              </li>
+              <li>
+                <span className="font-mono text-accent">t</span> — next theme &nbsp;
+                <span className="font-mono text-accent">[</span> — scroll mode
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
