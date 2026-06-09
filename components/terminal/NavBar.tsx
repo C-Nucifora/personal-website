@@ -1,7 +1,7 @@
 "use client";
 
 /** Top nav. Each button runs the same command a visitor could type. */
-const NAV_ITEMS = ["about", "resume", "projects", "contact", "help"] as const;
+const NAV_ITEMS = ["about", "resume", "projects", "contact", "homelab", "help"] as const;
 
 export function NavBar({ onRun }: { onRun: (command: string) => void }) {
   return (

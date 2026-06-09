@@ -6,7 +6,7 @@ import { profile } from "@/data/profile";
 export const resume: CommandModule = {
   meta: {
     name: "resume",
-    aliases: ["cv", "experience"],
+    aliases: ["cv"],
     description: "My experience, education, and skills — with a PDF to download.",
     usage: "resume [--download]",
     group: "My work",

@@ -4,6 +4,7 @@ import type { CommandContext, CommandMeta, CommandModule } from "./types";
 import { help } from "./help";
 import { about } from "./about";
 import { resume } from "./resume";
+import { experience } from "./experience";
 import { projects } from "./projects";
 import { contact } from "./contact";
 import { socials } from "./socials";
@@ -21,6 +22,7 @@ export const commandModules: CommandModule[] = [
   help,
   about,
   resume,
+  experience,
   projects,
   contact,
   socials,
