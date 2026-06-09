@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
+/*
+ * Semantic theme tokens. These are the single source of truth (see
+ * docs/THEMES.md). Components NEVER hardcode a hex value — they read these
+ * names, directly or via the Tailwind utilities mapped in @theme below.
+ *
+ * The values here are the Tokyo Night (dark) defaults so the page is fully
+ * styled on the server and without JS. ThemeProvider overwrites them on
+ * :root at runtime when a different theme is chosen; an inline script in the
+ * document head applies the saved choice before first paint (no flash).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #16161e;
+  --bg-window: #1a1b26;
+  --bg-elevated: #1f2335;
+  --bg-selection: #283457;
+
+  --fg: #c0caf5;
+  --fg-muted: #565f89;
+  --fg-subtle: #3b4261;
+
+  --border: #292e42;
+
+  --accent: #7aa2f7;
+  --accent-hover: #89b4ff;
+  --success: #9ece6a;
+  --warning: #e0af68;
+  --error: #f7768e;
+  --info: #7dcfff;
+
+  --ansi-red: #f7768e;
+  --ansi-green: #9ece6a;
+  --ansi-yellow: #e0af68;
+  --ansi-blue: #7aa2f7;
+  --ansi-magenta: #bb9af7;
+  --ansi-cyan: #7dcfff;
+
+  --focus-ring: #7dcfff;
+  --shadow: rgba(0, 0, 0, 0.45);
 }
 
+/* Map the semantic tokens onto Tailwind's theme so utilities like `bg-window`,
+ * `text-fg`, `text-accent`, `border-border` resolve to the active theme. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-window: var(--bg-window);
+  --color-elevated: var(--bg-elevated);
+  --color-selection: var(--bg-selection);
+
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-subtle: var(--fg-subtle);
+
+  --color-border: var(--border);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  --color-ansi-red: var(--ansi-red);
+  --color-ansi-green: var(--ansi-green);
+  --color-ansi-yellow: var(--ansi-yellow);
+  --color-ansi-blue: var(--ansi-blue);
+  --color-ansi-magenta: var(--ansi-magenta);
+  --color-ansi-cyan: var(--ansi-cyan);
+
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  height: 100%;
+  color-scheme: light dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  /* Smooth the theme swap; instant under reduced motion (handled below). */
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+::selection {
+  background: var(--bg-selection);
+}
+
+/* One visible, consistent keyboard focus ring everywhere. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/*
+ * Progressive enhancement. The server renders the full content inside
+ * `.static-fallback`; the interactive terminal lives in `.interactive`. The
+ * Terminal sets data-js-ready="true" on <html> only AFTER it successfully
+ * mounts, so a hydration failure leaves the readable static content in place.
+ */
+.interactive {
+  display: none;
+}
+[data-js-ready="true"] .static-fallback {
+  display: none;
+}
+[data-js-ready="true"] .interactive {
+  display: block;
+}
+
+/* Honour reduced-motion: no transitions or animations anywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* New command output fades in gently (disabled under reduced motion above). */
+@keyframes output-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.output-fade {
+  animation: output-fade-in 180ms ease-out;
+}
+
+/* The blinking caret on the live prompt. */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.caret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1.1em;
+  translate: 0 0.18em;
+  background: var(--accent);
+  animation: caret-blink 1s step-end infinite;
+}
+
+/* Visually hidden but available to screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Themed, unobtrusive scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fg-subtle) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--fg-subtle);
+  border-radius: 6px;
 }
