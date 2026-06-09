@@ -7,6 +7,7 @@ import { resume } from "./resume";
 import { projects } from "./projects";
 import { contact } from "./contact";
 import { socials } from "./socials";
+import { homelab } from "./homelab";
 import { theme } from "./theme";
 import { themes } from "./themes";
 import { clear } from "./clear";
@@ -23,6 +24,7 @@ export const commandModules: CommandModule[] = [
   projects,
   contact,
   socials,
+  homelab,
   theme,
   themes,
   clear,

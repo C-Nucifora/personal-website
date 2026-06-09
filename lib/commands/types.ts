@@ -5,6 +5,7 @@ export const GROUP_ORDER = [
   "Get to know me",
   "My work",
   "Reach me",
+  "Elsewhere",
   "Customize",
   "System",
 ] as const;

@@ -14,6 +14,9 @@ export const profile = {
   ],
   resumePdf: "/resume.pdf", // place the actual PDF in /public
   email: "cgnucifora@proton.me",
+  // Your homelab dashboard. Set this to the real URL to enable the `homelab`
+  // command; leave the placeholder and the command explains how to configure it.
+  homelabUrl: "https://TODO-your-homelab.example",
 } as const;
 
 export type Profile = typeof profile;
