@@ -42,15 +42,15 @@ Build in phases. Each phase ends in something that works and looks intentional. 
 
 ## Phase 6 — More themes (post-launch backlog)
 Add one token object per theme, register, verify contrast. No component changes.
-- [ ] Catppuccin Mocha
-- [ ] Catppuccin Latte
-- [ ] Gruvbox
-- [ ] Dracula
-- [ ] Nord
-- [ ] One Dark
-- [ ] Solarized Dark
-- [ ] Solarized Light
-- [ ] Rosé Pine
+- [x] Catppuccin Mocha
+- [x] Catppuccin Latte
+- [x] Gruvbox
+- [x] Dracula
+- [x] Nord
+- [x] One Dark
+- [x] Solarized Dark
+- [x] Solarized Light
+- [x] Rosé Pine
 
 ## Later ideas (optional)
 - A real-ish filesystem so `ls` / `cd` browse sections.

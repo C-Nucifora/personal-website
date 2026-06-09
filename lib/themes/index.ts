@@ -1,6 +1,15 @@
 import type { Theme, ThemeEntry } from "./types";
 import { tokyoNight } from "./tokyo-night";
 import { tokyoNightDay } from "./tokyo-night-day";
+import { catppuccinMocha } from "./catppuccin-mocha";
+import { catppuccinLatte } from "./catppuccin-latte";
+import { gruvbox } from "./gruvbox";
+import { dracula } from "./dracula";
+import { nord } from "./nord";
+import { oneDark } from "./one-dark";
+import { solarizedDark } from "./solarized-dark";
+import { solarizedLight } from "./solarized-light";
+import { rosePine } from "./rose-pine";
 
 export type { Theme, ThemeEntry } from "./types";
 
@@ -22,6 +31,15 @@ export const themes: ThemeEntry[] = [
     appearance: "light",
     theme: tokyoNightDay,
   },
+  { id: "catppuccin-mocha", label: "Catppuccin Mocha", appearance: "dark", theme: catppuccinMocha },
+  { id: "catppuccin-latte", label: "Catppuccin Latte", appearance: "light", theme: catppuccinLatte },
+  { id: "gruvbox", label: "Gruvbox", appearance: "dark", theme: gruvbox },
+  { id: "dracula", label: "Dracula", appearance: "dark", theme: dracula },
+  { id: "nord", label: "Nord", appearance: "dark", theme: nord },
+  { id: "one-dark", label: "One Dark", appearance: "dark", theme: oneDark },
+  { id: "solarized-dark", label: "Solarized Dark", appearance: "dark", theme: solarizedDark },
+  { id: "solarized-light", label: "Solarized Light", appearance: "light", theme: solarizedLight },
+  { id: "rose-pine", label: "Rosé Pine", appearance: "dark", theme: rosePine },
 ];
 
 /** The theme used on a visitor's very first load (before any saved choice). */
