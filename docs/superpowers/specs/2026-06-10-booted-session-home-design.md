@@ -113,7 +113,20 @@ no longer rendered as the home hero.
 - **SSR/hydration:** boot is seeded in a mount effect (client only), so no
   hydration mismatch; `shellEntries` starts empty on first render.
 
-## Testing (extend the Playwright e2e)
+## Testing
+
+The repo gains a real test harness (Vitest + React Testing Library + jsdom)
+alongside the Playwright e2e:
+
+- **Unit:** `windows` (`SECTIONS`/`pathForWindow`/`windowForCommand`/`windowForLabel`),
+  `lastLogin`, `historyStore`, and the input's `topCompletion`.
+- **Component (RTL):** `Fetch`, `BootHint`, and `StatusBar` (home control + section
+  tabs, no `0:shell`).
+- **Hook:** `useTerminalKeys` contextual Escape.
+- **Registry:** resolves every command by name/alias and renders each without
+  throwing.
+
+**End-to-end (Playwright `e2e/verify.mjs`):**
 
 1. Load → scrollback shows `last login:`, the fastfetch card (Host/Role/Stack),
    and the `try: …` hint; no "Welcome. I'm Christian" banner, no chip band.
