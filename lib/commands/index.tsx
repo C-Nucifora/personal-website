@@ -3,6 +3,8 @@ import type { CommandContext, CommandMeta, CommandModule } from "./types";
 
 import { help } from "./help";
 import { about } from "./about";
+import { now } from "./now";
+import { uses } from "./uses";
 import { resume } from "./resume";
 import { experience } from "./experience";
 import { projects } from "./projects";
@@ -21,6 +23,8 @@ import { history } from "./history";
 export const commandModules: CommandModule[] = [
   help,
   about,
+  now,
+  uses,
   resume,
   experience,
   projects,
