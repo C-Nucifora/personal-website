@@ -31,6 +31,16 @@ describe("window directories (FLOW §2)", () => {
     expect(pages).toEqual(experience.map((e) => `${slugify(e.org)}.md`));
   });
 
+  test("the flagship project bundles real source under src/ (FLOW §8)", () => {
+    const file = readFile("~/projects/terminal-portfolio/src/lib/vim/machine.ts");
+    expect(file).not.toBe(null);
+    expect(file!.language).toBe("typescript");
+    expect(file!.raw).toContain("handleKey");
+    expect(resolveNode("~/projects/terminal-portfolio/src/FLOW.md")?.kind).toBe("file");
+    const top = (listDir("~/projects/terminal-portfolio") ?? []).map((n) => n.name);
+    expect(top).toEqual(["README.md", "src"]);
+  });
+
   test("resume.pdf is a download", () => {
     expect(readFile("~/resume/resume.pdf")?.download).toBe("/resume.pdf");
   });

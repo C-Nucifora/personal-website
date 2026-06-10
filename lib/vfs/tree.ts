@@ -4,6 +4,7 @@
  * against this synchronously.
  */
 import { projects } from "@/data/projects";
+import { siteSource } from "@/data/generated/site-source";
 import { experience } from "@/data/resume";
 import { bashrc, nothingToSeeHere, vimrc } from "@/data/dotfiles";
 import { commandsMd, guideMd, keybindingsMd } from "@/data/help-docs";
@@ -36,6 +37,46 @@ function dir(name: string, children: VfsNode[], extra: Partial<VfsDir> = {}): Vf
   return { kind: "dir", name, children, ...extra };
 }
 
+const EXT_LANGUAGE: Record<string, VfsLanguage> = {
+  ts: "typescript",
+  tsx: "tsx",
+  js: "javascript",
+  jsx: "javascript",
+  mjs: "javascript",
+  cjs: "javascript",
+  json: "json",
+  css: "css",
+  html: "html",
+  md: "markdown",
+};
+
+function languageFor(name: string): VfsLanguage {
+  const ext = name.split(".").pop() ?? "";
+  return EXT_LANGUAGE[ext] ?? "text";
+}
+
+/** Build a project's src/ tree from its bundled files (FLOW §8). */
+function srcTree(files: Record<string, string>): VfsDir {
+  const root = dir("src", []);
+  for (const [path, raw] of Object.entries(files)) {
+    const segments = path.split("/");
+    const name = segments.pop()!;
+    let cursor = root;
+    for (const seg of segments) {
+      let next = cursor.children.find(
+        (c): c is VfsDir => c.kind === "dir" && c.name === seg,
+      );
+      if (!next) {
+        next = dir(seg, []);
+        cursor.children.push(next);
+      }
+      cursor = next;
+    }
+    cursor.children.push(file(name, raw, { language: languageFor(name) }));
+  }
+  return root;
+}
+
 function buildHome(): VfsDir {
   return dir("christian", [
     dir("about", [
@@ -44,9 +85,13 @@ function buildHome(): VfsDir {
     ]),
     dir(
       "projects",
-      projects.map((p) =>
-        dir(p.slug, [file("README.md", projectReadmeMd(p), { render: "project-readme" })]),
-      ),
+      projects.map((p) => {
+        const bundled = siteSource[p.slug];
+        return dir(p.slug, [
+          file("README.md", projectReadmeMd(p), { render: "project-readme" }),
+          ...(bundled ? [srcTree(bundled)] : []),
+        ]);
+      }),
     ),
     dir("resume", [
       file("resume.md", resumeMd(), { render: "resume" }),

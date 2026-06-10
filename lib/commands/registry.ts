@@ -54,6 +54,7 @@ export interface CommandModule {
 import { ls } from "./core/ls";
 import { cd } from "./core/cd";
 import { cat } from "./core/cat";
+import { vim } from "./core/vim";
 import { pwd } from "./core/pwd";
 import { tree } from "./core/tree";
 import { clear } from "./core/clear";
@@ -72,6 +73,7 @@ export const commandModules: CommandModule[] = [
   ls,
   cd,
   cat,
+  vim,
   pwd,
   tree,
   clear,

@@ -163,6 +163,73 @@ a:hover {
   animation: motd-reveal 600ms steps(14, end);
 }
 
+/* Lezer token classes → semantic ANSI tokens. cat highlighting and the
+   editor share these so every theme colors code consistently. */
+.tok-keyword,
+.tok-modifier {
+  color: var(--ansi-magenta);
+}
+.tok-string,
+.tok-string2,
+.tok-regexp {
+  color: var(--ansi-green);
+}
+.tok-comment,
+.tok-docComment {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.tok-number,
+.tok-bool,
+.tok-atom,
+.tok-literal {
+  color: var(--ansi-yellow);
+}
+.tok-typeName,
+.tok-className,
+.tok-namespace,
+.tok-tagName {
+  color: var(--ansi-cyan);
+}
+.tok-propertyName,
+.tok-attributeName,
+.tok-definition,
+.tok-function {
+  color: var(--ansi-blue);
+}
+.tok-variableName,
+.tok-name {
+  color: var(--fg);
+}
+.tok-operator,
+.tok-punctuation,
+.tok-separator,
+.tok-bracket {
+  color: var(--fg-muted);
+}
+.tok-meta,
+.tok-processingInstruction {
+  color: var(--fg-subtle);
+}
+.tok-heading {
+  color: var(--accent);
+  font-weight: 700;
+}
+.tok-emphasis {
+  font-style: italic;
+}
+.tok-strong {
+  font-weight: 700;
+}
+.tok-link,
+.tok-url {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.tok-invalid {
+  color: var(--error);
+}
+
 /* Unrecognized NORMAL-mode keys flash the status-bar mode segment (§6.2). */
 @keyframes mode-flash {
   0%,

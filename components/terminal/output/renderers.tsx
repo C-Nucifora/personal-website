@@ -4,6 +4,7 @@ import { About } from "@/components/content/About";
 import { Uses } from "@/components/content/Uses";
 import { Resume } from "@/components/content/Resume";
 import { ContactCard } from "./ContactCard";
+import { CodeBlock } from "./CodeBlock";
 import { Markdown } from "./Markdown";
 
 /**
@@ -38,6 +39,9 @@ export function renderFile(file: VfsFile): ReactNode {
   }
   if (file.language === "markdown") {
     return <Markdown source={file.raw} />;
+  }
+  if (file.language !== "text") {
+    return <CodeBlock raw={file.raw} language={file.language} />;
   }
   return <pre className="whitespace-pre-wrap font-mono text-sm text-fg">{file.raw}</pre>;
 }
