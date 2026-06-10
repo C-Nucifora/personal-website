@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { TitleBar } from "./TitleBar";
-import { Greeting } from "./Greeting";
-import { SuggestionChips } from "./SuggestionChips";
+import { bootEntries } from "./boot";
 import { OutputLog } from "./OutputLog";
 import { CommandInput } from "./CommandInput";
 import { StatusBar } from "./StatusBar";
@@ -69,6 +68,8 @@ export function Terminal() {
     }
   }, []);
 
+  const goHome = useCallback(() => selectWindowRef.current(0), []);
+
   // vim/tmux keyboard layer (modes, motions, and the Ctrl-b prefix).
   const { mode, prefix } = useTerminalKeys({
     inputRef,
@@ -81,6 +82,8 @@ export function Terminal() {
     onNextWindow: () => stepWindowRef.current(1),
     onPrevWindow: () => stepWindowRef.current(-1),
     onWindowSwitcher: () => setSwitcherOpen(true),
+    onHome: () => goHome(),
+    getActiveWindow: () => activeWindowRef.current,
   });
 
   useEffect(() => {
@@ -217,11 +220,20 @@ export function Terminal() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // Signal a successful mount: CSS then hides the static fallback and reveals
-  // the interactive terminal. If hydration fails this never runs, so the
-  // readable server-rendered content stays on screen. Also honour a deep link.
+  // Seed the shell with the boot sequence (once per page load), reveal the
+  // interactive terminal, and honour a deep link. If hydration fails this never
+  // runs, so the readable server-rendered content stays on screen.
   useEffect(() => {
     document.documentElement.setAttribute("data-js-ready", "true");
+
+    const seed = bootEntries(themeIdRef.current, (cmd) => runLineRef.current(cmd)).map((e) => ({
+      id: idRef.current++,
+      command: e.command,
+      output: e.output,
+    }));
+    // one-time client-only seed; cannot run during SSR (localStorage) without
+    // a hydration mismatch, and is not a cascading update.
+    setShellEntries(seed);
 
     const w = windowForLabel(window.location.hash);
     if (w && w.command) {
@@ -253,8 +265,6 @@ export function Terminal() {
         className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5"
         onClick={focusOnBlankClick}
       >
-        <Greeting />
-        <SuggestionChips onRun={runLine} />
         <OutputLog entries={displayed} />
         <CommandInput
           ref={inputRef}
@@ -279,7 +289,6 @@ export function Terminal() {
       <StatusBar
         mode={mode}
         prefix={prefix}
-        windows={WINDOWS}
         active={activeWindow}
         onSelect={selectWindow}
       />
