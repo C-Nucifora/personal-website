@@ -21,5 +21,8 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
-  localStorage.clear();
+  // The beforeAll polyfill is load-bearing on Node 26 (verified: without it
+  // `localStorage` is undefined here). Stay defensive so a future change to
+  // jsdom internals surfaces clearly instead of throwing in cleanup.
+  if (typeof localStorage !== "undefined") localStorage.clear();
 });
