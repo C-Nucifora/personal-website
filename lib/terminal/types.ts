@@ -1,0 +1,70 @@
+/**
+ * Global terminal state (FLOW.md §1.1): one state, three interfaces.
+ * Clicks, shell commands, and keybindings all mutate this shape through the
+ * reducer — never each other.
+ */
+import type { ReactNode } from "react";
+import type { WindowId } from "@/lib/vfs/types";
+
+export type { WindowId };
+export { WINDOW_IDS } from "@/lib/vfs/types";
+
+export type Mode = "INSERT" | "NORMAL" | "COPY";
+
+/** The lobby (~) is a shell that belongs to no window. */
+export type WindowKey = WindowId | "lobby";
+
+export interface OutputLine {
+  id: number;
+  /** The echoed command, or null for system output (MOTD, extra writes). */
+  command: string | null;
+  node: ReactNode;
+}
+
+export interface PaneState {
+  cwd: string;
+  prevCwd: string; // for `cd -`
+  inputBuffer: string;
+  cursorPos: number;
+  historyIndex: number | null; // null = live line
+  draft: string; // stashed live line while walking history
+  scrollback: OutputLine[];
+  scrollOffset: number; // 0 = pinned to bottom
+  mode: Mode;
+  view: "shell" | "editor";
+  editorPath: string | null;
+}
+
+export interface WindowState {
+  visited: boolean;
+  panes: PaneState[];
+  activePane: number;
+}
+
+export interface AppState {
+  activeWindow: WindowId | null; // null = lobby
+  windows: Record<WindowId, WindowState>;
+  lobby: WindowState;
+  pendingPrefix: boolean;
+  animating: { command: string; stash: string } | null;
+  notice: { text: string; until: number } | null;
+  pendingConfirm: { kind: "openUrl" | "closePane"; payload: string } | null;
+  history: string[];
+  nextLineId: number;
+}
+
+export type Action =
+  | { type: "switch-window"; window: WindowId | null }
+  | { type: "mark-visited"; window: WindowId }
+  | { type: "set-cwd"; windowKey: WindowKey; path: string }
+  | { type: "append-line"; windowKey: WindowKey; command: string | null; node: ReactNode }
+  | { type: "clear-scrollback"; windowKey: WindowKey }
+  | { type: "set-input"; windowKey: WindowKey; text: string; cursorPos: number }
+  | { type: "history-append"; line: string }
+  | { type: "history-walk"; windowKey: WindowKey; direction: -1 | 1 }
+  | { type: "set-mode"; windowKey: WindowKey; mode: Mode }
+  | { type: "set-notice"; text: string; until: number }
+  | { type: "clear-notice" }
+  | { type: "set-confirm"; confirm: AppState["pendingConfirm"] }
+  | { type: "set-animating"; animating: AppState["animating"] }
+  | { type: "set-pending-prefix"; pending: boolean };
