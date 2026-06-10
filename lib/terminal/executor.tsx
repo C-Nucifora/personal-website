@@ -39,9 +39,10 @@ const SECTION_WORDS = new Set(["about", "projects", "resume", "contact"]);
 
 function UnknownCommand({ name }: { name: string }) {
   if (SECTION_WORDS.has(name)) {
+    // Absolute path so the suggestion works from any cwd.
     return (
       <ErrorLine>
-        command not found: {name} — did you mean <CmdLink cmd={`cd ${name}`} label={`cd ${name}`} />?
+        command not found: {name} — did you mean <CmdLink cmd={`cd ~/${name}`} />?
       </ErrorLine>
     );
   }

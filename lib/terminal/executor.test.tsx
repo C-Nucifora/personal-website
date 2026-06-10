@@ -49,8 +49,16 @@ describe("unknown commands (FLOW §9)", () => {
     executeCommand("about", { source: "typed" });
     renderLast();
     expect(screen.getByText(/command not found: about/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /cd about/ }));
+    fireEvent.click(screen.getByRole("button", { name: "cd ~/about" }));
     expect(store.getState().activeWindow).toBe("about");
+  });
+
+  test("the suggestion works from a deep cwd in another window", () => {
+    executeCommand("cd ~/projects", { source: "typed" });
+    executeCommand("resume", { source: "typed" });
+    renderLast("projects");
+    fireEvent.click(screen.getByRole("button", { name: "cd ~/resume" }));
+    expect(store.getState().activeWindow).toBe("resume");
   });
 
   test("levenshtein-1 typo gets a did-you-mean", () => {
