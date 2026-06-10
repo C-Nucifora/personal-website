@@ -14,16 +14,6 @@ interface StatusBarProps {
 }
 
 /**
- * Accessible label for a section tab button. Most windows use their label
- * directly; "homelab" is overridden to avoid the accessible-name collision
- * with the home control (whose aria-label contains the word "Home").
- */
-function tabLabel(w: TerminalWindow): string {
-  if (w.label === "homelab") return "server dashboard";
-  return w.label;
-}
-
-/**
  * tmux-style status line. The left host label is the home control (window 0);
  * the section tabs sit to its right; mode + clock on the far right.
  */
@@ -68,7 +58,6 @@ export function StatusBar({ mode, prefix, active, onSelect }: StatusBarProps) {
                 type="button"
                 onClick={() => onSelect(w.id)}
                 aria-current={on ? "true" : undefined}
-                aria-label={tabLabel(w)}
                 className={[
                   "shrink-0 rounded-sm px-1.5 py-0.5 transition-colors focus-visible:outline-2",
                   on ? "bg-selection font-semibold text-accent" : "text-muted hover:text-fg",
