@@ -15,7 +15,7 @@ function longestCommonPrefix(strings: string[]): string {
 }
 
 /** The top completion for a single-token input, or "" — drives the ghost text. */
-function topCompletion(value: string): string {
+export function topCompletion(value: string): string {
   if (!value || value.includes(" ")) return "";
   const found = completionCandidates()
     .filter((c) => c.startsWith(value.toLowerCase()))
