@@ -82,7 +82,7 @@ export function Terminal() {
     onNextWindow: () => stepWindowRef.current(1),
     onPrevWindow: () => stepWindowRef.current(-1),
     onWindowSwitcher: () => setSwitcherOpen(true),
-    onHome: () => goHome(),
+    onHome: goHome,
     getActiveWindow: () => activeWindowRef.current,
   });
 
@@ -231,8 +231,8 @@ export function Terminal() {
       command: e.command,
       output: e.output,
     }));
-    // one-time client-only seed; cannot run during SSR (localStorage) without
-    // a hydration mismatch, and is not a cascading update.
+    // One-time client-only seed: this mount effect never runs on the server, so
+    // the localStorage read and the rendered card can't cause a hydration mismatch.
     setShellEntries(seed);
 
     const w = windowForLabel(window.location.hash);
