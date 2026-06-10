@@ -11,7 +11,7 @@ export function OutputLog({ entries }: { entries: LogEntry[] }) {
   return (
     <div role="log" aria-live="polite" aria-label="Command output" className="space-y-4">
       {entries.map((entry) => (
-        <div key={entry.id} className="output-fade space-y-2">
+        <div key={entry.id} data-entry-id={entry.id} className="output-fade space-y-2">
           {entry.command !== null && (
             <p className="flex flex-wrap items-baseline gap-2">
               <PromptLabel />
