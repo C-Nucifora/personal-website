@@ -1,11 +1,7 @@
 "use client";
 
-import { useCallback, type MouseEvent } from "react";
-import { PaneScrollback } from "./PaneScrollback";
-import { Prompt } from "./Prompt";
-import { CopyIndicator } from "./CopyIndicator";
+import { PaneTree } from "./PaneTree";
 import { WINDOW_IDS } from "@/lib/vfs/types";
-import { registerScroller } from "@/lib/terminal/scroll-registry";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowKey } from "@/lib/terminal/types";
 
@@ -19,16 +15,6 @@ const ALL_KEYS: WindowKey[] = ["lobby", ...WINDOW_IDS];
 export function WindowArea() {
   const activeKey = useTerminalStore((s) => s.activeWindow ?? "lobby");
 
-  // Clicking blank space focuses the prompt — never while selecting text or
-  // when a real control was the target.
-  const focusOnBlankClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (window.getSelection()?.toString()) return;
-    if ((e.target as HTMLElement).closest("a,button,select,input,textarea,label")) return;
-    e.currentTarget
-      .querySelector<HTMLInputElement>("input[aria-label='Terminal command input']")
-      ?.focus({ preventScroll: true });
-  }, []);
-
   return (
     <div className="relative min-h-0 flex-1">
       {ALL_KEYS.map((key) => {
@@ -37,17 +23,13 @@ export function WindowArea() {
           <div
             key={key}
             data-window={key}
-            ref={(el) => registerScroller(key, el)}
             aria-hidden={active ? undefined : "true"}
-            onClick={active ? focusOnBlankClick : undefined}
             className={[
-              "absolute inset-0 space-y-4 overflow-y-auto px-4 py-4 sm:px-5",
+              "absolute inset-0 flex",
               active ? "visible" : "invisible pointer-events-none",
             ].join(" ")}
           >
-            <CopyIndicator windowKey={key} />
-            <PaneScrollback windowKey={key} />
-            <Prompt windowKey={key} />
+            <PaneTree windowKey={key} />
           </div>
         );
       })}

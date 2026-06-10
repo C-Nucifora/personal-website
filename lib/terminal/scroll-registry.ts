@@ -1,17 +1,16 @@
 /**
- * COPY mode scrolls real DOM containers; this maps each window's scrollable
- * element so the keyboard module (non-React) can reach them.
+ * COPY mode and pane-size checks reach real DOM containers; this maps each
+ * pane's scrollable element (keyed "window:paneId") so the keyboard module
+ * (non-React) can reach them.
  */
-import type { WindowKey } from "./types";
+const scrollers = new Map<string, HTMLElement>();
 
-const scrollers = new Map<WindowKey, HTMLElement>();
-
-export function registerScroller(key: WindowKey, el: HTMLElement | null): void {
+export function registerScroller(key: string, el: HTMLElement | null): void {
   if (el) scrollers.set(key, el);
   else scrollers.delete(key);
 }
 
-export function getScroller(key: WindowKey): HTMLElement | undefined {
+export function getScroller(key: string): HTMLElement | undefined {
   return scrollers.get(key);
 }
 

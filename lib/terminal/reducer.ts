@@ -5,12 +5,16 @@
 import { normalizePath, windowForPath } from "@/lib/vfs/path";
 import { WINDOW_IDS } from "@/lib/vfs/types";
 import { initialVimState } from "@/lib/vim/machine";
+import { leaf, leafIds, neighbor, removeLeaf, splitLeaf, withRatio } from "./layout";
 import type { Action, AppState, PaneState, WindowId, WindowKey, WindowState } from "./types";
+
+export const MAX_PANES = 4;
 
 export const HISTORY_SEED = ["vim resume.md"];
 
-function freshPane(cwd: string): PaneState {
+function freshPane(id: string, cwd: string): PaneState {
   return {
+    id,
     cwd,
     prevCwd: cwd,
     inputBuffer: "",
@@ -26,24 +30,33 @@ function freshPane(cwd: string): PaneState {
   };
 }
 
-function freshWindow(cwd: string): WindowState {
-  return { visited: false, panes: [freshPane(cwd)], activePane: 0 };
+function freshWindow(id: string, cwd: string): WindowState {
+  const paneId = `${id}-p1`;
+  return {
+    visited: false,
+    panes: [freshPane(paneId, cwd)],
+    activePane: paneId,
+    layout: leaf(paneId),
+    zoomed: null,
+  };
 }
 
 export function initialState(initialWindow: WindowId | null): AppState {
   const windows = Object.fromEntries(
-    WINDOW_IDS.map((id) => [id, freshWindow(`~/${id}`)]),
+    WINDOW_IDS.map((id) => [id, freshWindow(id, `~/${id}`)]),
   ) as Record<WindowId, WindowState>;
   return {
     activeWindow: initialWindow,
     windows,
-    lobby: freshWindow("~"),
+    lobby: freshWindow("lobby", "~"),
     pendingPrefix: false,
     animating: null,
     notice: null,
     pendingConfirm: null,
+    picker: null,
     history: [...HISTORY_SEED],
     nextLineId: 1,
+    nextPaneId: 1,
     flashNonce: 0,
   };
 }
@@ -54,7 +67,11 @@ export function getWindow(state: AppState, key: WindowKey): WindowState {
 
 export function getPane(state: AppState, key: WindowKey): PaneState {
   const w = getWindow(state, key);
-  return w.panes[w.activePane];
+  return w.panes.find((p) => p.id === w.activePane) ?? w.panes[0];
+}
+
+export function getPaneById(state: AppState, key: WindowKey, paneId: string): PaneState | null {
+  return getWindow(state, key).panes.find((p) => p.id === paneId) ?? null;
 }
 
 export function activeWindowKey(state: AppState): WindowKey {
@@ -65,6 +82,12 @@ export function activePane(state: AppState): PaneState {
   return getPane(state, activeWindowKey(state));
 }
 
+function setWindow(state: AppState, key: WindowKey, next: WindowState): AppState {
+  return key === "lobby"
+    ? { ...state, lobby: next }
+    : { ...state, windows: { ...state.windows, [key]: next } };
+}
+
 /** Immutably replace the active pane of one window. */
 function withPane(
   state: AppState,
@@ -72,11 +95,8 @@ function withPane(
   update: (pane: PaneState) => PaneState,
 ): AppState {
   const w = getWindow(state, key);
-  const panes = w.panes.map((p, i) => (i === w.activePane ? update(p) : p));
-  const next: WindowState = { ...w, panes };
-  return key === "lobby"
-    ? { ...state, lobby: next }
-    : { ...state, windows: { ...state.windows, [key]: next } };
+  const panes = w.panes.map((p) => (p.id === w.activePane ? update(p) : p));
+  return setWindow(state, key, { ...w, panes });
 }
 
 export function reduce(state: AppState, action: Action): AppState {
@@ -202,5 +222,89 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case "set-pending-prefix":
       return { ...state, pendingPrefix: action.pending };
+
+    case "set-picker":
+      return { ...state, picker: action.picker };
+
+    case "split-pane": {
+      const w = state.windows[action.window];
+      if (w.panes.length >= MAX_PANES) return state;
+      const from = w.panes.find((p) => p.id === w.activePane) ?? w.panes[0];
+      const paneId = `pane-${state.nextPaneId}`;
+      const splitId = `split-${state.nextPaneId}`;
+      const pane = freshPane(paneId, from.cwd);
+      // A short header so the fresh shell states where it is (§7.3).
+      pane.scrollback = [
+        { id: state.nextLineId, command: null, node: `[new pane] ${from.cwd}` },
+      ];
+      const next: WindowState = {
+        ...w,
+        panes: [...w.panes, pane],
+        activePane: paneId,
+        layout: splitLeaf(w.layout, from.id, paneId, action.dir, splitId),
+        zoomed: null,
+      };
+      return {
+        ...setWindow(state, action.window, next),
+        nextPaneId: state.nextPaneId + 1,
+        nextLineId: state.nextLineId + 1,
+      };
+    }
+
+    case "close-pane": {
+      const w = state.windows[action.window];
+      if (w.panes.length <= 1) return state;
+      const layout = removeLeaf(w.layout, action.paneId);
+      if (!layout) return state;
+      const remaining = w.panes.filter((p) => p.id !== action.paneId);
+      const active =
+        w.activePane === action.paneId ? leafIds(layout)[0] : w.activePane;
+      return setWindow(state, action.window, {
+        ...w,
+        panes: remaining,
+        activePane: active,
+        layout,
+        zoomed: null,
+      });
+    }
+
+    case "focus-pane": {
+      const w = state.windows[action.window];
+      if (!w.panes.some((p) => p.id === action.paneId)) return state;
+      return setWindow(state, action.window, { ...w, activePane: action.paneId });
+    }
+
+    case "cycle-pane": {
+      const w = state.windows[action.window];
+      const order = leafIds(w.layout);
+      const idx = order.indexOf(w.activePane);
+      const next = order[(idx + 1) % order.length];
+      return setWindow(state, action.window, { ...w, activePane: next });
+    }
+
+    case "focus-direction": {
+      const w = state.windows[action.window];
+      const target = neighbor(w.layout, w.activePane, action.dir);
+      if (!target) return state;
+      return setWindow(state, action.window, { ...w, activePane: target });
+    }
+
+    case "zoom-pane": {
+      const w = state.windows[action.window];
+      if (w.panes.length <= 1) return state;
+      return setWindow(state, action.window, {
+        ...w,
+        zoomed: w.zoomed === w.activePane ? null : w.activePane,
+      });
+    }
+
+    case "set-ratio": {
+      const w = state.windows[action.window];
+      const ratio = Math.max(0.1, Math.min(0.9, action.ratio));
+      return setWindow(state, action.window, {
+        ...w,
+        layout: withRatio(w.layout, action.splitId, ratio),
+      });
+    }
   }
 }

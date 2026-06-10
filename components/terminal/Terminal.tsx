@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { TitleBar } from "./TitleBar";
 import { TabBar } from "./TabBar";
 import { WindowArea } from "./WindowArea";
+import { WindowPicker } from "./WindowPicker";
 import { StatusBar } from "./StatusBar";
 import { seedMotd } from "./Motd";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -52,11 +53,12 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
   }, []);
 
   return (
-    <div className="flex h-dvh flex-col bg-window">
+    <div className="relative flex h-dvh flex-col bg-window">
       <TitleBar />
       <TabBar />
       <WindowArea />
       <StatusBar />
+      <WindowPicker />
     </div>
   );
 }

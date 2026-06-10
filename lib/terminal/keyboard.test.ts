@@ -140,7 +140,7 @@ describe("COPY mode (FLOW §6.3)", () => {
   test("Ctrl+b [ enters COPY, q exits and re-pins to bottom", async () => {
     const { registerScroller } = await import("./scroll-registry");
     const el = fakeScroller();
-    registerScroller("lobby", el);
+    registerScroller("lobby:lobby-p1", el);
     press("b", { ctrlKey: true });
     press("[");
     expect(store.getState().lobby.panes[0].mode).toBe("COPY");
@@ -152,7 +152,7 @@ describe("COPY mode (FLOW §6.3)", () => {
   test("j and k scroll by lines, Ctrl+d by half a page", async () => {
     const { registerScroller } = await import("./scroll-registry");
     const el = fakeScroller();
-    registerScroller("lobby", el);
+    registerScroller("lobby:lobby-p1", el);
     press("b", { ctrlKey: true });
     press("[");
     const start = el.scrollTop;
@@ -169,7 +169,7 @@ describe("COPY mode (FLOW §6.3)", () => {
   test("gg goes to the top, G to the bottom", async () => {
     const { registerScroller } = await import("./scroll-registry");
     const el = fakeScroller();
-    registerScroller("lobby", el);
+    registerScroller("lobby:lobby-p1", el);
     press("b", { ctrlKey: true });
     press("[");
     press("g");
@@ -178,6 +178,100 @@ describe("COPY mode (FLOW §6.3)", () => {
     press("G");
     expect(el.scrollTop).toBe(1000);
     press("q");
+  });
+});
+
+describe("pane prefix bindings (FLOW §7.2/§7.3)", () => {
+  function inProjects() {
+    store.dispatch({ type: "switch-window", window: "projects" });
+    store.dispatch({ type: "mark-visited", window: "projects" });
+  }
+  const projects = () => store.getState().windows.projects;
+
+  test("Ctrl+b % splits in the projects window", () => {
+    inProjects();
+    press("b", { ctrlKey: true });
+    press("%");
+    expect(projects().panes).toHaveLength(2);
+  });
+
+  test("splits elsewhere advertise the projects window", () => {
+    store.dispatch({ type: "switch-window", window: "about" });
+    press("b", { ctrlKey: true });
+    press("%");
+    expect(store.getState().windows.about.panes).toHaveLength(1);
+    expect(store.getState().notice?.text).toContain("projects window");
+  });
+
+  test("Ctrl+b x asks for confirmation, y closes the pane", () => {
+    inProjects();
+    press("b", { ctrlKey: true });
+    press('"');
+    expect(projects().panes).toHaveLength(2);
+    press("b", { ctrlKey: true });
+    press("x");
+    expect(store.getState().pendingConfirm?.kind).toBe("closePane");
+    press("y");
+    expect(projects().panes).toHaveLength(1);
+  });
+
+  test("closing the only pane is refused with a notice", () => {
+    inProjects();
+    press("b", { ctrlKey: true });
+    press("x");
+    expect(store.getState().pendingConfirm).toBe(null);
+    expect(store.getState().notice?.text).toBeTruthy();
+  });
+
+  test("Ctrl+b o cycles pane focus", () => {
+    inProjects();
+    press("b", { ctrlKey: true });
+    press("%");
+    const second = projects().activePane;
+    press("b", { ctrlKey: true });
+    press("o");
+    expect(projects().activePane).not.toBe(second);
+  });
+
+  test("Ctrl+b z toggles zoom", () => {
+    inProjects();
+    press("b", { ctrlKey: true });
+    press("%");
+    press("b", { ctrlKey: true });
+    press("z");
+    expect(projects().zoomed).toBe(projects().activePane);
+    press("b", { ctrlKey: true });
+    press("z");
+    expect(projects().zoomed).toBe(null);
+  });
+
+  test("Ctrl+b ? prints the binding cheatsheet without an echo", () => {
+    press("b", { ctrlKey: true });
+    press("?");
+    const sb = store.getState().lobby.panes[0].scrollback;
+    expect(sb.length).toBeGreaterThan(0);
+    expect(sb[sb.length - 1].command).toBe(null);
+  });
+});
+
+describe("window picker (Ctrl+b w)", () => {
+  test("opens, navigates with j, selects with Enter", () => {
+    press("b", { ctrlKey: true });
+    press("w");
+    expect(store.getState().picker).not.toBe(null);
+    press("j");
+    press("j");
+    press("Enter");
+    expect(store.getState().picker).toBe(null);
+    expect(store.getState().activeWindow).toBe("resume");
+  });
+
+  test("Escape closes without switching", () => {
+    press("b", { ctrlKey: true });
+    press("w");
+    press("Escape");
+    expect(store.getState().picker).toBe(null);
+    expect(store.getState().activeWindow).toBe(null);
   });
 });
 

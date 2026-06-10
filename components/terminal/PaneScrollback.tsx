@@ -2,23 +2,30 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PromptLabel } from "./PromptLabel";
-import { getPane } from "@/lib/terminal/reducer";
+import { getPaneById } from "@/lib/terminal/reducer";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowKey } from "@/lib/terminal/types";
+
+interface PaneScrollbackProps {
+  windowKey: WindowKey;
+  paneId: string;
+}
 
 /**
  * A pane's scrollback. Command lines echo with the prompt as it looked when
  * they ran; output lines render their node. role="log" + polite live region
  * per the accessibility non-negotiables.
  */
-export function PaneScrollback({ windowKey }: { windowKey: WindowKey }) {
-  const lines = useTerminalStore((s) => getPane(s, windowKey).scrollback);
+export function PaneScrollback({ windowKey, paneId }: PaneScrollbackProps) {
+  const lines = useTerminalStore(
+    (s) => getPaneById(s, windowKey, paneId)?.scrollback ?? [],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const lastCommandId = useRef<number | null>(null);
   const [unseen, setUnseen] = useState(false);
 
   const scrollContainer = () =>
-    containerRef.current?.closest<HTMLElement>("[data-window]") ?? null;
+    containerRef.current?.closest<HTMLElement>("[data-pane-scroll]") ?? null;
 
   const atBottom = () => {
     const el = scrollContainer();
@@ -71,6 +78,10 @@ export function PaneScrollback({ windowKey }: { windowKey: WindowKey }) {
             <PromptLabel path={line.cwd ?? "~"} />{" "}
             <span className="font-mono text-sm text-fg">{line.command}</span>
           </div>
+        ) : typeof line.node === "string" ? (
+          <p key={line.id} data-entry-id={line.id} className="font-mono text-xs text-muted">
+            {line.node}
+          </p>
         ) : (
           <div key={line.id} data-entry-id={line.id} className="output-fade">
             {line.node}

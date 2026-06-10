@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { PromptLabel } from "./PromptLabel";
-import { activeWindowKey, getPane } from "@/lib/terminal/reducer";
+import { activeWindowKey, getPaneById, getWindow } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
 import { executeCommand } from "@/lib/terminal/executor";
 import { completeLine } from "@/lib/terminal/completion";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
-import type { WindowKey } from "@/lib/terminal/types";
+import type { AppState, WindowKey } from "@/lib/terminal/types";
 
 /** NORMAL-mode line rendering: text with a block cursor (§6.2). */
 function NormalLine({ text, pos }: { text: string; pos: number }) {
@@ -16,11 +16,16 @@ function NormalLine({ text, pos }: { text: string; pos: number }) {
     <span className="whitespace-pre font-mono text-sm text-fg">
       {text.slice(0, at)}
       <span className="bg-[var(--accent)] text-[var(--bg-window)]">
-        {text[at] ?? " "}
+        {text[at] ?? " "}
       </span>
       {text.slice(at + 1)}
     </span>
   );
+}
+
+interface PromptProps {
+  windowKey: WindowKey;
+  paneId: string;
 }
 
 /**
@@ -28,17 +33,20 @@ function NormalLine({ text, pos }: { text: string; pos: number }) {
  * (soft keyboards, IME, a11y); in NORMAL the global keyboard module drives
  * the vim machine and this renders the buffer with a block cursor.
  */
-export function Prompt({ windowKey }: { windowKey: WindowKey }) {
+export function Prompt({ windowKey, paneId }: PromptProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const value = useTerminalStore((s) => getPane(s, windowKey).inputBuffer);
-  const cursorPos = useTerminalStore((s) => getPane(s, windowKey).cursorPos);
-  const mode = useTerminalStore((s) => getPane(s, windowKey).mode);
-  const cwd = useTerminalStore((s) => getPane(s, windowKey).cwd);
-  const isActive = useTerminalStore((s) => activeWindowKey(s) === windowKey);
+  const pane = (s: AppState) => getPaneById(s, windowKey, paneId);
+  const value = useTerminalStore((s) => pane(s)?.inputBuffer ?? "");
+  const cursorPos = useTerminalStore((s) => pane(s)?.cursorPos ?? 0);
+  const mode = useTerminalStore((s) => pane(s)?.mode ?? "INSERT");
+  const cwd = useTerminalStore((s) => pane(s)?.cwd ?? "~");
+  const isActive = useTerminalStore(
+    (s) => activeWindowKey(s) === windowKey && getWindow(s, windowKey).activePane === paneId,
+  );
 
-  // The active pane's prompt takes focus (fine pointers only — never raise
-  // the soft keyboard uninvited, §11). Re-acquire focus and the stored
-  // cursor when returning from NORMAL.
+  // The focused pane's prompt takes keyboard focus (fine pointers only —
+  // never raise the soft keyboard uninvited, §11). Re-acquire focus and the
+  // stored cursor when returning from NORMAL.
   useEffect(() => {
     if (isActive && mode === "INSERT" && window.matchMedia?.("(pointer: fine)").matches) {
       const el = inputRef.current;
@@ -53,7 +61,6 @@ export function Prompt({ windowKey }: { windowKey: WindowKey }) {
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (mode !== "INSERT") {
-      // NORMAL/COPY keys belong to the global listener.
       e.preventDefault();
       return;
     }

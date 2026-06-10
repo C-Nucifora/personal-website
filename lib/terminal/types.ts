@@ -6,6 +6,9 @@
 import type { ReactNode } from "react";
 import type { WindowId } from "@/lib/vfs/types";
 import type { LineVimState } from "@/lib/vim/types";
+import type { Direction, PaneLayout } from "./layout";
+
+export type { Direction, PaneLayout };
 
 export type { WindowId };
 export { WINDOW_IDS } from "@/lib/vfs/types";
@@ -25,6 +28,7 @@ export interface OutputLine {
 }
 
 export interface PaneState {
+  id: string;
   cwd: string;
   prevCwd: string; // for `cd -`
   inputBuffer: string;
@@ -42,7 +46,9 @@ export interface PaneState {
 export interface WindowState {
   visited: boolean;
   panes: PaneState[];
-  activePane: number;
+  activePane: string; // pane id
+  layout: PaneLayout;
+  zoomed: string | null; // zoomed pane id (Ctrl+b z)
 }
 
 export interface AppState {
@@ -53,8 +59,11 @@ export interface AppState {
   animating: { command: string; stash: string } | null;
   notice: { text: string; until: number } | null;
   pendingConfirm: { kind: "openUrl" | "closePane"; payload: string } | null;
+  /** Ctrl+b w window picker overlay; index = highlighted row. */
+  picker: { index: number } | null;
   history: string[];
   nextLineId: number;
+  nextPaneId: number;
   /** Bumped on unrecognized NORMAL-mode keys — the status bar flashes. */
   flashNonce: number;
 }
@@ -85,6 +94,14 @@ export type Action =
       toInsert: boolean;
     }
   | { type: "flash-mode" }
+  | { type: "split-pane"; window: WindowId; dir: "row" | "col" }
+  | { type: "close-pane"; window: WindowId; paneId: string }
+  | { type: "focus-pane"; window: WindowId; paneId: string }
+  | { type: "cycle-pane"; window: WindowId }
+  | { type: "focus-direction"; window: WindowId; dir: Direction }
+  | { type: "zoom-pane"; window: WindowId }
+  | { type: "set-ratio"; window: WindowId; splitId: string; ratio: number }
+  | { type: "set-picker"; picker: { index: number } | null }
   | { type: "set-notice"; text: string; until: number }
   | { type: "clear-notice" }
   | { type: "set-confirm"; confirm: AppState["pendingConfirm"] }
