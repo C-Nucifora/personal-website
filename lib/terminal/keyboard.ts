@@ -9,6 +9,7 @@
 import { WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
 import { activeWindowKey } from "./reducer";
 import { ensureWindowDisplayed } from "./executor";
+import { finishAnimation } from "./animate";
 import { store } from "./store";
 
 function switchWindow(target: WindowId | null): void {
@@ -42,6 +43,13 @@ export function initKeyboard(): () => void {
     if (/^F\d+$/.test(e.key)) return;
 
     const state = store.getState();
+
+    // A keypress during a click animation completes it instantly (§5).
+    if (state.animating) {
+      e.preventDefault();
+      finishAnimation();
+      return;
+    }
 
     // Pending status-bar confirm consumes y/n (FLOW §10.2).
     if (state.pendingConfirm && !e.ctrlKey && !e.altKey) {

@@ -81,6 +81,21 @@ describe("pending confirms", () => {
   });
 });
 
+describe("animation skip", () => {
+  test("any keypress completes a running click animation", async () => {
+    vi.useFakeTimers();
+    const { animateClick } = await import("./animate");
+    animateClick("pwd");
+    vi.advanceTimersByTime(20);
+    press("x");
+    expect(
+      store.getState().lobby.panes[0].scrollback.some((l) => l.command === "pwd"),
+    ).toBe(true);
+    expect(store.getState().animating).toBe(null);
+    vi.useRealTimers();
+  });
+});
+
 describe("Ctrl+l", () => {
   test("clears the active pane", () => {
     store.dispatch({ type: "append-line", windowKey: "lobby", command: "x", node: null });
