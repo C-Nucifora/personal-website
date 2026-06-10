@@ -197,19 +197,6 @@ a:hover {
 }
 
 /*
- * Touch-only quick-action bar. The tmux prefix keys are keyboard-only, so this
- * appears just for coarse pointers (phones/tablets) and stays hidden otherwise.
- */
-.mobile-bar {
-  display: none;
-}
-@media (pointer: coarse) {
-  .mobile-bar {
-    display: flex;
-  }
-}
-
-/*
  * Print / "Save as PDF": hide the interactive terminal chrome and reveal the
  * clean, server-rendered content so a printed page (or `resume --download`)
  * yields a readable document that always matches the data.
