@@ -81,6 +81,15 @@ async function main() {
   await page.waitForTimeout(300);
   ok("deep-link /#contact opens contact", (await activeWin()).includes("contact"));
 
+  // Reload re-seeds the boot card (clear only wipes within a session).
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await page.waitForSelector('html[data-js-ready="true"]');
+  await page.waitForTimeout(400);
+  ok(
+    "reload re-seeds the boot card",
+    /Host/.test(await logText()) && (await logText()).toLowerCase().includes("last login:"),
+  );
+
   await browser.close();
 
   const mob = await chromium.launch();
