@@ -18,6 +18,8 @@ export interface OutputLine {
   id: number;
   /** The echoed command, or null for system output (MOTD, extra writes). */
   command: string | null;
+  /** The cwd at echo time — the echo line's prompt renders it. */
+  cwd?: string;
   node: ReactNode;
 }
 
@@ -57,7 +59,13 @@ export type Action =
   | { type: "switch-window"; window: WindowId | null }
   | { type: "mark-visited"; window: WindowId }
   | { type: "set-cwd"; windowKey: WindowKey; path: string }
-  | { type: "append-line"; windowKey: WindowKey; command: string | null; node: ReactNode }
+  | {
+      type: "append-line";
+      windowKey: WindowKey;
+      command: string | null;
+      cwd?: string;
+      node: ReactNode;
+    }
   | { type: "clear-scrollback"; windowKey: WindowKey }
   | { type: "set-input"; windowKey: WindowKey; text: string; cursorPos: number }
   | { type: "history-append"; line: string }

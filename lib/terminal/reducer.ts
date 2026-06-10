@@ -113,7 +113,12 @@ export function reduce(state: AppState, action: Action): AppState {
           ...p,
           scrollback: [
             ...p.scrollback,
-            { id: state.nextLineId, command: action.command, node: action.node },
+            {
+              id: state.nextLineId,
+              command: action.command,
+              cwd: action.cwd,
+              node: action.node,
+            },
           ],
         })),
         nextLineId: state.nextLineId + 1,

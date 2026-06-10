@@ -102,7 +102,13 @@ export function executeCommand(line: string, opts: ExecOptions): void {
   }
 
   // Echo first — typed and clicked sessions read identically in scrollback.
-  store.dispatch({ type: "append-line", windowKey, command: cmdLine, node: null });
+  store.dispatch({
+    type: "append-line",
+    windowKey,
+    command: cmdLine,
+    cwd: getPane(store.getState(), windowKey).cwd,
+    node: null,
+  });
 
   const [name, ...args] = cmdLine.split(/\s+/);
   const mod = resolveCommand(name);

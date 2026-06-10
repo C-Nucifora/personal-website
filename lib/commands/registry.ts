@@ -65,8 +65,9 @@ import { history } from "./core/history";
 import { theme } from "./core/theme";
 import { echo } from "./core/echo";
 import { date } from "./core/date";
+import { exit } from "./eggs/exit";
 
-/** Registration order = help listing order. */
+/** Registration order = help listing order; hidden eggs trail at the end. */
 export const commandModules: CommandModule[] = [
   ls,
   cd,
@@ -82,6 +83,7 @@ export const commandModules: CommandModule[] = [
   theme,
   echo,
   date,
+  exit,
 ];
 
 export const commandMetas: CommandMeta[] = commandModules.map((m) => m.meta);

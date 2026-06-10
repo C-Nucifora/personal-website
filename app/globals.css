@@ -149,6 +149,20 @@ a:hover {
   animation: output-fade-in 180ms ease-out;
 }
 
+/* The MOTD types on over ~600ms (FLOW §4) — a stepped top-down reveal.
+   Reduced motion disables it via the global rule above. */
+@keyframes motd-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0% 0);
+  }
+}
+.motd-typeon {
+  animation: motd-reveal 600ms steps(14, end);
+}
+
 /* The blinking caret on the live prompt. */
 @keyframes caret-blink {
   0%,
