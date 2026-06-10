@@ -18,6 +18,10 @@ interface Options {
   onPrevWindow: () => void;
   /** prefix s / prefix w: open the window switcher overlay. */
   onWindowSwitcher: () => void;
+  /** Return to the shell/home (used by Escape when a section is open). */
+  onHome: () => void;
+  /** Read the currently active window id (0 = shell/home). */
+  getActiveWindow: () => number;
 }
 
 /**
@@ -53,6 +57,8 @@ export function useTerminalKeys({
   onNextWindow,
   onPrevWindow,
   onWindowSwitcher,
+  onHome,
+  getActiveWindow,
 }: Options) {
   const [mode, setMode] = useState<VimMode>("insert");
   const [prefix, setPrefix] = useState(false);
@@ -147,9 +153,13 @@ export function useTerminalKeys({
         return;
       }
 
-      // 3) Escape always drops to NORMAL mode.
+      // 3) Escape: back out of a section to home; in the shell, drop to NORMAL.
       if (e.key === "Escape") {
-        blurInput();
+        if (getActiveWindow() !== 0) {
+          onHome();
+        } else {
+          blurInput();
+        }
         return;
       }
 
@@ -223,6 +233,8 @@ export function useTerminalKeys({
     onNextWindow,
     onPrevWindow,
     onWindowSwitcher,
+    onHome,
+    getActiveWindow,
   ]);
 
   return { mode, prefix };

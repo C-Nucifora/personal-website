@@ -4,7 +4,7 @@ export const clear: CommandModule = {
   meta: {
     name: "clear",
     aliases: ["cls"],
-    description: "Clear the screen (keeps the welcome hint).",
+    description: "Clear the shell scrollback (the boot card returns on reload).",
     usage: "clear",
     group: "System",
   },

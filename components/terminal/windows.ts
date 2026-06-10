@@ -22,6 +22,10 @@ export const WINDOWS: readonly TerminalWindow[] = [
   { id: 5, label: "homelab", command: "homelab" },
 ];
 
+/** Just the section windows (ids ≥ 1) — the bottom strip's tabs. Home (0) is
+ *  not a tab; it is the status-bar host label. */
+export const SECTIONS: readonly TerminalWindow[] = WINDOWS.filter((w) => w.id !== 0);
+
 /** Map a resolved command name back to its window id, or 0 (shell) if none. */
 export function windowForCommand(command: string | null): number {
   if (!command) return 0;
