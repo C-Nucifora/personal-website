@@ -16,9 +16,13 @@ interface StatusBarProps {
  * the prompt path).
  */
 export function StatusBar({ themeId }: StatusBarProps) {
+  // The theme is only known on the client, so defer theme-dependent text until
+  // after mount to avoid a hydration mismatch (same reason the clock starts blank).
+  const [mounted, setMounted] = useState(false);
   const [time, setTime] = useState("");
 
   useEffect(() => {
+    setMounted(true);
     const tick = () =>
       setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
     tick();
@@ -37,7 +41,7 @@ export function StatusBar({ themeId }: StatusBarProps) {
         {profile.username}@portfolio:<span className="text-accent">~</span>
       </span>
       <div className="flex shrink-0 items-center gap-3">
-        <span>{themeLabel}</span>
+        <span>{mounted ? themeLabel : ""}</span>
         <span>{time}</span>
       </div>
     </div>
