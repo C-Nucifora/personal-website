@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from "react";
 import type { WindowId } from "@/lib/vfs/types";
+import type { LineVimState } from "@/lib/vim/types";
 
 export type { WindowId };
 export { WINDOW_IDS } from "@/lib/vfs/types";
@@ -33,6 +34,7 @@ export interface PaneState {
   scrollback: OutputLine[];
   scrollOffset: number; // 0 = pinned to bottom
   mode: Mode;
+  vim: LineVimState; // NORMAL-mode line-editing state (§6.2)
   view: "shell" | "editor";
   editorPath: string | null;
 }
@@ -53,6 +55,8 @@ export interface AppState {
   pendingConfirm: { kind: "openUrl" | "closePane"; payload: string } | null;
   history: string[];
   nextLineId: number;
+  /** Bumped on unrecognized NORMAL-mode keys — the status bar flashes. */
+  flashNonce: number;
 }
 
 export type Action =
@@ -71,6 +75,16 @@ export type Action =
   | { type: "history-append"; line: string }
   | { type: "history-walk"; windowKey: WindowKey; direction: -1 | 1 }
   | { type: "set-mode"; windowKey: WindowKey; mode: Mode }
+  | { type: "set-cursor"; windowKey: WindowKey; pos: number }
+  | {
+      type: "apply-vim";
+      windowKey: WindowKey;
+      text: string;
+      pos: number;
+      vim: LineVimState;
+      toInsert: boolean;
+    }
+  | { type: "flash-mode" }
   | { type: "set-notice"; text: string; until: number }
   | { type: "clear-notice" }
   | { type: "set-confirm"; confirm: AppState["pendingConfirm"] }

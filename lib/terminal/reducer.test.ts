@@ -144,6 +144,55 @@ describe("notices and confirms", () => {
   });
 });
 
+describe("vim integration", () => {
+  test("apply-vim updates buffer, cursor and vim state", () => {
+    let s = freshState();
+    s = reduce(s, { type: "set-input", windowKey: "lobby", text: "foo bar", cursorPos: 0 });
+    const vim = activePane(s).vim;
+    s = reduce(s, {
+      type: "apply-vim",
+      windowKey: "lobby",
+      text: "bar",
+      pos: 0,
+      vim: { ...vim, register: "foo " },
+      toInsert: false,
+    });
+    expect(activePane(s).inputBuffer).toBe("bar");
+    expect(activePane(s).cursorPos).toBe(0);
+    expect(activePane(s).vim.register).toBe("foo ");
+  });
+
+  test("apply-vim with toInsert switches the pane to INSERT", () => {
+    let s = freshState();
+    s = reduce(s, { type: "set-mode", windowKey: "lobby", mode: "NORMAL" });
+    s = reduce(s, {
+      type: "apply-vim",
+      windowKey: "lobby",
+      text: "x",
+      pos: 1,
+      vim: activePane(s).vim,
+      toInsert: true,
+    });
+    expect(activePane(s).mode).toBe("INSERT");
+  });
+
+  test("set-cursor moves the cursor without resetting a history walk", () => {
+    let s = freshState();
+    s = reduce(s, { type: "history-walk", windowKey: "lobby", direction: -1 });
+    const idx = activePane(s).historyIndex;
+    s = reduce(s, { type: "set-cursor", windowKey: "lobby", pos: 2 });
+    expect(activePane(s).cursorPos).toBe(2);
+    expect(activePane(s).historyIndex).toBe(idx);
+  });
+
+  test("flash-mode bumps the nonce", () => {
+    let s = freshState();
+    const before = s.flashNonce;
+    s = reduce(s, { type: "flash-mode" });
+    expect(s.flashNonce).toBe(before + 1);
+  });
+});
+
 describe("visited flag", () => {
   test("mark-visited flips once", () => {
     const s = reduce(freshState(), { type: "mark-visited", window: "help" });

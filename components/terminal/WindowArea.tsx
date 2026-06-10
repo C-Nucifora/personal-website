@@ -3,7 +3,9 @@
 import { useCallback, type MouseEvent } from "react";
 import { PaneScrollback } from "./PaneScrollback";
 import { Prompt } from "./Prompt";
+import { CopyIndicator } from "./CopyIndicator";
 import { WINDOW_IDS } from "@/lib/vfs/types";
+import { registerScroller } from "@/lib/terminal/scroll-registry";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowKey } from "@/lib/terminal/types";
 
@@ -35,6 +37,7 @@ export function WindowArea() {
           <div
             key={key}
             data-window={key}
+            ref={(el) => registerScroller(key, el)}
             aria-hidden={active ? undefined : "true"}
             onClick={active ? focusOnBlankClick : undefined}
             className={[
@@ -42,6 +45,7 @@ export function WindowArea() {
               active ? "visible" : "invisible pointer-events-none",
             ].join(" ")}
           >
+            <CopyIndicator windowKey={key} />
             <PaneScrollback windowKey={key} />
             <Prompt windowKey={key} />
           </div>

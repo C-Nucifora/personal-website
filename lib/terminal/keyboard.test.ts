@@ -81,6 +81,106 @@ describe("pending confirms", () => {
   });
 });
 
+describe("NORMAL mode (FLOW §6.2)", () => {
+  function normal(input: string, pos = 0) {
+    store.dispatch({ type: "set-input", windowKey: "lobby", text: input, cursorPos: pos });
+    store.dispatch({ type: "set-mode", windowKey: "lobby", mode: "NORMAL" });
+  }
+  const pane = () => store.getState().lobby.panes[0];
+
+  test("dw deletes a word in the input buffer", () => {
+    normal("foo bar");
+    press("d");
+    press("w");
+    expect(pane().inputBuffer).toBe("bar");
+    expect(pane().mode).toBe("NORMAL");
+  });
+
+  test("i returns to INSERT", () => {
+    normal("abc");
+    press("i");
+    expect(pane().mode).toBe("INSERT");
+  });
+
+  test("Enter executes the line from NORMAL", () => {
+    normal("pwd");
+    press("Enter");
+    expect(pane().scrollback.some((l) => l.command === "pwd")).toBe(true);
+    expect(pane().inputBuffer).toBe("");
+    expect(pane().mode).toBe("INSERT");
+  });
+
+  test("k walks history up", () => {
+    store.dispatch({ type: "history-append", line: "ls" });
+    normal("");
+    press("k");
+    expect(pane().inputBuffer).toBe("ls");
+  });
+
+  test("unknown key flashes the mode indicator", () => {
+    normal("abc");
+    const before = store.getState().flashNonce;
+    press("Q");
+    expect(store.getState().flashNonce).toBe(before + 1);
+  });
+
+  test("printable keys never leak to the browser default", () => {
+    normal("abc");
+    const e = new KeyboardEvent("keydown", { key: "x", bubbles: true, cancelable: true });
+    window.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(true);
+  });
+});
+
+describe("COPY mode (FLOW §6.3)", () => {
+  function fakeScroller() {
+    return { scrollTop: 500, scrollHeight: 1000, clientHeight: 200 } as HTMLElement;
+  }
+
+  test("Ctrl+b [ enters COPY, q exits and re-pins to bottom", async () => {
+    const { registerScroller } = await import("./scroll-registry");
+    const el = fakeScroller();
+    registerScroller("lobby", el);
+    press("b", { ctrlKey: true });
+    press("[");
+    expect(store.getState().lobby.panes[0].mode).toBe("COPY");
+    press("q");
+    expect(store.getState().lobby.panes[0].mode).toBe("INSERT");
+    expect(el.scrollTop).toBe(1000);
+  });
+
+  test("j and k scroll by lines, Ctrl+d by half a page", async () => {
+    const { registerScroller } = await import("./scroll-registry");
+    const el = fakeScroller();
+    registerScroller("lobby", el);
+    press("b", { ctrlKey: true });
+    press("[");
+    const start = el.scrollTop;
+    press("j");
+    expect(el.scrollTop).toBeGreaterThan(start);
+    press("k");
+    expect(el.scrollTop).toBe(start);
+    press("d", { ctrlKey: true });
+    expect(el.scrollTop).toBe(start + 100);
+    press("Escape");
+    expect(store.getState().lobby.panes[0].mode).toBe("INSERT");
+  });
+
+  test("gg goes to the top, G to the bottom", async () => {
+    const { registerScroller } = await import("./scroll-registry");
+    const el = fakeScroller();
+    registerScroller("lobby", el);
+    press("b", { ctrlKey: true });
+    press("[");
+    press("g");
+    press("g");
+    expect(el.scrollTop).toBe(0);
+    press("G");
+    expect(el.scrollTop).toBe(1000);
+    press("q");
+  });
+});
+
 describe("animation skip", () => {
   test("any keypress completes a running click animation", async () => {
     vi.useFakeTimers();

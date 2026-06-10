@@ -139,6 +139,27 @@ async function main() {
   const cleared = await paneText("projects");
   ok("clear wipes the pane", !cleared.includes("history") && !cleared.includes("ls"));
 
+  // ---- vim NORMAL mode on the command line (§6.2)
+  await activeInput("projects").fill("echo delete me");
+  await activeInput("projects").press("Escape");
+  await page.waitForTimeout(100);
+  ok("Esc enters NORMAL mode", (await page.innerText("body")).includes("-- NORMAL --"));
+  await page.keyboard.press("d");
+  await page.keyboard.press("d");
+  await page.keyboard.press("i");
+  await page.waitForTimeout(100);
+  ok("dd clears the line, i returns to INSERT", (await page.innerText("body")).includes("-- INSERT --"));
+  ok("buffer empty after dd", (await activeInput("projects").inputValue()) === "");
+
+  // ---- COPY mode (§6.3)
+  await page.keyboard.press("Control+b");
+  await page.keyboard.press("[");
+  await page.waitForTimeout(100);
+  ok("Ctrl+b [ enters COPY mode", (await page.innerText("body")).includes("-- COPY --"));
+  await page.keyboard.press("q");
+  await page.waitForTimeout(100);
+  ok("q leaves COPY mode", (await page.innerText("body")).includes("-- INSERT --"));
+
   // ---- deep link (§4)
   await page.goto(BASE + "/contact/", { waitUntil: "networkidle" });
   await page.waitForSelector('html[data-js-ready="true"]');

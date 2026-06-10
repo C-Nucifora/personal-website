@@ -163,6 +163,21 @@ a:hover {
   animation: motd-reveal 600ms steps(14, end);
 }
 
+/* Unrecognized NORMAL-mode keys flash the status-bar mode segment (§6.2). */
+@keyframes mode-flash {
+  0%,
+  100% {
+    background: transparent;
+  }
+  40% {
+    background: var(--warning);
+    color: var(--bg-window);
+  }
+}
+.mode-flash {
+  animation: mode-flash 250ms ease-out;
+}
+
 /* The blinking caret on the live prompt. */
 @keyframes caret-blink {
   0%,

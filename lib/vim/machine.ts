@@ -3,7 +3,7 @@
  * handleKey, accumulating `[count][operator][count][motion|textobject]` and
  * resolving on completion. Pure: (buffer, state, key) → result.
  */
-import { FIND_KEYS, MOTION_KEYS, findChar, motion } from "./motions";
+import { FIND_KEYS, findChar, motion } from "./motions";
 import { textObjectSpan, type Span } from "./textObjects";
 import type { KeyInput, LineVimState, Operator, VimBuffer, VimResult } from "./types";
 

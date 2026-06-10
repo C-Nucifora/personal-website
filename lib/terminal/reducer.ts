@@ -4,6 +4,7 @@
  */
 import { normalizePath, windowForPath } from "@/lib/vfs/path";
 import { WINDOW_IDS } from "@/lib/vfs/types";
+import { initialVimState } from "@/lib/vim/machine";
 import type { Action, AppState, PaneState, WindowId, WindowKey, WindowState } from "./types";
 
 export const HISTORY_SEED = ["vim resume.md"];
@@ -19,6 +20,7 @@ function freshPane(cwd: string): PaneState {
     scrollback: [],
     scrollOffset: 0,
     mode: "INSERT",
+    vim: initialVimState(),
     view: "shell",
     editorPath: null,
   };
@@ -42,6 +44,7 @@ export function initialState(initialWindow: WindowId | null): AppState {
     pendingConfirm: null,
     history: [...HISTORY_SEED],
     nextLineId: 1,
+    flashNonce: 0,
   };
 }
 
@@ -169,6 +172,21 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case "set-mode":
       return withPane(state, action.windowKey, (p) => ({ ...p, mode: action.mode }));
+
+    case "set-cursor":
+      return withPane(state, action.windowKey, (p) => ({ ...p, cursorPos: action.pos }));
+
+    case "apply-vim":
+      return withPane(state, action.windowKey, (p) => ({
+        ...p,
+        inputBuffer: action.text,
+        cursorPos: action.pos,
+        vim: action.vim,
+        mode: action.toInsert ? "INSERT" : p.mode,
+      }));
+
+    case "flash-mode":
+      return { ...state, flashNonce: state.flashNonce + 1 };
 
     case "set-notice":
       return { ...state, notice: { text: action.text, until: action.until } };

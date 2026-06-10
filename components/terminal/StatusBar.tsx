@@ -26,6 +26,7 @@ export function StatusBar() {
   const pendingPrefix = useTerminalStore((s) => s.pendingPrefix);
   const notice = useTerminalStore((s) => s.notice);
   const confirm = useTerminalStore((s) => s.pendingConfirm);
+  const flashNonce = useTerminalStore((s) => s.flashNonce);
 
   const [time, setTime] = useState("");
   useEffect(() => {
@@ -78,10 +79,13 @@ export function StatusBar() {
         ))}
       </ul>
 
+      {/* key remount replays the flash animation on unrecognized keys (§6.2) */}
       <span
+        key={flashNonce}
         className={[
           "shrink-0",
           pendingPrefix ? "bg-selection px-1 text-accent" : "text-accent",
+          flashNonce > 0 ? "mode-flash" : "",
         ].join(" ")}
         aria-live="polite"
       >
