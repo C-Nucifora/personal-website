@@ -1,7 +1,14 @@
 /**
- * Projects. Rendered as focusable cards by the `projects` command and the
- * server-rendered fallback. `projects --featured` shows only `featured: true`.
+ * Projects. Each project is a directory under ~/projects in the virtual
+ * filesystem (FLOW.md §2): a README.md plus, optionally, real source files
+ * under src/. Cards in the server-rendered fallback read the same data.
  */
+export interface ProjectCommit {
+  hash: string; // short hash, e.g. "3f2a91c"
+  date: string; // "2026-05-12"
+  message: string;
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -11,7 +18,11 @@ export interface Project {
   liveUrl?: string; // shows a "Live" badge + link
   sourceUrl?: string; // shows a "Source" link
   thumbnail?: string; // /public path, optional
-  featured?: boolean; // surfaced by `projects --featured`
+  featured?: boolean;
+  /** Markdown README; omitted → generated from the fields above. */
+  readme?: string;
+  /** Abbreviated commit history shown by `git log` inside the project dir. */
+  commits?: ProjectCommit[];
 }
 
 export const projects: Project[] = [
