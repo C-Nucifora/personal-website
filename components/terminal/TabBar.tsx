@@ -31,11 +31,11 @@ export function TabBar() {
                 onClick={() => runClick(`cd ${target}`)}
                 aria-current={isActive ? "page" : undefined}
                 className={[
-                  "min-h-[44px] cursor-pointer whitespace-nowrap px-3 py-2 font-mono text-sm transition-colors",
+                  "min-h-[44px] cursor-pointer whitespace-nowrap border-r border-border/60 px-3.5 py-2 font-mono text-sm transition-colors",
                   "focus-visible:outline-2",
                   isActive
-                    ? "border-b-2 border-accent bg-window text-accent"
-                    : "text-fg/75 hover:text-fg",
+                    ? "border-b-2 border-b-accent bg-window text-accent"
+                    : "text-fg/75 hover:bg-window/70 hover:text-fg",
                 ].join(" ")}
               >
                 <span className={isActive ? "text-muted" : ""}>{i + 1}:</span>
