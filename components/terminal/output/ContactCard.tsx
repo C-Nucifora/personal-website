@@ -1,4 +1,5 @@
 import { profile } from "@/data/profile";
+import { ContactForm } from "@/components/content/ContactForm";
 import { Socials } from "@/components/content/Socials";
 
 /**
@@ -15,6 +16,7 @@ export function ContactCard() {
         </a>
       </p>
       <Socials />
+      <ContactForm />
       <p className="text-sm text-muted">
         Homelab dashboard:{" "}
         <a href={profile.homelabUrl} target="_blank" rel="noopener noreferrer">
