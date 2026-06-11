@@ -5,8 +5,8 @@
   "scripts": {
     "bundle-source": "node scripts/bundle-source.mjs",
     "fetch-projects": "node scripts/fetch-projects.mjs",
-    "predev": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs",
-    "prebuild": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs",
+    "predev": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs",
+    "prebuild": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

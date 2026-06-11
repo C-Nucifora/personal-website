@@ -1,5 +1,6 @@
 import { experience, education, skills, type ResumeEntry } from "@/data/resume";
 import { profile } from "@/data/profile";
+import { hasResumePdf } from "@/data/generated/assets";
 import { Icon } from "@/components/ui/Icon";
 import { PrintButton } from "@/components/ui/PrintButton";
 
@@ -58,14 +59,16 @@ export function Resume() {
       )}
 
       <div className="flex flex-wrap gap-2 print:hidden">
-        <a
-          href={profile.resumePdf}
-          download
-          className="inline-flex items-center gap-2 rounded-md border border-accent/40 px-3 py-2 text-sm text-accent transition-colors hover:bg-accent/10 hover:no-underline"
-        >
-          <Icon name="download" size={16} />
-          Download PDF
-        </a>
+        {hasResumePdf && (
+          <a
+            href={profile.resumePdf}
+            download
+            className="inline-flex items-center gap-2 rounded-md border border-accent/40 px-3 py-2 text-sm text-accent transition-colors hover:bg-accent/10 hover:no-underline"
+          >
+            <Icon name="download" size={16} />
+            Download PDF
+          </a>
+        )}
         <PrintButton />
       </div>
     </section>
