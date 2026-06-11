@@ -10,6 +10,7 @@ import { oneDark } from "./one-dark";
 import { solarizedDark } from "./solarized-dark";
 import { solarizedLight } from "./solarized-light";
 import { rosePine } from "./rose-pine";
+import { crt } from "./crt";
 
 export type { Theme, ThemeEntry } from "./types";
 
@@ -40,7 +41,20 @@ export const themes: ThemeEntry[] = [
   { id: "solarized-dark", label: "Solarized Dark", appearance: "dark", theme: solarizedDark },
   { id: "solarized-light", label: "Solarized Light", appearance: "light", theme: solarizedLight },
   { id: "rose-pine", label: "Rosé Pine", appearance: "dark", theme: rosePine },
+  {
+    id: "crt",
+    label: "CRT (unlocked)",
+    appearance: "dark",
+    theme: crt,
+    effects: { scanlines: true, flicker: true, curvature: true },
+    unlock: "konami",
+  },
 ];
+
+/** Themes visible in listings — locked entries appear once unlocked. */
+export function visibleThemes(crtUnlocked: boolean): ThemeEntry[] {
+  return themes.filter((t) => !t.unlock || crtUnlocked);
+}
 
 /** The theme used on a visitor's very first load (before any saved choice). */
 export const DEFAULT_THEME_ID = "tokyo-night";

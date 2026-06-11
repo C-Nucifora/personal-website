@@ -1,14 +1,16 @@
 "use client";
 
-import { themes } from "@/lib/themes";
+import { visibleThemes } from "@/lib/themes";
+import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 
 interface ThemesOutputProps {
   currentId: string;
   onSet: (id: string) => void;
 }
 
-/** `themes` output: each available theme as a clickable swatch + name. */
+/** `theme` output: each available theme as a clickable swatch + name. */
 export function ThemesOutput({ currentId, onSet }: ThemesOutputProps) {
+  const themes = visibleThemes(useTerminalStore((s) => s.crtUnlocked));
   return (
     <div className="space-y-3">
       <p className="text-fg">Pick a theme — it applies instantly and is remembered:</p>

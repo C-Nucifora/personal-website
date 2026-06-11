@@ -1,166 +1,83 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef } from "react";
 import { TitleBar } from "./TitleBar";
-import { bootEntries } from "./boot";
-import { OutputLog } from "./OutputLog";
-import { CommandInput } from "./CommandInput";
+import { TabBar } from "./TabBar";
+import { WindowArea } from "./WindowArea";
+import { WindowPicker } from "./WindowPicker";
 import { StatusBar } from "./StatusBar";
-import { SectionNav } from "./SectionNav";
-import { commandForHash } from "./sections";
-import { loadHistory, saveHistory, HISTORY_MAX } from "./historyStore";
-import { useTerminalKeys } from "./useTerminalKeys";
-import type { LogEntry } from "./types";
-import { HelpPanel } from "@/components/ui/HelpPanel";
+import { seedMotd } from "./Motd";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { runCommandLine, type SessionActions } from "@/lib/commands";
+import { CrtOverlay } from "@/components/effects/CrtOverlay";
+import { Disintegration } from "@/components/effects/Disintegration";
+import { MatrixRain } from "@/components/effects/MatrixRain";
+import { store } from "@/lib/terminal/store";
+import { executeCommand } from "@/lib/terminal/executor";
+import { initIdle } from "@/lib/terminal/idle";
+import { initKeyboard } from "@/lib/terminal/keyboard";
+import { initRouting } from "@/lib/terminal/routing";
+import { registerThemeEnv } from "@/lib/terminal/env";
+import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
+import type { WindowId } from "@/lib/terminal/types";
 
-export function Terminal() {
-  // One continuous scrollback. Every command — content or toy — appends here;
-  // `clear` empties it. There are no windows or sections.
-  const [entries, setEntries] = useState<LogEntry[]>([]);
-  // Lazy-load persisted history (recall only; not rendered, so no SSR mismatch).
-  const [history, setHistory] = useState<string[]>(() =>
-    typeof window === "undefined" ? [] : loadHistory(),
-  );
-  const [helpOpen, setHelpOpen] = useState(false);
-
+/**
+ * The terminal shell — a thin layout over the store (FLOW.md §1). All state
+ * lives in lib/terminal; this component boots the session and renders chrome.
+ */
+export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | null }) {
   const { themeId, setTheme } = useTheme();
 
-  const idRef = useRef(0);
-  const historyRef = useRef<string[]>(history);
+  // Bridge the theme context to the non-React executor.
   const themeIdRef = useRef(themeId);
-  const runLineRef = useRef<(line: string) => void>(() => {});
-  const runDepth = useRef(0);
-  // The entry whose top should scroll into view after the next render.
-  const pendingScrollId = useRef<number | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     themeIdRef.current = themeId;
   }, [themeId]);
-
-  useTerminalKeys({ onClear: () => runLineRef.current("clear") });
-
-  const runLine = useCallback(
-    (line: string) => {
-      const trimmed = line.trim();
-      if (!trimmed) return;
-
-      runDepth.current += 1;
-      const isTop = runDepth.current === 1;
-      let cleared = false;
-      let childRan = false;
-
-      const actions: SessionActions = {
-        clear: () => {
-          cleared = true;
-        },
-        run: (input) => {
-          childRan = true;
-          runLineRef.current(input);
-        },
-        history: historyRef.current,
-        getThemeId: () => themeIdRef.current,
-        setTheme,
-        openHelpPanel: () => setHelpOpen(true),
-        cwd: "~",
-      };
-
-      const { node } = runCommandLine(trimmed, actions);
-
-      // Record top-level typed lines (skip a consecutive duplicate) and persist.
-      if (isTop && historyRef.current[historyRef.current.length - 1] !== trimmed) {
-        historyRef.current = [...historyRef.current, trimmed].slice(-HISTORY_MAX);
-        setHistory(historyRef.current);
-        saveHistory(historyRef.current);
-      }
-
-      // If the command navigated via ctx.run (e.g. `cd projects`), the nested
-      // call already appended its result — don't also append this wrapper line.
-      if (!childRan) {
-        if (cleared) {
-          setEntries([]);
-          pendingScrollId.current = null;
-        } else {
-          const entry: LogEntry = { id: idRef.current++, command: trimmed, output: node };
-          pendingScrollId.current = entry.id;
-          setEntries((es) => [...es, entry]);
-        }
-      }
-
-      runDepth.current -= 1;
-    },
-    [setTheme],
-  );
-
   useEffect(() => {
-    runLineRef.current = runLine;
-  }, [runLine]);
+    registerThemeEnv({ getThemeId: () => themeIdRef.current, setTheme });
+  }, [setTheme]);
 
-  // After each change: scroll the newest command line to the top of the
-  // viewport so its output reads from the start, then refocus the prompt.
-  useEffect(() => {
-    const id = pendingScrollId.current;
-    if (id != null && bodyRef.current) {
-      const el = bodyRef.current.querySelector<HTMLElement>(`[data-entry-id="${id}"]`);
-      el?.scrollIntoView({ block: "start" });
-    }
-    inputRef.current?.focus({ preventScroll: true });
-  }, [entries]);
-
-  // Seed the boot sequence once per page load, reveal the interactive terminal,
-  // and honour a deep link. If hydration fails this never runs, so the readable
-  // server-rendered content stays on screen.
+  // Boot once: MOTD in the landing shell, deep links arrive "as if typed"
+  // (FLOW §4), then the global listeners. If hydration fails this never runs
+  // and the server-rendered fallback stays visible.
   useEffect(() => {
     document.documentElement.setAttribute("data-js-ready", "true");
 
-    const seed = bootEntries(themeIdRef.current, (cmd) => runLineRef.current(cmd)).map((e) => ({
-      id: idRef.current++,
-      command: e.command,
-      output: e.output,
-    }));
-    setEntries(seed);
-    pendingScrollId.current = seed[0]?.id ?? null; // boot reads from the top
-
-    const cmd = commandForHash(window.location.hash);
-    if (cmd) runLineRef.current(cmd);
-
-    if (window.matchMedia?.("(pointer: fine)").matches) {
-      inputRef.current?.focus({ preventScroll: true });
+    store.reset(initialWindow);
+    try {
+      if (localStorage.getItem("portfolio:crt-unlocked") === "1") {
+        store.dispatch({ type: "unlock-crt" });
+      }
+    } catch {
+      /* storage unavailable */
     }
+    seedMotd(initialWindow ?? "lobby");
+    if (initialWindow) {
+      executeCommand(`cd ~/${initialWindow}`, { source: "auto", windowKey: initialWindow });
+    }
+
+    const disposeKeyboard = initKeyboard();
+    const disposeRouting = initRouting();
+    const disposeIdle = initIdle();
+    return () => {
+      disposeKeyboard();
+      disposeRouting();
+      disposeIdle();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Clicking empty space focuses the prompt — but never while selecting text or
-  // when a real control/link was clicked.
-  const focusOnBlankClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (window.getSelection()?.toString()) return;
-    if ((e.target as HTMLElement).closest("a,button,select,input,textarea,label")) return;
-    inputRef.current?.focus({ preventScroll: true });
-  }, []);
+  const overlay = useTerminalStore((s) => s.overlay);
 
   return (
-    <div className="flex h-dvh flex-col bg-window">
-      <TitleBar onHelp={() => setHelpOpen(true)} />
-
-      <div
-        ref={bodyRef}
-        className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5"
-        onClick={focusOnBlankClick}
-      >
-        <OutputLog entries={entries} />
-        <CommandInput ref={inputRef} onSubmit={runLine} history={history} />
-        <p id="input-hint" className="sr-only">
-          Press Enter to run a command. Tab completes it. Up and Down arrows recall previous
-          commands.
-        </p>
-      </div>
-
-      <SectionNav onRun={runLine} />
-      <StatusBar themeId={themeId} />
-
-      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} onRun={runLine} />
+    <div data-terminal-root className="relative flex h-dvh flex-col bg-window">
+      <TitleBar />
+      <TabBar />
+      <WindowArea />
+      <StatusBar />
+      <WindowPicker />
+      <CrtOverlay />
+      {overlay === "disintegration" && <Disintegration />}
+      {overlay === "matrix" && <MatrixRain />}
     </div>
   );
 }

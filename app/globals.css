@@ -149,6 +149,193 @@ a:hover {
   animation: output-fade-in 180ms ease-out;
 }
 
+/* The MOTD types on over ~600ms (FLOW §4) — a stepped top-down reveal.
+   Reduced motion disables it via the global rule above. */
+@keyframes motd-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0% 0);
+  }
+}
+.motd-typeon {
+  animation: motd-reveal 600ms steps(14, end);
+}
+
+/* Lezer token classes → semantic ANSI tokens. cat highlighting and the
+   editor share these so every theme colors code consistently. */
+.tok-keyword,
+.tok-modifier {
+  color: var(--ansi-magenta);
+}
+.tok-string,
+.tok-string2,
+.tok-regexp {
+  color: var(--ansi-green);
+}
+.tok-comment,
+.tok-docComment {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.tok-number,
+.tok-bool,
+.tok-atom,
+.tok-literal {
+  color: var(--ansi-yellow);
+}
+.tok-typeName,
+.tok-className,
+.tok-namespace,
+.tok-tagName {
+  color: var(--ansi-cyan);
+}
+.tok-propertyName,
+.tok-attributeName,
+.tok-definition,
+.tok-function {
+  color: var(--ansi-blue);
+}
+.tok-variableName,
+.tok-name {
+  color: var(--fg);
+}
+.tok-operator,
+.tok-punctuation,
+.tok-separator,
+.tok-bracket {
+  color: var(--fg-muted);
+}
+.tok-meta,
+.tok-processingInstruction {
+  color: var(--fg-subtle);
+}
+.tok-heading {
+  color: var(--accent);
+  font-weight: 700;
+}
+.tok-emphasis {
+  font-style: italic;
+}
+.tok-strong {
+  font-weight: 700;
+}
+.tok-link,
+.tok-url {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.tok-invalid {
+  color: var(--error);
+}
+
+/* CRT theme effects (EASTER_EGGS §5). Flicker is an animation, so the
+   global reduced-motion rule reduces CRT to palette-only automatically. */
+.crt-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.22) 3px,
+    transparent 4px
+  );
+}
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 0.02;
+  }
+  92% {
+    opacity: 0.02;
+  }
+  93% {
+    opacity: 0.09;
+  }
+  94% {
+    opacity: 0.02;
+  }
+}
+.crt-flicker {
+  background: #fff;
+  opacity: 0.02;
+  animation: crt-flicker 4s steps(1, end) infinite;
+}
+.crt-curvature {
+  border-radius: 1.25rem;
+  box-shadow:
+    inset 0 0 6rem rgba(0, 0, 0, 0.55),
+    inset 0 0 1.5rem rgba(0, 0, 0, 0.35);
+}
+
+/* rm -rf / --no-preserve-root: the chrome detaches and falls (§4.2).
+   Purely visual — the class leaves and everything is exactly where it was.
+   Reduced motion never gets here (the command prints a punchline instead). */
+@keyframes egg-fall {
+  to {
+    transform: translateY(110vh) rotate(8deg);
+    opacity: 0.2;
+  }
+}
+@keyframes egg-crumble {
+  30% {
+    filter: blur(1px);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(35vh) scale(0.92);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+.disintegrating nav[aria-label="Sections"] li:nth-child(odd) button {
+  animation: egg-fall 1.8s cubic-bezier(0.5, 0, 1, 1) 0.1s forwards;
+}
+.disintegrating nav[aria-label="Sections"] li:nth-child(even) button {
+  animation: egg-fall 1.9s cubic-bezier(0.5, 0, 1, 1) 0.35s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n) {
+  animation: egg-crumble 1.5s ease-in 0.15s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n + 1) {
+  animation: egg-crumble 1.7s ease-in 0.4s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n + 2) {
+  animation: egg-crumble 1.6s ease-in 0s forwards;
+}
+.disintegrating [data-status-bar],
+.disintegrating [data-title-bar] {
+  animation: egg-fall 2s cubic-bezier(0.5, 0, 1, 1) 0.6s forwards;
+}
+
+/* The sl locomotive steams right-to-left across the pane (~3s). */
+@keyframes sl-cross {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-110%);
+  }
+}
+.sl-train {
+  animation: sl-cross 3s linear forwards;
+}
+
+/* Unrecognized NORMAL-mode keys flash the status-bar mode segment (§6.2). */
+@keyframes mode-flash {
+  0%,
+  100% {
+    background: transparent;
+  }
+  40% {
+    background: var(--warning);
+    color: var(--bg-window);
+  }
+}
+.mode-flash {
+  animation: mode-flash 250ms ease-out;
+}
+
 /* The blinking caret on the live prompt. */
 @keyframes caret-blink {
   0%,

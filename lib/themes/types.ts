@@ -48,4 +48,12 @@ export interface ThemeEntry {
   /** "dark" | "light" — used for the first-visit prefers-color-scheme default. */
   appearance: "dark" | "light";
   theme: Theme;
+  /** Visual overlays the theme brings along (CRT scanlines etc.). */
+  effects?: {
+    scanlines?: boolean;
+    flicker?: boolean; // disabled under prefers-reduced-motion
+    curvature?: boolean;
+  };
+  /** Hidden from listings until the unlock fires (Konami → CRT). */
+  unlock?: "konami";
 }

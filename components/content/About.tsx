@@ -6,6 +6,7 @@ const strip = (s: string) => s.replace(/^TODO\s*/, "");
 export function About() {
   return (
     <section aria-label="About" className="space-y-3">
+      <h2 className="text-lg font-bold text-fg">{profile.name}</h2>
       <p className="text-sm text-muted">
         {strip(profile.role)}
         {profile.location && !profile.location.startsWith("TODO") ? ` · ${profile.location}` : ""}
