@@ -8,6 +8,7 @@ import { WindowPicker } from "./WindowPicker";
 import { StatusBar } from "./StatusBar";
 import { seedMotd } from "./Motd";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { CrtOverlay } from "@/components/effects/CrtOverlay";
 import { Disintegration } from "@/components/effects/Disintegration";
 import { MatrixRain } from "@/components/effects/MatrixRain";
 import { store } from "@/lib/terminal/store";
@@ -42,6 +43,13 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     document.documentElement.setAttribute("data-js-ready", "true");
 
     store.reset(initialWindow);
+    try {
+      if (localStorage.getItem("portfolio:crt-unlocked") === "1") {
+        store.dispatch({ type: "unlock-crt" });
+      }
+    } catch {
+      /* storage unavailable */
+    }
     seedMotd(initialWindow ?? "lobby");
     if (initialWindow) {
       executeCommand(`cd ~/${initialWindow}`, { source: "auto", windowKey: initialWindow });
@@ -67,6 +75,7 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
       <WindowArea />
       <StatusBar />
       <WindowPicker />
+      <CrtOverlay />
       {overlay === "disintegration" && <Disintegration />}
       {overlay === "matrix" && <MatrixRain />}
     </div>

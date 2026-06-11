@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   themes,
   getThemeEntry,
@@ -36,10 +44,22 @@ function applyTheme(id: string) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeId, setThemeId] = useState<string>(readInitialThemeId);
-
-  // Keep :root in sync whenever the choice changes.
+  // Hydrate with the default so the first client render matches the server
+  // markup, then sync to what the pre-paint script actually applied. The
+  // colors never flash — the script already painted the right ones.
+  const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
   useEffect(() => {
+    setThemeId(readInitialThemeId());
+  }, []);
+
+  // Keep :root in sync whenever the choice changes — skipping the first run,
+  // which would briefly repaint the default over the script's work.
+  const applied = useRef(false);
+  useEffect(() => {
+    if (!applied.current) {
+      applied.current = true;
+      return;
+    }
     applyTheme(themeId);
   }, [themeId]);
 

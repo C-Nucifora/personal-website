@@ -11,6 +11,7 @@ import { handleKey } from "@/lib/vim/machine";
 import { MAX_PANES, activePane, activeWindowKey } from "./reducer";
 import { executeCommand, ensureWindowDisplayed } from "./executor";
 import { finishAnimation } from "./animate";
+import { getThemeEnv } from "./env";
 import { printBindingCheatsheet } from "./cheatsheet";
 import { getScroller, LINE_PX } from "./scroll-registry";
 import { store } from "./store";
@@ -274,12 +275,44 @@ function handleNormalKey(e: KeyboardEvent, windowKey: WindowKey): void {
   if (result.flash) store.dispatch({ type: "flash-mode" });
 }
 
+// Konami code (EASTER_EGGS §3): passive observation, desktop only.
+const KONAMI = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
+];
+export const CRT_UNLOCK_KEY = "portfolio:crt-unlocked";
+let konamiProgress = 0;
+
+function watchKonami(key: string): void {
+  konamiProgress = key === KONAMI[konamiProgress] ? konamiProgress + 1 : key === KONAMI[0] ? 1 : 0;
+  if (konamiProgress < KONAMI.length) return;
+  konamiProgress = 0;
+  store.dispatch({ type: "unlock-crt" });
+  try {
+    localStorage.setItem(CRT_UNLOCK_KEY, "1");
+  } catch {
+    /* private mode — the unlock still applies this session */
+  }
+  notify("theme unlocked: crt");
+  getThemeEnv().setTheme("crt");
+}
+
 export function initKeyboard(): () => void {
   const onKeyDown = (e: KeyboardEvent) => {
     // Hands off the browser's keys (§6.4).
     if (e.metaKey) return;
     if (e.ctrlKey && ["t", "w", "n"].includes(e.key.toLowerCase())) return;
     if (/^F\d+$/.test(e.key)) return;
+
+    if (!e.ctrlKey && !e.altKey) watchKonami(e.key);
 
     const state = store.getState();
 

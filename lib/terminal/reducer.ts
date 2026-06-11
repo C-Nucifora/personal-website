@@ -56,6 +56,7 @@ export function initialState(initialWindow: WindowId | null): AppState {
     pendingConfirm: null,
     picker: null,
     overlay: null,
+    crtUnlocked: false,
     history: [...HISTORY_SEED],
     nextLineId: 1,
     nextPaneId: 1,
@@ -230,6 +231,9 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case "set-overlay":
       return { ...state, overlay: action.overlay };
+
+    case "unlock-crt":
+      return { ...state, crtUnlocked: true };
 
     case "open-editor":
       return withPane(state, action.windowKey, (p) => ({

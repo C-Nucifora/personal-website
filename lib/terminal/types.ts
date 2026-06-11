@@ -65,6 +65,8 @@ export interface AppState {
   picker: { index: number } | null;
   /** Effect overlay — any input dismisses. */
   overlay: "clock" | "sl" | "top" | "htop" | "disintegration" | "matrix" | null;
+  /** Konami unlock (EASTER_EGGS §3); persisted in localStorage. */
+  crtUnlocked: boolean;
   history: string[];
   nextLineId: number;
   nextPaneId: number;
@@ -106,6 +108,7 @@ export type Action =
   | { type: "zoom-pane"; window: WindowId }
   | { type: "set-ratio"; window: WindowId; splitId: string; ratio: number }
   | { type: "set-picker"; picker: { index: number } | null }
+  | { type: "unlock-crt" }
   | { type: "set-overlay"; overlay: AppState["overlay"] }
   | { type: "open-editor"; windowKey: WindowKey; path: string; note?: string }
   | { type: "close-editor"; windowKey: WindowKey }

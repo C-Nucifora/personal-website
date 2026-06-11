@@ -230,6 +230,44 @@ a:hover {
   color: var(--error);
 }
 
+/* CRT theme effects (EASTER_EGGS §5). Flicker is an animation, so the
+   global reduced-motion rule reduces CRT to palette-only automatically. */
+.crt-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.22) 3px,
+    transparent 4px
+  );
+}
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 0.02;
+  }
+  92% {
+    opacity: 0.02;
+  }
+  93% {
+    opacity: 0.09;
+  }
+  94% {
+    opacity: 0.02;
+  }
+}
+.crt-flicker {
+  background: #fff;
+  opacity: 0.02;
+  animation: crt-flicker 4s steps(1, end) infinite;
+}
+.crt-curvature {
+  border-radius: 1.25rem;
+  box-shadow:
+    inset 0 0 6rem rgba(0, 0, 0, 0.55),
+    inset 0 0 1.5rem rgba(0, 0, 0, 0.35);
+}
+
 /* rm -rf / --no-preserve-root: the chrome detaches and falls (§4.2).
    Purely visual — the class leaves and everything is exactly where it was.
    Reduced motion never gets here (the command prints a punchline instead). */

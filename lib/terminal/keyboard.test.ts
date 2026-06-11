@@ -275,6 +275,37 @@ describe("window picker (Ctrl+b w)", () => {
   });
 });
 
+describe("Konami code (EASTER_EGGS §3)", () => {
+  const KONAMI = [
+    "ArrowUp",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowLeft",
+    "ArrowRight",
+    "b",
+    "a",
+  ];
+
+  test("entering the code unlocks the CRT theme", () => {
+    expect(store.getState().crtUnlocked).toBe(false);
+    for (const key of KONAMI) press(key);
+    expect(store.getState().crtUnlocked).toBe(true);
+    expect(store.getState().notice?.text).toContain("theme unlocked: crt");
+    expect(localStorage.getItem("portfolio:crt-unlocked")).toBe("1");
+    localStorage.removeItem("portfolio:crt-unlocked");
+  });
+
+  test("a wrong key resets the sequence", () => {
+    for (const key of KONAMI.slice(0, 5)) press(key);
+    press("x");
+    for (const key of KONAMI.slice(5)) press(key);
+    expect(store.getState().crtUnlocked).toBe(false);
+  });
+});
+
 describe("animation skip", () => {
   test("any keypress completes a running click animation", async () => {
     vi.useFakeTimers();

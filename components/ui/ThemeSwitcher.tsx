@@ -1,7 +1,9 @@
 "use client";
 
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { visibleThemes } from "@/lib/themes";
 import { runClick } from "@/lib/terminal/run-click";
+import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 
 /**
  * Title-bar theme picker. Selecting an option echoes and executes
@@ -9,7 +11,8 @@ import { runClick } from "@/lib/terminal/run-click";
  * one-state rule (FLOW §10.1). Native <select> for keyboard + a11y.
  */
 export function ThemeSwitcher() {
-  const { themeId, themes } = useTheme();
+  const { themeId } = useTheme();
+  const themes = visibleThemes(useTerminalStore((s) => s.crtUnlocked));
 
   return (
     <label className="flex items-center gap-1.5 text-xs text-muted">
