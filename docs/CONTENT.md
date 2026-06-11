@@ -20,6 +20,10 @@ export const profile = {
 } as const;
 ```
 
+`formEndpoint` (added later): a Formspree/Web3Forms/Basin-style URL. While
+empty, the contact form renders nowhere and `mail` falls back to the email
+address.
+
 ## `data/resume.ts`
 
 ```ts

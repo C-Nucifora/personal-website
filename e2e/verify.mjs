@@ -97,6 +97,12 @@ async function main() {
   const contactOut = await paneText("about");
   ok("contact.md carries the email", contactOut.includes(EMAIL));
   ok("contact.md carries the homelab link", contactOut.toLowerCase().includes("homelab"));
+  ok(
+    "no contact form while unconfigured (dormant default)",
+    (await page.locator('[data-window="about"] form, .static-fallback form').count()) === 0,
+  );
+  await run("about", "mail");
+  ok("mail without an endpoint answers with the email", (await paneText("about")).includes(EMAIL));
 
   // ---- tree (§9)
   await run("about", "tree ~");

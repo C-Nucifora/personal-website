@@ -308,6 +308,7 @@ All commands echo into scrollback whether typed or click-animated.
 | `history` | numbered history; `!{n}` re-runs |
 | `theme [name]` | per THEMES.md; no arg lists themes |
 | `plain` | switch to the plain website view; the title-bar button and welcome strip run it (§3.4) |
+| `mail` | jump to the contact form (configured) or print the email (not) |
 | `echo`, `date` | flavor; trivial |
 
 Unknown command: `command not found: <x> — try 'help'`. Typo tolerance: if Levenshtein distance 1 from a known command, append `(did you mean '<y>'?)` as clickable text. **Section-name safety net:** a bare section word (`about`, `projects`, `resume`, `contact`) is not a command; it returns `command not found: about — did you mean 'cd about'?` with the suggestion clickable. This is the designed landing spot for the most predictable novice keystroke, and it teaches the real command in the same breath.
