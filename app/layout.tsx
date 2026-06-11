@@ -81,6 +81,10 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
+        {/* Self-hosted Umami: cookie-free page views, dormant until configured. */}
+        {profile.umami.scriptUrl && profile.umami.websiteId ? (
+          <script defer src={profile.umami.scriptUrl} data-website-id={profile.umami.websiteId} />
+        ) : null}
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

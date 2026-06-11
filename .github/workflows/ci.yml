@@ -1,0 +1,35 @@
+# Quality gate: typecheck, lint, unit tests, build, and the Playwright e2e
+# suite against the static export. Deploys are Vercel's job (it builds
+# directly from the repo); this workflow only keeps main honest.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+      # prebuild re-syncs projects from the GitHub API; the token avoids
+      # anonymous rate limits (falls back to the committed snapshot if it fails)
+      - run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npx playwright install --with-deps chromium
+      - name: e2e against the static export
+        run: |
+          (cd out && python3 -m http.server 3000 &)
+          sleep 2
+          BASE=http://127.0.0.1:3000 node e2e/verify.mjs

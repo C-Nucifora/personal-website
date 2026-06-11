@@ -19,6 +19,12 @@ export const profile = {
   homelabUrl: "https://dashboard.christiannucifora.com",
   // Canonical site URL, used for SEO metadata, sitemap, and Open Graph.
   siteUrl: "https://christiannucifora.com",
+  // Self-hosted Umami analytics (cookie-free page views). Fill both values
+  // to enable the tracking script; while either is empty, nothing loads.
+  umami: {
+    scriptUrl: "", // e.g. "https://umami.christiannucifora.com/script.js"
+    websiteId: "", // the website ID from the Umami dashboard
+  },
 } as const;
 
 export type Profile = typeof profile;
