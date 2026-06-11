@@ -25,6 +25,9 @@ export const profile = {
     scriptUrl: "", // e.g. "https://umami.christiannucifora.com/script.js"
     websiteId: "", // the website ID from the Umami dashboard
   },
+  // Third-party form endpoint (Formspree / Web3Forms / Basin style URL).
+  // Empty = no form renders anywhere; mailto stays primary regardless.
+  formEndpoint: "" as string,
 } as const;
 
 export type Profile = typeof profile;
