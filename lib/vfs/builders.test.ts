@@ -91,12 +91,25 @@ describe("experiencePageMd", () => {
 });
 
 describe("projectReadmeMd", () => {
-  test("includes title, pitch, stack and source link", () => {
-    const md = projectReadmeMd(projects[0]);
-    expect(md).toContain(projects[0].title);
-    expect(md).toContain(projects[0].pitch);
-    expect(md).toContain(projects[0].stack[0]);
-    expect(md).toContain(projects[0].sourceUrl!);
+  test("a project's real README passes through untouched", () => {
+    const withReadme = projects.find((p) => p.readme);
+    expect(withReadme, "at least one GitHub project ships its README").toBeDefined();
+    expect(projectReadmeMd(withReadme!)).toBe(withReadme!.readme);
+  });
+
+  test("the fallback generator includes title, pitch, stack and source link", () => {
+    const fixture = {
+      slug: "demo",
+      title: "Demo",
+      pitch: "Does a thing.",
+      stack: ["Rust"],
+      sourceUrl: "https://github.com/example/demo",
+    };
+    const md = projectReadmeMd(fixture);
+    expect(md).toContain("Demo");
+    expect(md).toContain("Does a thing.");
+    expect(md).toContain("Rust");
+    expect(md).toContain("https://github.com/example/demo");
   });
 });
 

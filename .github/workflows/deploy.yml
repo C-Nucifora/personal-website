@@ -27,7 +27,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # prebuild re-syncs projects from the GitHub API; the token avoids
+      # anonymous rate limits (falls back to the committed snapshot if it fails)
       - run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

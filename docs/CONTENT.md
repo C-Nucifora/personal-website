@@ -49,27 +49,41 @@ export const skills: { group: string; items: string[] }[] = [
 
 The `resume` command renders these in order: experience, education, skills, then a download button linking to `profile.resumePdf`.
 
-## `data/projects.ts`
+## `data/projects.ts` — fed from GitHub
+
+Projects are **synced from GitHub at build time**, not written by hand:
+
+- `data/projects-config.mjs` — the curation knobs: `username`, `exclude`,
+  `featured` (order preserved), per-repo `overrides`, and how many commits to
+  bundle for the `git log` egg.
+- `scripts/fetch-projects.mjs` (runs on `predev`/`prebuild`, or manually via
+  `npm run fetch-projects`) pulls each public, non-fork repo's metadata, real
+  README markdown, and recent commits into
+  `data/generated/github-projects.ts`. The snapshot is committed so offline
+  builds and tests work; a failed fetch keeps the last good snapshot.
+- `data/projects.ts` maps that onto the `Project` interface and appends
+  `terminal-portfolio` (this site — its curated source is bundled locally via
+  `data/source-manifest.mjs` and browsable under `src/`).
 
 ```ts
 export interface Project {
   slug: string;
   title: string;
-  pitch: string;        // one line: what it is and why it matters
+  pitch: string;        // one line: repo description (or an override)
   description?: string; // optional longer blurb shown on expand
-  stack: string[];      // tags, colored via --ansi-* tokens
-  liveUrl?: string;     // shows a "Live" badge + link
-  sourceUrl?: string;   // shows a "Source" link
+  stack: string[];      // language + topics, colored via --ansi-* tokens
+  liveUrl?: string;     // repo homepage → "Live" badge + link
+  sourceUrl?: string;   // repo URL → "Source" link
   thumbnail?: string;   // /public path, optional
-  featured?: boolean;   // surfaced by `projects --featured`
+  featured?: boolean;   // pinned cards, set in projects-config.mjs
+  readme?: string;      // the repo's real README (rendered by `cat`)
+  commits?: ProjectCommit[]; // shown by `git log` inside the project dir
 }
-
-export const projects: Project[] = [
-  // TODO add your live projects. Featured ones get pinned.
-];
 ```
 
-Each project is a focusable card. `liveUrl` and `sourceUrl` open in a new tab with `rel="noopener noreferrer"`. Missing links simply hide their badge.
+Each project is a directory under `~/projects` and a focusable card in the
+fallback. `liveUrl` and `sourceUrl` open in a new tab with
+`rel="noopener noreferrer"`. Missing links simply hide their badge.
 
 ## `data/socials.ts`
 

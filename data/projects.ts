@@ -1,8 +1,13 @@
 /**
- * Projects. Each project is a directory under ~/projects in the virtual
- * filesystem (FLOW.md §2): a README.md plus, optionally, real source files
- * under src/. Cards in the server-rendered fallback read the same data.
+ * Projects. Fed from GitHub at build time: scripts/fetch-projects.mjs syncs
+ * public repos (metadata, README, recent commits) into
+ * data/generated/github-projects.ts, curated by data/projects-config.mjs.
+ * Each project is a directory under ~/projects in the virtual filesystem
+ * (FLOW.md §2): the repo's real README plus, for projects listed in
+ * data/source-manifest.mjs, browsable source under src/.
  */
+import { githubProjects } from "./generated/github-projects";
+
 export interface ProjectCommit {
   hash: string; // short hash, e.g. "3f2a91c"
   date: string; // "2026-05-12"
@@ -25,31 +30,29 @@ export interface Project {
   commits?: ProjectCommit[];
 }
 
+/** This site itself — not on GitHub (yet); its source is bundled locally. */
+const thisSite: Project = {
+  slug: "terminal-portfolio",
+  title: "terminal-portfolio (this site)",
+  pitch:
+    "The site you're using right now: a tmux session over a virtual filesystem, with a vim line editor and a read-only vim viewer.",
+  description:
+    "Next.js static export. One executor behind clicks, commands, and keybindings; the curated source is browsable under src/ — try `vim src/lib/vim/machine.ts`.",
+  stack: ["Next.js", "TypeScript", "Tailwind", "CodeMirror"],
+  featured: true,
+};
+
 export const projects: Project[] = [
-  {
-    slug: "terminal-portfolio",
-    title: "TODO Terminal Portfolio",
-    pitch: "TODO One line on what it does for a user, then why it matters.",
-    description:
-      "TODO An optional longer blurb. Describe the problem it solves and one thing you're proud of in the build.",
-    stack: ["Next.js", "TypeScript", "Tailwind"],
-    liveUrl: "https://example.com",
-    sourceUrl: "https://github.com/yourname/project",
-    featured: true,
-  },
-  {
-    slug: "second-project",
-    title: "TODO Second Project",
-    pitch: "TODO What it is and the value it delivers, in one specific line.",
-    stack: ["Python", "Postgres"],
-    sourceUrl: "https://github.com/yourname/second-project",
-    featured: true,
-  },
-  {
-    slug: "third-project",
-    title: "TODO Third Project",
-    pitch: "TODO Specific beats clever — say what it actually does.",
-    stack: ["Go", "Docker"],
-    liveUrl: "https://example.com",
-  },
+  ...githubProjects.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    pitch: p.pitch,
+    stack: p.stack,
+    sourceUrl: p.sourceUrl,
+    ...(p.liveUrl ? { liveUrl: p.liveUrl } : {}),
+    featured: p.featured,
+    ...(p.readme ? { readme: p.readme } : {}),
+    commits: p.commits,
+  })),
+  thisSite,
 ];
