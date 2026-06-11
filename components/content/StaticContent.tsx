@@ -1,4 +1,5 @@
 import { profile } from "@/data/profile";
+import { BackToTerminal } from "@/components/ui/BackToTerminal";
 import { About } from "./About";
 import { Resume } from "./Resume";
 import { Projects } from "./Projects";
@@ -34,9 +35,12 @@ export function StaticContent() {
             <p className="font-sans text-muted">{profile.tagline}</p>
           )}
           <p className="pt-2 font-sans text-sm text-muted">
-            This is the plain version. With JavaScript enabled, the same content becomes an
+            This is the plain version. The same content is also available as an
             interactive terminal you can type into or click through.
           </p>
+          <div className="pt-2">
+            <BackToTerminal />
+          </div>
         </header>
 
         <Section id="about" title="about">
