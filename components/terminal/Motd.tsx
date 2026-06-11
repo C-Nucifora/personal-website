@@ -46,11 +46,16 @@ function TypeOn({ children }: { children: React.ReactNode }) {
 
 function MotdHint() {
   return (
-    <p className="text-sm text-fg/80">
-      try: <CmdLink cmd="cd about" /> · <CmdLink cmd="cd projects" /> ·{" "}
-      <CmdLink cmd="cd resume" /> · <CmdLink cmd="help" />
-      <span className="sm:hidden"> — or tap a tab above</span>
-    </p>
+    <div className="space-y-1">
+      <p className="font-sans text-sm text-fg/80">
+        No command line needed — click the tabs above, or click any command below.
+      </p>
+      <p className="text-sm text-fg/80">
+        try: <CmdLink cmd="cd about" /> · <CmdLink cmd="cd projects" /> ·{" "}
+        <CmdLink cmd="cd resume" /> · <CmdLink cmd="help" />
+        <span className="sm:hidden"> — or tap a tab above</span>
+      </p>
+    </div>
   );
 }
 
