@@ -49,6 +49,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // colors never flash — the script already painted the right ones.
   const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
   useEffect(() => {
+    // One-shot post-hydration sync (the standard isClient pattern): the
+    // server can't know the visitor's saved theme.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeId(readInitialThemeId());
   }, []);
 
