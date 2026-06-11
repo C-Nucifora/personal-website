@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { TitleBar } from "./TitleBar";
 import { TabBar } from "./TabBar";
+import { WelcomeStrip } from "./WelcomeStrip";
 import { WindowArea } from "./WindowArea";
 import { WindowPicker } from "./WindowPicker";
 import { StatusBar } from "./StatusBar";
@@ -82,6 +83,7 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     <div data-terminal-root className="relative flex h-dvh flex-col bg-window">
       <TitleBar />
       <TabBar />
+      <WelcomeStrip />
       <WindowArea />
       <StatusBar />
       <WindowPicker />
