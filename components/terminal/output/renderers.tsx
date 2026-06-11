@@ -6,18 +6,19 @@ import { Resume } from "@/components/content/Resume";
 import { ContactCard } from "./ContactCard";
 import { CodeBlock } from "./CodeBlock";
 import { Markdown } from "./Markdown";
+import { ProjectReadme } from "./ProjectReadme";
 
 /**
  * RendererId → rich `cat` output. The raw markdown in the file is always the
  * vim-viewer source of truth; these are nicer inline presentations of the
  * same data (both read from data/).
  */
-const RENDERERS: Record<RendererId, () => ReactNode> = {
+const RENDERERS: Record<RendererId, (file: VfsFile) => ReactNode> = {
   about: () => <About />,
   uses: () => <Uses />,
   resume: () => <Resume />,
   contact: () => <ContactCard />,
-  "project-readme": () => null, // falls through to markdown below
+  "project-readme": (file) => <ProjectReadme slug={file.meta} raw={file.raw} />,
 };
 
 export function renderFile(file: VfsFile): ReactNode {
@@ -34,7 +35,7 @@ export function renderFile(file: VfsFile): ReactNode {
     );
   }
   if (file.render) {
-    const node = RENDERERS[file.render]();
+    const node = RENDERERS[file.render](file);
     if (node !== null) return node;
   }
   if (file.language === "markdown") {

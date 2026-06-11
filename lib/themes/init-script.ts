@@ -1,10 +1,20 @@
 import { themes, DEFAULT_THEME_ID, THEME_STORAGE_KEY, themeToCssVariables } from "./index";
 
 /**
- * Builds the inline script that runs in <head> before first paint. It reads
- * the saved theme (or falls back to prefers-color-scheme on the first visit),
- * then writes that theme's tokens onto :root so there is never a flash of the
- * wrong colours. Kept tiny and dependency-free; values are baked in at build.
+ * Builds the inline script that runs in <head> before first paint. Two jobs:
+ *
+ * 1. Read the saved theme (or fall back to prefers-color-scheme on the first
+ *    visit) and write its tokens onto :root so there is never a flash of the
+ *    wrong colours.
+ * 2. Register the page's FIRST popstate listener. While the terminal owns
+ *    history (window.__terminalHistory, set by lib/terminal/routing.ts), it
+ *    stops the event before Next's router sees it — Next would otherwise
+ *    fetch the route's RSC payload and remount (or full-reload on failure) —
+ *    and re-emits it as "terminal:popstate" for the terminal to handle as a
+ *    plain window switch. Being inlined ahead of hydration is what
+ *    guarantees first place in listener order.
+ *
+ * Kept tiny and dependency-free; values are baked in at build.
  */
 export function themeInitScript(): string {
   const cssById: Record<string, string> = {};
@@ -25,5 +35,8 @@ if(!id){var pl=window.matchMedia&&window.matchMedia("(prefers-color-scheme: ligh
 var root=document.documentElement;
 root.setAttribute("data-theme",id);
 root.style.cssText+=";"+CSS[id];
-}catch(e){}})();`;
+}catch(e){}
+window.addEventListener("popstate",function(e){
+if(window.__terminalHistory){e.stopImmediatePropagation();window.dispatchEvent(new Event("terminal:popstate"));}
+});})();`;
 }

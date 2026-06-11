@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { profile } from "@/data/profile";
+import { projects } from "@/data/projects";
 import { getPane } from "./reducer";
 import { store } from "./store";
 import { executeCommand } from "./executor";
@@ -200,6 +201,18 @@ describe("session commands", () => {
       kind: "openUrl",
       payload: "https://example.com",
     });
+  });
+});
+
+describe("project README view", () => {
+  test("cat README.md shows the repo metadata above the README", () => {
+    const project = projects[0];
+    executeCommand(`cd ~/projects/${project.slug}`, { source: "typed" });
+    executeCommand("cat README.md", { source: "typed" });
+    const { container } = renderLast("projects");
+    expect(container.textContent).toContain(project.pitch);
+    expect(container.textContent).toContain(project.stack[0]);
+    expect(container.querySelector(`a[href="${project.sourceUrl}"]`)).not.toBe(null);
   });
 });
 

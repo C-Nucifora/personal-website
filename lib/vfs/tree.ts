@@ -88,7 +88,7 @@ function buildHome(): VfsDir {
       projects.map((p) => {
         const bundled = siteSource[p.slug];
         return dir(p.slug, [
-          file("README.md", projectReadmeMd(p), { render: "project-readme" }),
+          file("README.md", projectReadmeMd(p), { render: "project-readme", meta: p.slug }),
           ...(bundled ? [srcTree(bundled)] : []),
         ]);
       }),

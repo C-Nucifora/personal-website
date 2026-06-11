@@ -40,4 +40,19 @@ describe("initRouting", () => {
     expect(store.getState().activeWindow).toBe("contact");
     expect(window.location.pathname).toBe("/contact/");
   });
+
+  test("the init-script interceptor's re-emitted event also switches", () => {
+    cleanup = initRouting();
+    window.history.replaceState({}, "", "/resume/");
+    window.dispatchEvent(new Event("terminal:popstate"));
+    expect(store.getState().activeWindow).toBe("resume");
+  });
+
+  test("claims and releases terminal history ownership", () => {
+    cleanup = initRouting();
+    expect(window.__terminalHistory).toBe(true);
+    cleanup();
+    cleanup = null;
+    expect(window.__terminalHistory).toBe(false);
+  });
 });

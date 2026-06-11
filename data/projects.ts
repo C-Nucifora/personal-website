@@ -24,6 +24,8 @@ export interface Project {
   sourceUrl?: string; // shows a "Source" link
   thumbnail?: string; // /public path, optional
   featured?: boolean;
+  stars?: number; // GitHub stargazers
+  pushedAt?: string; // last push, "2026-06-11"
   /** Markdown README; omitted → generated from the fields above. */
   readme?: string;
   /** Abbreviated commit history shown by `git log` inside the project dir. */
@@ -51,6 +53,8 @@ export const projects: Project[] = [
     sourceUrl: p.sourceUrl,
     ...(p.liveUrl ? { liveUrl: p.liveUrl } : {}),
     featured: p.featured,
+    stars: p.stars,
+    pushedAt: p.pushedAt,
     ...(p.readme ? { readme: p.readme } : {}),
     commits: p.commits,
   })),

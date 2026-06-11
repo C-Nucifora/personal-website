@@ -34,6 +34,8 @@ export interface VfsFile {
   language: VfsLanguage;
   /** Optional rich renderer for `cat` output; falls back to markdown/plain. */
   render?: RendererId;
+  /** Renderer-specific context (e.g. the project slug for README files). */
+  meta?: string;
   /** Public URL: `cat` prints a summary + link, clicking downloads. */
   download?: string;
 }
