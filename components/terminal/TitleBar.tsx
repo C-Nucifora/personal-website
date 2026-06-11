@@ -38,6 +38,23 @@ export function TitleBar() {
       <div className="flex items-center gap-2">
         <button
           type="button"
+          onClick={() => runClick("cd ~/resume")}
+          title="cd ~/resume"
+          className="hidden cursor-pointer rounded border border-border bg-elevated px-2 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent focus-visible:outline-2 sm:block"
+        >
+          resume
+        </button>
+        <button
+          type="button"
+          onClick={() => runClick("plain")}
+          title="plain"
+          aria-label="Switch to plain view"
+          className="hidden cursor-pointer rounded border border-border bg-elevated px-2 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent focus-visible:outline-2 sm:block"
+        >
+          plain view
+        </button>
+        <button
+          type="button"
           onClick={() => runClick("help")}
           aria-label="Help"
           title="help"
