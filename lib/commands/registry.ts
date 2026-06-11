@@ -38,6 +38,7 @@ export interface CommandContext {
   openEditor(path: string, note?: string): void; // vim/view — read-only viewer (§8.1)
   notify(text: string): void;
   confirmOpenUrl(url: string): void;
+  startOverlay(kind: "clock" | "sl" | "top" | "htop"): void;
   runClick(cmd: string): void;
 
   history: string[];
@@ -68,6 +69,13 @@ import { theme } from "./core/theme";
 import { echo } from "./core/echo";
 import { date } from "./core/date";
 import { exit } from "./eggs/exit";
+import { sudo } from "./eggs/sudo";
+import { rm } from "./eggs/rm";
+import { man } from "./eggs/man";
+import { git } from "./eggs/git";
+import { emacs, make, mkdirCmd, nano, ping, touchCmd } from "./eggs/oneliners";
+import { cowsay, df, figlet, fortune, free, uname, uptimeCmd, which } from "./eggs/coreutils";
+import { htop, sl, top } from "./eggs/procs";
 
 /** Registration order = help listing order; hidden eggs trail at the end. */
 export const commandModules: CommandModule[] = [
@@ -86,7 +94,29 @@ export const commandModules: CommandModule[] = [
   theme,
   echo,
   date,
+  // eggs — runnable, absent from help and completion
   exit,
+  sudo,
+  rm,
+  man,
+  git,
+  emacs,
+  nano,
+  ping,
+  make,
+  touchCmd,
+  mkdirCmd,
+  fortune,
+  cowsay,
+  figlet,
+  uname,
+  uptimeCmd,
+  df,
+  free,
+  which,
+  top,
+  htop,
+  sl,
 ];
 
 export const commandMetas: CommandMeta[] = commandModules.map((m) => m.meta);

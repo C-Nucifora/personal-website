@@ -230,6 +230,19 @@ a:hover {
   color: var(--error);
 }
 
+/* The sl locomotive steams right-to-left across the pane (~3s). */
+@keyframes sl-cross {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-110%);
+  }
+}
+.sl-train {
+  animation: sl-cross 3s linear forwards;
+}
+
 /* Unrecognized NORMAL-mode keys flash the status-bar mode segment (§6.2). */
 @keyframes mode-flash {
   0%,

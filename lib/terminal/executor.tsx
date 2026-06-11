@@ -165,6 +165,7 @@ export function executeCommand(line: string, opts: ExecOptions): void {
       store.dispatch({ type: "set-notice", text, until: Date.now() + 3000 }),
     confirmOpenUrl: (url) =>
       store.dispatch({ type: "set-confirm", confirm: { kind: "openUrl", payload: url } }),
+    startOverlay: (kind) => store.dispatch({ type: "set-overlay", overlay: kind }),
     runClick,
     history: startState.history,
     getThemeId: () => getThemeEnv().getThemeId(),

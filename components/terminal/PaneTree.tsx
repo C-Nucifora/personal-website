@@ -6,6 +6,8 @@ import { PaneScrollback } from "./PaneScrollback";
 import { Prompt } from "./Prompt";
 import { VimViewer } from "@/components/editor/VimViewer";
 import { TmuxClock } from "@/components/effects/TmuxClock";
+import { SlTrain } from "@/components/effects/SlTrain";
+import { TopTable } from "@/components/effects/TopTable";
 import { registerScroller } from "@/lib/terminal/scroll-registry";
 import { activeWindowKey, getPaneById, getWindow } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
@@ -29,11 +31,10 @@ function PaneView({
   const editorNote = useTerminalStore(
     (s) => getPaneById(s, windowKey, paneId)?.editorNote ?? null,
   );
-  const showClock = useTerminalStore(
-    (s) =>
-      s.overlay === "clock" &&
-      activeWindowKey(s) === windowKey &&
-      getWindow(s, windowKey).activePane === paneId,
+  const overlay = useTerminalStore((s) =>
+    activeWindowKey(s) === windowKey && getWindow(s, windowKey).activePane === paneId
+      ? s.overlay
+      : null,
   );
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -71,7 +72,9 @@ function PaneView({
           <Prompt windowKey={windowKey} paneId={paneId} />
         </>
       )}
-      {showClock && <TmuxClock />}
+      {overlay === "clock" && <TmuxClock />}
+      {overlay === "sl" && <SlTrain />}
+      {(overlay === "top" || overlay === "htop") && <TopTable fancy={overlay === "htop"} />}
     </div>
   );
 }
