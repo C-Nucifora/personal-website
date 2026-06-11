@@ -1,8 +1,6 @@
 import { profile } from "@/data/profile";
 import { uses } from "@/data/uses";
-
-const clean = (s: string) => s.replace(/^TODO\s*/, "").trim();
-const real = (items: string[]) => items.map(clean).filter((s) => s && s !== "TODO");
+import { stripTodo, stripTodoList } from "@/lib/strip-todo";
 
 const LOGO = String.raw`
    _____ _   _
@@ -29,13 +27,13 @@ function uptime(): string {
 
 /** The neofetch-style identity card, built from the site data. Pure. */
 export function Fetch({ themeId }: { themeId: string }) {
-  const editor = real(uses.find((u) => u.group === "Editor & terminal")?.items ?? []).slice(0, 2);
-  const stack = real(uses.find((u) => u.group === "Languages")?.items ?? []).slice(0, 3);
+  const editor = stripTodoList(uses.find((u) => u.group === "Editor & terminal")?.items ?? []).slice(0, 2);
+  const stack = stripTodoList(uses.find((u) => u.group === "Languages")?.items ?? []).slice(0, 3);
 
   const rows: [string, string][] = [
     ["Host", profile.name],
-    ["Role", clean(profile.role)],
-    ["Location", clean(profile.location)],
+    ["Role", stripTodo(profile.role)],
+    ["Location", stripTodo(profile.location)],
     ["Shell", "zsh"],
     ...(editor.length ? ([["Editor", editor.join(", ")]] as [string, string][]) : []),
     ["Theme", themeId],

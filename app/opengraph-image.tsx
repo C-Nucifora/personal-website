@@ -1,13 +1,12 @@
 import { ImageResponse } from "next/og";
 import { profile } from "@/data/profile";
+import { stripTodo } from "@/lib/strip-todo";
 
 export const dynamic = "force-static";
 
 export const alt = `${profile.name} — developer portfolio`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-const strip = (s: string) => s.replace(/^TODO\s*/, "");
 
 // Tokyo Night palette, baked in (the OG card is theme-independent).
 export default function OpengraphImage() {
@@ -54,7 +53,7 @@ export default function OpengraphImage() {
           <div style={{ fontSize: 76, fontWeight: 700, color: "#c0caf5", lineHeight: 1.1 }}>
             {profile.name}
           </div>
-          <div style={{ fontSize: 40, color: "#7aa2f7", marginTop: 16 }}>{strip(profile.role)}</div>
+          <div style={{ fontSize: 40, color: "#7aa2f7", marginTop: 16 }}>{stripTodo(profile.role)}</div>
 
           <div style={{ fontSize: 28, color: "#565f89", marginTop: 40 }}>
             {profile.siteUrl.replace(/^https?:\/\//, "")}

@@ -3,6 +3,7 @@
  * single-source in data/ — these templates turn the typed objects into the
  * raw text the vim viewer shows and `cat` falls back to.
  */
+import { stripTodo, stripTodoList } from "@/lib/strip-todo";
 import { profile } from "@/data/profile";
 import { socials } from "@/data/socials";
 import { now } from "@/data/now";
@@ -21,11 +22,11 @@ export function aboutMd(): string {
   return [
     `# ${profile.name}`,
     "",
-    `> ${profile.tagline}`,
+    `> ${stripTodo(profile.tagline)}`,
     "",
-    `**${profile.role}** · ${profile.location}`,
+    `**${stripTodo(profile.role)}** · ${stripTodo(profile.location)}`,
     "",
-    ...profile.about.flatMap((p) => [p, ""]),
+    ...stripTodoList(profile.about).flatMap((p) => [p, ""]),
     `More: [uses.md](uses.md) — the tools this gets built with.`,
   ].join("\n");
 }
@@ -34,20 +35,20 @@ export function usesMd(): string {
   const sections = uses.flatMap((g) => [
     `## ${g.group}`,
     "",
-    ...g.items.map((i) => `- ${i}`),
+    ...stripTodoList(g.items).map((i) => `- ${i}`),
     "",
   ]);
   return ["# Uses", "", "The gear and software I rely on.", "", ...sections].join("\n");
 }
 
 function resumeEntryMd(e: ResumeEntry): string[] {
-  const where = e.location ? ` · ${e.location}` : "";
+  const where = e.location ? ` · ${stripTodo(e.location)}` : "";
   return [
-    `### ${e.title} — ${e.org}`,
+    `### ${stripTodo(e.title)} — ${stripTodo(e.org)}`,
     "",
     `${e.start}–${e.end}${where}`,
     "",
-    ...e.bullets.map((b) => `- ${b}`),
+    ...stripTodoList(e.bullets).map((b) => `- ${b}`),
     "",
   ];
 }
@@ -56,7 +57,7 @@ export function resumeMd(): string {
   return [
     `# Resume — ${profile.name}`,
     "",
-    `${profile.role} · ${profile.location} · ${profile.email}`,
+    `${stripTodo(profile.role)} · ${stripTodo(profile.location)} · ${profile.email}`,
     "",
     "## Experience",
     "",
@@ -66,7 +67,7 @@ export function resumeMd(): string {
     ...education.flatMap(resumeEntryMd),
     "## Skills",
     "",
-    ...skills.map((s) => `- **${s.group}:** ${s.items.join(", ")}`),
+    ...skills.map((s) => `- **${s.group}:** ${stripTodoList(s.items).join(", ")}`),
     "",
     `Per-role detail lives in [experience/](experience/). PDF: [resume.pdf](resume.pdf).`,
   ].join("\n");
@@ -74,7 +75,7 @@ export function resumeMd(): string {
 
 export function resumePdfSummary(): string {
   return [
-    `${profile.name} — ${profile.role}`,
+    `${profile.name} — ${stripTodo(profile.role)}`,
     "",
     "This is a PDF. The terminal prints this summary; click the file name",
     "(or the link below) to download the real thing.",
@@ -82,13 +83,13 @@ export function resumePdfSummary(): string {
 }
 
 export function experiencePageMd(e: ResumeEntry): string {
-  const where = e.location ? ` · ${e.location}` : "";
+  const where = e.location ? ` · ${stripTodo(e.location)}` : "";
   return [
-    `# ${e.org}`,
+    `# ${stripTodo(e.org)}`,
     "",
-    `**${e.title}** · ${e.start}–${e.end}${where}`,
+    `**${stripTodo(e.title)}** · ${e.start}–${e.end}${where}`,
     "",
-    ...e.bullets.map((b) => `- ${b}`),
+    ...stripTodoList(e.bullets).map((b) => `- ${b}`),
     "",
     "Back to the overview: [../resume.md](../resume.md)",
   ].join("\n");
@@ -112,7 +113,7 @@ export function planText(): string {
   return [
     `Last update: ${now.updated}`,
     "",
-    ...now.items.map((i) => `* ${i}`),
+    ...stripTodoList(now.items).map((i) => `* ${i}`),
   ].join("\n");
 }
 

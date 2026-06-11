@@ -3,6 +3,7 @@ import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { profile } from "@/data/profile";
 import { socials } from "@/data/socials";
+import { stripTodo } from "@/lib/strip-todo";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { themeInitScript } from "@/lib/themes/init-script";
 
@@ -18,7 +19,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const role = profile.role.replace(/^TODO\s*/, "");
+const role = stripTodo(profile.role);
 
 const description =
   profile.tagline && !profile.tagline.startsWith("TODO")

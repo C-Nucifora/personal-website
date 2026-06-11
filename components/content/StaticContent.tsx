@@ -1,11 +1,10 @@
 import { profile } from "@/data/profile";
+import { stripTodo } from "@/lib/strip-todo";
 import { BackToTerminal } from "@/components/ui/BackToTerminal";
 import { About } from "./About";
 import { Resume } from "./Resume";
 import { Projects } from "./Projects";
 import { Socials } from "./Socials";
-
-const strip = (s: string) => s.replace(/^TODO\s*/, "");
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -30,7 +29,7 @@ export function StaticContent() {
       <div className="space-y-10 px-5 py-8 sm:px-8 sm:py-10">
         <header className="space-y-2 border-b border-border pb-6">
           <h1 className="font-mono text-2xl font-bold text-fg">{profile.name}</h1>
-          <p className="text-accent">{strip(profile.role)}</p>
+          <p className="text-accent">{stripTodo(profile.role)}</p>
           {!profile.tagline.startsWith("TODO") && (
             <p className="font-sans text-muted">{profile.tagline}</p>
           )}

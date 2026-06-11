@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { stripTodo } from "@/lib/strip-todo";
 import { profile } from "@/data/profile";
 import { socials } from "@/data/socials";
 import { now } from "@/data/now";
@@ -12,6 +13,7 @@ import {
   planText,
   projectReadmeMd,
   resumeMd,
+  resumePdfSummary,
   slugify,
   usesMd,
 } from "./builders";
@@ -60,7 +62,7 @@ describe("planText (relocated now content)", () => {
   });
 
   test("includes the now items", () => {
-    expect(txt).toContain(now.items[0]);
+    expect(txt).toContain(stripTodo(now.items[0]));
   });
 });
 
@@ -68,14 +70,14 @@ describe("aboutMd", () => {
   test("includes name and about paragraphs", () => {
     const md = aboutMd();
     expect(md).toContain(profile.name);
-    expect(md).toContain(profile.about[0]);
+    expect(md).toContain(stripTodo(profile.about[0]));
   });
 });
 
 describe("resumeMd", () => {
   test("includes experience orgs and skills", () => {
     const md = resumeMd();
-    expect(md).toContain(experience[0].org);
+    expect(md).toContain(stripTodo(experience[0].org));
     expect(md).toContain("Languages");
   });
 });
@@ -83,10 +85,10 @@ describe("resumeMd", () => {
 describe("experiencePageMd", () => {
   test("renders one role with title, dates and bullets", () => {
     const md = experiencePageMd(experience[0]);
-    expect(md).toContain(experience[0].org);
-    expect(md).toContain(experience[0].title);
+    expect(md).toContain(stripTodo(experience[0].org));
+    expect(md).toContain(stripTodo(experience[0].title));
     expect(md).toContain(experience[0].start);
-    expect(md).toContain(experience[0].bullets[0]);
+    expect(md).toContain(stripTodo(experience[0].bullets[0]));
   });
 });
 
@@ -118,5 +120,20 @@ describe("etcPasswd", () => {
     expect(etcPasswd()).toContain(
       "impostor_syndrome:x:1001:1001:visits occasionally:/home/christian:/bin/zsh",
     );
+  });
+});
+
+describe("builders never leak placeholder TODOs (recruiter hygiene)", () => {
+  test("no generated file contains the literal word TODO", () => {
+    const texts = [
+      aboutMd(),
+      usesMd(),
+      resumeMd(),
+      resumePdfSummary(),
+      contactMd(),
+      planText(),
+      ...experience.map(experiencePageMd),
+    ];
+    for (const t of texts) expect(t).not.toMatch(/\bTODO\b/);
   });
 });

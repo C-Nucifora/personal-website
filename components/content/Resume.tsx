@@ -1,10 +1,9 @@
 import { experience, education, skills, type ResumeEntry } from "@/data/resume";
 import { profile } from "@/data/profile";
 import { hasResumePdf } from "@/data/generated/assets";
+import { stripTodo, stripTodoList } from "@/lib/strip-todo";
 import { Icon } from "@/components/ui/Icon";
 import { PrintButton } from "@/components/ui/PrintButton";
-
-const strip = (s: string) => s.replace(/^TODO\s*/, "");
 
 function EntryList({ heading, entries }: { heading: string; entries: ResumeEntry[] }) {
   if (entries.length === 0) return null;
@@ -16,18 +15,18 @@ function EntryList({ heading, entries }: { heading: string; entries: ResumeEntry
           <li key={i} className="space-y-1.5">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
               <p className="font-medium text-fg">
-                {strip(e.title)}
-                <span className="text-muted"> · {strip(e.org)}</span>
+                {stripTodo(e.title)}
+                <span className="text-muted"> · {stripTodo(e.org)}</span>
               </p>
               <p className="font-mono text-xs text-muted">
                 {e.start}–{e.end}
-                {e.location && !e.location.startsWith("TODO") ? ` · ${strip(e.location)}` : ""}
+                {e.location && !e.location.startsWith("TODO") ? ` · ${stripTodo(e.location)}` : ""}
               </p>
             </div>
             {e.bullets.length > 0 && (
               <ul className="ml-4 list-disc space-y-1 font-sans text-[15px] leading-relaxed text-fg marker:text-subtle">
                 {e.bullets.map((b, j) => (
-                  <li key={j}>{strip(b)}</li>
+                  <li key={j}>{stripTodo(b)}</li>
                 ))}
               </ul>
             )}
@@ -51,7 +50,7 @@ export function Resume() {
             {skills.map((s) => (
               <div key={s.group} className="flex flex-wrap gap-x-2 gap-y-1">
                 <dt className="font-mono text-sm text-muted">{s.group}:</dt>
-                <dd className="font-mono text-sm text-fg">{s.items.map(strip).join(", ")}</dd>
+                <dd className="font-mono text-sm text-fg">{stripTodoList(s.items).join(", ")}</dd>
               </div>
             ))}
           </dl>

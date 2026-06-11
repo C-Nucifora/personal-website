@@ -1,9 +1,8 @@
 import { Terminal } from "@/components/terminal/Terminal";
 import { StaticContent } from "@/components/content/StaticContent";
 import { profile } from "@/data/profile";
+import { stripTodo } from "@/lib/strip-todo";
 import type { WindowId } from "@/lib/terminal/types";
-
-const strip = (s: string) => s.replace(/^TODO\s*/, "");
 
 /**
  * Shared page body: the interactive terminal (shown once hydrated) over the
@@ -21,7 +20,7 @@ export function SitePage({ initialWindow = null }: { initialWindow?: WindowId | 
         <StaticContent />
 
         <footer className="mt-6 text-center font-mono text-xs text-muted">
-          {profile.name} · {strip(profile.role)} · built as a terminal
+          {profile.name} · {stripTodo(profile.role)} · built as a terminal
         </footer>
       </div>
     </main>
