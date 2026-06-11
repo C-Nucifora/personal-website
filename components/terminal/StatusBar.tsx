@@ -56,7 +56,10 @@ export function StatusBar() {
       : cwd;
 
   return (
-    <div className="flex items-center gap-3 border-t border-border bg-elevated px-2 py-1 font-mono text-[11px] text-muted">
+    <div
+      data-status-bar
+      className="flex items-center gap-3 border-t border-border bg-elevated px-2 py-1 font-mono text-[11px] text-muted"
+    >
       <span className="hidden shrink-0 sm:inline">
         visitor@{profile.username}
       </span>

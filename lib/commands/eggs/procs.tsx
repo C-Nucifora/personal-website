@@ -22,6 +22,17 @@ export const htop: CommandModule = {
   },
 };
 
+export const cmatrix: CommandModule = {
+  meta: { name: "cmatrix", aliases: [], description: "", usage: "cmatrix", hidden: true },
+  run: (ctx) => {
+    if (reducedMotion()) {
+      return <Hint>the matrix has you… but it respects reduced motion.</Hint>;
+    }
+    ctx.startOverlay("matrix");
+    return null;
+  },
+};
+
 export const sl: CommandModule = {
   meta: { name: "sl", aliases: [], description: "", usage: "sl", hidden: true },
   run: (ctx) => {

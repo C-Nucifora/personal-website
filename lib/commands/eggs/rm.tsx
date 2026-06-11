@@ -16,9 +16,15 @@ export const rm: CommandModule = {
 
     if (targets.includes("/") && recursive) {
       if (ctx.args.includes("--no-preserve-root")) {
-        // The §4.2 disintegration arrives with the showpieces; until then
-        // the backup speaks for itself.
-        return <p className="text-fg">Nice try. Filesystem restored from backup.</p>;
+        // The showpiece (§4.2): a pure overlay — the state is never touched.
+        const reduced =
+          window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+        const mobile = !(window.matchMedia?.("(min-width: 768px)").matches ?? true);
+        if (reduced || mobile) {
+          return <p className="text-fg">Nice try. Filesystem restored from backup.</p>;
+        }
+        ctx.startOverlay("disintegration");
+        return null;
       }
       return (
         <div>

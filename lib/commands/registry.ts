@@ -38,7 +38,7 @@ export interface CommandContext {
   openEditor(path: string, note?: string): void; // vim/view — read-only viewer (§8.1)
   notify(text: string): void;
   confirmOpenUrl(url: string): void;
-  startOverlay(kind: "clock" | "sl" | "top" | "htop"): void;
+  startOverlay(kind: "clock" | "sl" | "top" | "htop" | "disintegration" | "matrix"): void;
   runClick(cmd: string): void;
 
   history: string[];
@@ -75,7 +75,7 @@ import { man } from "./eggs/man";
 import { git } from "./eggs/git";
 import { emacs, make, mkdirCmd, nano, ping, touchCmd } from "./eggs/oneliners";
 import { cowsay, df, figlet, fortune, free, uname, uptimeCmd, which } from "./eggs/coreutils";
-import { htop, sl, top } from "./eggs/procs";
+import { cmatrix, htop, sl, top } from "./eggs/procs";
 
 /** Registration order = help listing order; hidden eggs trail at the end. */
 export const commandModules: CommandModule[] = [
@@ -117,6 +117,7 @@ export const commandModules: CommandModule[] = [
   top,
   htop,
   sl,
+  cmatrix,
 ];
 
 export const commandMetas: CommandMeta[] = commandModules.map((m) => m.meta);

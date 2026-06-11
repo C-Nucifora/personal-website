@@ -204,6 +204,18 @@ async function main() {
   await page.waitForTimeout(100);
   ok("q leaves COPY mode", (await page.innerText("body")).includes("-- INSERT --"));
 
+  // ---- the disintegration destroys nothing (EASTER_EGGS §4.2)
+  const preRm = await paneText("projects");
+  await activeInput("projects").fill("rm -rf / --no-preserve-root");
+  await activeInput("projects").press("Enter");
+  await page.waitForTimeout(700);
+  ok("disintegration crumbles the chrome", (await page.locator(".disintegrating").count()) === 1);
+  await page.waitForTimeout(8500); // crumble + black + BIOS + handoff
+  ok("disintegration ends by itself", (await page.locator(".disintegrating").count()) === 0);
+  const postRm = await paneText("projects");
+  ok("state fully restored after the boot", postRm.startsWith(preRm.slice(0, 40)));
+  ok("the rm itself is in scrollback like any command", postRm.includes("rm -rf / --no-preserve-root"));
+
   // ---- deep link (§4)
   await page.goto(BASE + "/contact/", { waitUntil: "networkidle" });
   await page.waitForSelector('html[data-js-ready="true"]');

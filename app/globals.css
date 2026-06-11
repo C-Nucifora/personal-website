@@ -230,6 +230,46 @@ a:hover {
   color: var(--error);
 }
 
+/* rm -rf / --no-preserve-root: the chrome detaches and falls (§4.2).
+   Purely visual — the class leaves and everything is exactly where it was.
+   Reduced motion never gets here (the command prints a punchline instead). */
+@keyframes egg-fall {
+  to {
+    transform: translateY(110vh) rotate(8deg);
+    opacity: 0.2;
+  }
+}
+@keyframes egg-crumble {
+  30% {
+    filter: blur(1px);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(35vh) scale(0.92);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+.disintegrating nav[aria-label="Sections"] li:nth-child(odd) button {
+  animation: egg-fall 1.8s cubic-bezier(0.5, 0, 1, 1) 0.1s forwards;
+}
+.disintegrating nav[aria-label="Sections"] li:nth-child(even) button {
+  animation: egg-fall 1.9s cubic-bezier(0.5, 0, 1, 1) 0.35s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n) {
+  animation: egg-crumble 1.5s ease-in 0.15s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n + 1) {
+  animation: egg-crumble 1.7s ease-in 0.4s forwards;
+}
+.disintegrating [role="log"] > div:nth-child(3n + 2) {
+  animation: egg-crumble 1.6s ease-in 0s forwards;
+}
+.disintegrating [data-status-bar],
+.disintegrating [data-title-bar] {
+  animation: egg-fall 2s cubic-bezier(0.5, 0, 1, 1) 0.6s forwards;
+}
+
 /* The sl locomotive steams right-to-left across the pane (~3s). */
 @keyframes sl-cross {
   from {

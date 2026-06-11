@@ -8,11 +8,15 @@ import { WindowPicker } from "./WindowPicker";
 import { StatusBar } from "./StatusBar";
 import { seedMotd } from "./Motd";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { Disintegration } from "@/components/effects/Disintegration";
+import { MatrixRain } from "@/components/effects/MatrixRain";
 import { store } from "@/lib/terminal/store";
 import { executeCommand } from "@/lib/terminal/executor";
+import { initIdle } from "@/lib/terminal/idle";
 import { initKeyboard } from "@/lib/terminal/keyboard";
 import { initRouting } from "@/lib/terminal/routing";
 import { registerThemeEnv } from "@/lib/terminal/env";
+import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowId } from "@/lib/terminal/types";
 
 /**
@@ -45,20 +49,26 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
 
     const disposeKeyboard = initKeyboard();
     const disposeRouting = initRouting();
+    const disposeIdle = initIdle();
     return () => {
       disposeKeyboard();
       disposeRouting();
+      disposeIdle();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const overlay = useTerminalStore((s) => s.overlay);
+
   return (
-    <div className="relative flex h-dvh flex-col bg-window">
+    <div data-terminal-root className="relative flex h-dvh flex-col bg-window">
       <TitleBar />
       <TabBar />
       <WindowArea />
       <StatusBar />
       <WindowPicker />
+      {overlay === "disintegration" && <Disintegration />}
+      {overlay === "matrix" && <MatrixRain />}
     </div>
   );
 }

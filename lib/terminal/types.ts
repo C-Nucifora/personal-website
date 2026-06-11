@@ -63,8 +63,8 @@ export interface AppState {
   pendingConfirm: { kind: "openUrl" | "closePane"; payload: string } | null;
   /** Ctrl+b w window picker overlay; index = highlighted row. */
   picker: { index: number } | null;
-  /** Full-pane effect overlay — any input dismisses. */
-  overlay: "clock" | "sl" | "top" | "htop" | null;
+  /** Effect overlay — any input dismisses. */
+  overlay: "clock" | "sl" | "top" | "htop" | "disintegration" | "matrix" | null;
   history: string[];
   nextLineId: number;
   nextPaneId: number;
