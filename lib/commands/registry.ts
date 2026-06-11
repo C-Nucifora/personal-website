@@ -69,6 +69,7 @@ import { theme } from "./core/theme";
 import { echo } from "./core/echo";
 import { date } from "./core/date";
 import { plain } from "./core/plain";
+import { mail } from "./core/mail";
 import { exit } from "./eggs/exit";
 import { sudo } from "./eggs/sudo";
 import { rm } from "./eggs/rm";
@@ -96,6 +97,7 @@ export const commandModules: CommandModule[] = [
   echo,
   date,
   plain,
+  mail,
   // eggs — runnable, absent from help and completion
   exit,
   sudo,
