@@ -46,6 +46,7 @@ async function main() {
   ok("MOTD: last login line", lobby.toLowerCase().includes("last login:"));
   ok("MOTD: neofetch card", /Host/.test(lobby) && /Shell/.test(lobby));
   ok("MOTD: clickable try hints", lobby.includes("try:") && lobby.includes("cd about"));
+  ok("MOTD: human nav sentence", lobby.includes("No command line needed"));
   await page.screenshot({ path: "/tmp/e2e-lobby.png" });
 
   // ---- ls is a clickable menu (§3.1)
@@ -228,6 +229,50 @@ async function main() {
   // ---- static fallback in raw HTML (non-negotiable #5)
   const raw = await (await page.request.get(BASE + "/resume/")).text();
   ok("static fallback ships resume content without JS", raw.includes("static-fallback") && raw.includes("Experience"));
+
+  // ---- welcome strip + plain view (recruiter mode, FLOW §3.4)
+  const wsCtx = await browser.newContext();
+  const wsPage = await wsCtx.newPage();
+  await wsPage.goto(BASE, { waitUntil: "networkidle" });
+  await wsPage.waitForSelector('html[data-js-ready="true"]');
+  await wsPage.waitForTimeout(900);
+  ok("welcome strip shows on first visit", await wsPage.isVisible('[role="note"][aria-label="Welcome"]'));
+  await wsPage.click('[aria-label="Dismiss welcome message"]');
+  await wsPage.waitForTimeout(120);
+  ok("dismiss hides the strip", !(await wsPage.isVisible('[role="note"][aria-label="Welcome"]')));
+  await wsPage.reload({ waitUntil: "networkidle" });
+  await wsPage.waitForSelector('html[data-js-ready="true"]');
+  await wsPage.waitForTimeout(900);
+  ok("dismissal persists across reloads", !(await wsPage.isVisible('[role="note"][aria-label="Welcome"]')));
+
+  ok("terminal visible before plain view", await wsPage.isVisible("[data-terminal-root]"));
+  await wsPage.click('button[title="plain"]'); // title-bar "plain view" button
+  await wsPage.waitForTimeout(ANIM);
+  ok("plain view reveals the static content", await wsPage.isVisible(".static-fallback"));
+  ok("plain view hides the terminal", !(await wsPage.isVisible("[data-terminal-root]")));
+  await wsPage.reload({ waitUntil: "networkidle" });
+  await wsPage.waitForSelector('html[data-js-ready="true"]');
+  await wsPage.waitForTimeout(300);
+  ok("plain view persists across reloads", await wsPage.isVisible(".static-fallback"));
+  await wsPage.click('button:has-text("Back to the terminal")');
+  await wsPage.waitForTimeout(300);
+  ok("back button returns to the terminal", await wsPage.isVisible("[data-terminal-root]"));
+  await wsCtx.close();
+
+  // ---- ?plain=1 deep link (the recruiter URL)
+  const plCtx = await browser.newContext();
+  const plPage = await plCtx.newPage();
+  await plPage.goto(BASE + "/?plain=1", { waitUntil: "networkidle" });
+  await plPage.waitForSelector('html[data-js-ready="true"]');
+  await plPage.waitForTimeout(300);
+  ok("?plain=1 lands in plain view", await plPage.isVisible(".static-fallback"));
+  ok("?plain=1 hides the terminal", !(await plPage.isVisible("[data-terminal-root]")));
+  await plCtx.close();
+
+  // ---- title-bar resume shortcut
+  await page.click('button[title="cd ~/resume"]');
+  await page.waitForTimeout(ANIM);
+  ok("title-bar resume button navigates", page.url().endsWith("/resume/"));
 
   // ---- reduced motion: instant echo, no animation (§5)
   const rmCtx = await browser.newContext({ reducedMotion: "reduce" });
