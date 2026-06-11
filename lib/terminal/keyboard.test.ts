@@ -328,3 +328,12 @@ describe("Ctrl+l", () => {
     expect(store.getState().lobby.panes[0].scrollback).toHaveLength(0);
   });
 });
+
+describe("plain view (recruiter mode)", () => {
+  test("keys are ignored while data-view=plain", () => {
+    document.documentElement.setAttribute("data-view", "plain");
+    press("b", { ctrlKey: true });
+    expect(store.getState().pendingPrefix).toBe(false);
+    document.documentElement.removeAttribute("data-view");
+  });
+});

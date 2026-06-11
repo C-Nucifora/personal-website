@@ -18,6 +18,7 @@ import { initIdle } from "@/lib/terminal/idle";
 import { initKeyboard } from "@/lib/terminal/keyboard";
 import { initRouting } from "@/lib/terminal/routing";
 import { registerThemeEnv } from "@/lib/terminal/env";
+import { applyViewMode, initialViewMode } from "@/lib/view-mode";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowId } from "@/lib/terminal/types";
 
@@ -41,6 +42,9 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
   // (FLOW §4), then the global listeners. If hydration fails this never runs
   // and the server-rendered fallback stays visible.
   useEffect(() => {
+    // Resolve plain view before revealing the terminal, so a ?plain=1
+    // visitor never sees a flash of terminal chrome.
+    applyViewMode(initialViewMode(window.location.search));
     document.documentElement.setAttribute("data-js-ready", "true");
 
     store.reset(initialWindow);

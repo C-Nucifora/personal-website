@@ -122,6 +122,22 @@ a:hover {
   display: block;
 }
 
+/*
+ * Plain view (recruiter mode). The `plain` command — or ?plain=1 — sets
+ * data-view="plain" on <html>; the server-rendered static content becomes
+ * the visible site and the terminal hides until the visitor returns.
+ */
+[data-js-ready="true"][data-view="plain"] .static-fallback {
+  display: block;
+}
+[data-js-ready="true"][data-view="plain"] .interactive {
+  display: none;
+}
+/* The back-to-terminal button only means something once JS has booted. */
+html:not([data-js-ready="true"]) .back-to-terminal {
+  display: none;
+}
+
 /* Honour reduced-motion: no transitions or animations anywhere. */
 @media (prefers-reduced-motion: reduce) {
   *,

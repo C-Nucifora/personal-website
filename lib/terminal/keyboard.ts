@@ -312,6 +312,9 @@ export function initKeyboard(): () => void {
     if (e.ctrlKey && ["t", "w", "n"].includes(e.key.toLowerCase())) return;
     if (/^F\d+$/.test(e.key)) return;
 
+    // Plain view showing: the terminal is hidden, keys belong to the page.
+    if (document.documentElement.getAttribute("data-view") === "plain") return;
+
     if (!e.ctrlKey && !e.altKey) watchKonami(e.key);
 
     const state = store.getState();
