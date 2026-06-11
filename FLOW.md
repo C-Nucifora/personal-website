@@ -124,6 +124,18 @@ The novice can complete every site goal (read about, browse projects, view/downl
 - Clicking and typing produce identical scrollback. A session driven entirely by mouse looks, in scrollback, like a session typed by hand.
 - No GUI-only or CLI-only destinations. Every piece of content is reachable both ways.
 
+### 3.4 Plain view & the welcome strip (recruiter mode)
+
+- A dismissible welcome strip under the tab bar greets first-time visitors in
+  plain language: click the tabs to browse, or switch to plain view. Dismissal
+  persists (`portfolio:welcome-dismissed`); it never returns once closed.
+- The `plain` command (title-bar button: "plain view") swaps the terminal for
+  the server-rendered plain content — the same DOM the no-JS fallback ships.
+  A "Back to the terminal" button returns. The choice persists in
+  `localStorage` (`portfolio:view`), and `?plain=1` on any route forces plain
+  view (URL param > saved choice > terminal default). While plain view is
+  active, the global key listener stands down.
+
 ---
 
 ## 4. Page load sequence
@@ -295,6 +307,7 @@ All commands echo into scrollback whether typed or click-animated.
 | `open <url>` | new tab after status-bar confirm |
 | `history` | numbered history; `!{n}` re-runs |
 | `theme [name]` | per THEMES.md; no arg lists themes |
+| `plain` | switch to the plain website view; the title-bar button and welcome strip run it (§3.4) |
 | `echo`, `date` | flavor; trivial |
 
 Unknown command: `command not found: <x> — try 'help'`. Typo tolerance: if Levenshtein distance 1 from a known command, append `(did you mean '<y>'?)` as clickable text. **Section-name safety net:** a bare section word (`about`, `projects`, `resume`, `contact`) is not a command; it returns `command not found: about — did you mean 'cd about'?` with the suggestion clickable. This is the designed landing spot for the most predictable novice keystroke, and it teaches the real command in the same breath.
@@ -309,7 +322,7 @@ Unknown command: `command not found: <x> — try 'help'`. Typo tolerance: if Lev
 
 - macOS-style traffic lights, left. Decorative by default; close (red) may trigger the `exit` easter-egg response, minimize/maximize are inert. Never actually navigate away.
 - Centered dynamic title: `visitor@christian: <cwd>` (abbreviated), updating on every cwd change — same source of truth as the prompt.
-- Right side: a `?` button (runs `help` via the §5 animation — it is a command in disguise, not a separate help system) and a **theme dropdown**. Selecting a theme from the dropdown echoes and executes `theme <name>` in the active pane, keeping the GUI control inside the one-state rule. The dropdown and the `theme` command list identical options (including `crt (unlocked)` post-Konami).
+- Right side: `resume` and `plain view` buttons (each runs its real command — `cd ~/resume`, `plain` — via the §5 animation; hidden on the smallest screens), a `?` button (runs `help` via the §5 animation — it is a command in disguise, not a separate help system) and a **theme dropdown**. Selecting a theme from the dropdown echoes and executes `theme <name>` in the active pane, keeping the GUI control inside the one-state rule. The dropdown and the `theme` command list identical options (including `crt (unlocked)` post-Konami).
 - The tab bar sits directly below the title bar: `1:about 2:projects 3:resume 4:contact 5:help`.
 
 ### 10.2 Status bar (bottom, tmux-style)

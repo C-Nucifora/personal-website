@@ -64,6 +64,11 @@ Three layers, in order of how soon a visitor meets them:
 
 Writing rules for all help text: active voice, sentence case, name things by what the visitor controls. "See my projects," not "Invoke projects module." Errors guide, never scold: unknown input returns `I don't know "foo" yet. Type help to see what I can do.`
 
+Plain view is the final safety net: the `plain` command (or `?plain=1`)
+swaps the terminal for the same server-rendered content the no-JS fallback
+ships, so a visitor who never warms to the terminal still gets the whole
+site as a normal page — and a way back when curiosity wins (FLOW §3.4).
+
 ## Command behavior
 
 - **Tab** completes the longest unique prefix; a second Tab lists matches as chips.
