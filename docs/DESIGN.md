@@ -2,6 +2,12 @@
 
 The brief: a developer portfolio that *is* a terminal but never strands a non-technical visitor. Treat the terminal as the signature, and the discoverability as the discipline that keeps it kind.
 
+> **Precedence note:** `FLOW.md` is the authority on interaction behavior —
+> navigation architecture, input modes, keybindings, and the command set.
+> Where this document describes interaction (section commands, suggestion
+> chips, the help panel) and FLOW.md disagrees, FLOW.md wins. Visual styling,
+> layout feel, and the help-first philosophy here remain binding.
+
 ## Signature element
 
 A single terminal window, centered, with a faux title bar. The prompt is the thing people remember:

@@ -73,7 +73,7 @@ export function StatusBar() {
               onClick={() => runClick(`cd ~/${id}`)}
               className={[
                 "cursor-pointer px-1",
-                id === active ? "bg-selection text-fg" : "hover:text-fg",
+                id === active ? "bg-selection text-fg" : "text-fg/70 hover:text-fg",
               ].join(" ")}
             >
               {i + 1}:{id.slice(0, 3)}
@@ -106,7 +106,7 @@ export function StatusBar() {
       <button
         type="button"
         onClick={() => runClick("help")}
-        className="shrink-0 cursor-pointer hover:text-accent"
+        className="shrink-0 cursor-pointer text-fg/70 hover:text-accent"
       >
         ? help
       </button>

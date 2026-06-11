@@ -35,10 +35,10 @@ export function TabBar() {
                   "focus-visible:outline-2",
                   isActive
                     ? "border-b-2 border-accent bg-window text-accent"
-                    : "text-muted hover:text-fg",
+                    : "text-fg/75 hover:text-fg",
                 ].join(" ")}
               >
-                <span className="text-subtle">{i + 1}:</span>
+                <span className={isActive ? "text-muted" : ""}>{i + 1}:</span>
                 {id}
               </button>
             </li>

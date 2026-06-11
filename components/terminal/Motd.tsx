@@ -46,7 +46,7 @@ function TypeOn({ children }: { children: React.ReactNode }) {
 
 function MotdHint() {
   return (
-    <p className="text-sm text-muted">
+    <p className="text-sm text-fg/80">
       try: <CmdLink cmd="cd about" /> · <CmdLink cmd="cd projects" /> ·{" "}
       <CmdLink cmd="cd resume" /> · <CmdLink cmd="help" />
       <span className="sm:hidden"> — or tap a tab above</span>
@@ -60,7 +60,7 @@ export function seedMotd(windowKey: WindowKey): void {
     type: "append-line",
     windowKey,
     command: null,
-    node: <p className="font-mono text-sm text-muted">{lastLoginLine()}</p>,
+    node: <p className="font-mono text-sm text-fg/80">{lastLoginLine()}</p>,
   });
   store.dispatch({
     type: "append-line",
