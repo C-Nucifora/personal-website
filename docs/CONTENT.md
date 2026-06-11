@@ -58,9 +58,14 @@ Projects are **synced from GitHub at build time**, not written by hand:
   bundle for the `git log` egg.
 - `scripts/fetch-projects.mjs` (runs on `predev`/`prebuild`, or manually via
   `npm run fetch-projects`) pulls each public, non-fork repo's metadata, real
-  README markdown, and recent commits into
-  `data/generated/github-projects.ts`. The snapshot is committed so offline
+  README markdown, recent commits, and a curated source slice (one tarball
+  request per repo, filtered and capped by the `source` knobs in
+  projects-config) into `data/generated/github-projects.ts` and
+  `data/generated/github-sources.ts`. The snapshots are committed so offline
   builds and tests work; a failed fetch keeps the last good snapshot.
+- Source slices ship as a **lazy chunk** grafted into the virtual filesystem
+  just after boot (each repo keeps its real layout — Cargo.toml at the root,
+  its own src/), so browsing code never weighs down first paint.
 - `data/projects.ts` maps that onto the `Project` interface and appends
   `terminal-portfolio` (this site — its curated source is bundled locally via
   `data/source-manifest.mjs` and browsable under `src/`).

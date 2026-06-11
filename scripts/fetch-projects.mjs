@@ -5,13 +5,25 @@
  * output is committed so offline builds and tests keep working — if GitHub
  * is unreachable the existing snapshot stays in place.
  */
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { projectsConfig } from "../data/projects-config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(root, "data/generated/github-projects.ts");
+const sourcesPath = join(root, "data/generated/github-sources.ts");
 
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 const headers = {
@@ -33,6 +45,69 @@ async function fetchReadme(user, repo) {
   return Buffer.from(data.content, "base64").toString("utf8");
 }
 
+/**
+ * Curated source slice: download the repo tarball (one request), extract to
+ * a temp dir, and keep the most interesting files within the byte budget —
+ * shallow paths first, src/ before the rest.
+ */
+async function fetchSourceFiles(user, repo) {
+  const cfg = projectsConfig.source;
+  const res = await fetch(`https://api.github.com/repos/${user}/${repo}/tarball`, { headers });
+  if (!res.ok) return {};
+  const tmp = mkdtempSync(join(tmpdir(), `repo-${repo}-`));
+  try {
+    const tarPath = join(tmp, "repo.tar.gz");
+    writeFileSync(tarPath, Buffer.from(await res.arrayBuffer()));
+    execFileSync("tar", ["-xzf", tarPath, "-C", tmp]);
+
+    // The tarball unpacks into a single "<user>-<repo>-<sha>" directory.
+    const rootName = readdirSync(tmp).find((n) => n !== "repo.tar.gz");
+    const repoRoot = join(tmp, rootName);
+
+    const candidates = [];
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const abs = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (!cfg.excludeDirs.includes(entry.name)) walk(abs);
+          continue;
+        }
+        const rel = relative(repoRoot, abs);
+        if (!cfg.extensions.includes(extname(entry.name))) continue;
+        if (cfg.excludeFiles.includes(entry.name)) continue;
+        const size = statSync(abs).size;
+        if (size === 0 || size > cfg.maxFileBytes) continue;
+        candidates.push({ rel, abs, size });
+      }
+    };
+    walk(repoRoot);
+
+    // Shallow before deep, src/ before siblings at the same depth.
+    candidates.sort((a, b) => {
+      const da = a.rel.split("/").length;
+      const db = b.rel.split("/").length;
+      if (da !== db) return da - db;
+      const sa = a.rel.startsWith("src/") ? 0 : 1;
+      const sb = b.rel.startsWith("src/") ? 0 : 1;
+      if (sa !== sb) return sa - sb;
+      return a.rel.localeCompare(b.rel);
+    });
+
+    const files = {};
+    let bytes = 0;
+    let count = 0;
+    for (const c of candidates) {
+      if (count >= cfg.maxFilesPerRepo || bytes + c.size > cfg.maxBytesPerRepo) break;
+      files[c.rel] = readFileSync(c.abs, "utf8");
+      bytes += c.size;
+      count += 1;
+    }
+    return files;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
 async function fetchCommits(user, repo, count) {
   const data = await gh(`/repos/${user}/${repo}/commits?per_page=${count}`);
   if (!Array.isArray(data)) return [];
@@ -52,12 +127,15 @@ async function main() {
   );
 
   const projects = [];
+  const sources = {};
   for (const r of wanted) {
     const over = overrides[r.name] ?? {};
-    const [readme, commits] = await Promise.all([
+    const [readme, commits, files] = await Promise.all([
       fetchReadme(username, r.name),
       fetchCommits(username, r.name, commitCount),
+      fetchSourceFiles(username, r.name),
     ]);
+    if (Object.keys(files).length) sources[r.name] = files;
     projects.push({
       slug: r.name,
       title: r.name,
@@ -105,7 +183,26 @@ async function main() {
 
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, body);
-  console.log(`synced ${projects.length} projects from github.com/${username}`);
+
+  // Source slices live in their own module so the bundler can split them
+  // into a lazy chunk — they're grafted into the vfs after boot, never on
+  // the critical path.
+  const srcBody =
+    banner +
+    `/** Curated source slices, slug → (repo path → contents). Lazy-loaded. */\n` +
+    `export const githubSources: Record<string, Record<string, string>> = ` +
+    JSON.stringify(sources, null, 2) +
+    `;\n`;
+  writeFileSync(sourcesPath, srcBody);
+
+  const srcBytes = Object.values(sources).reduce(
+    (n, files) => n + Object.values(files).reduce((m, f) => m + f.length, 0),
+    0,
+  );
+  console.log(
+    `synced ${projects.length} projects from github.com/${username} ` +
+      `(${Object.keys(sources).length} with source, ${(srcBytes / 1024).toFixed(0)} KiB lazy)`,
+  );
 }
 
 main().catch((err) => {

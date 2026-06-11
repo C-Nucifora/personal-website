@@ -41,6 +41,24 @@ describe("window directories (FLOW §2)", () => {
     expect(top).toEqual(["README.md", "src"]);
   });
 
+  test("grafting mounts GitHub source slices in the repo's own layout, once", async () => {
+    const { graftProjectSources } = await import("./tree");
+    const { githubSources } = await import("@/data/generated/github-sources");
+    const slug = Object.keys(githubSources)[0];
+    expect(slug, "the committed snapshot bundles at least one repo's source").toBeDefined();
+
+    graftProjectSources(githubSources);
+    const firstFile = Object.keys(githubSources[slug])[0];
+    expect(readFile(`~/projects/${slug}/${firstFile}`)?.raw).toBe(
+      githubSources[slug][firstFile],
+    );
+
+    // Idempotent: grafting again must not duplicate entries.
+    const before = (listDir(`~/projects/${slug}`) ?? []).length;
+    graftProjectSources(githubSources);
+    expect((listDir(`~/projects/${slug}`) ?? []).length).toBe(before);
+  });
+
   test("resume.pdf is a download", () => {
     expect(readFile("~/resume/resume.pdf")?.download).toBe("/resume.pdf");
   });

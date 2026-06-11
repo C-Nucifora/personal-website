@@ -13,6 +13,7 @@ import { Disintegration } from "@/components/effects/Disintegration";
 import { MatrixRain } from "@/components/effects/MatrixRain";
 import { store } from "@/lib/terminal/store";
 import { executeCommand } from "@/lib/terminal/executor";
+import { graftProjectSources } from "@/lib/vfs/tree";
 import { initIdle } from "@/lib/terminal/idle";
 import { initKeyboard } from "@/lib/terminal/keyboard";
 import { initRouting } from "@/lib/terminal/routing";
@@ -54,6 +55,11 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     if (initialWindow) {
       executeCommand(`cd ~/${initialWindow}`, { source: "auto", windowKey: initialWindow });
     }
+
+    // GitHub source slices arrive as their own chunk, off the critical path.
+    import("@/data/generated/github-sources").then((m) =>
+      graftProjectSources(m.githubSources),
+    );
 
     const disposeKeyboard = initKeyboard();
     const disposeRouting = initRouting();

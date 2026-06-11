@@ -55,13 +55,12 @@ function languageFor(name: string): VfsLanguage {
   return EXT_LANGUAGE[ext] ?? "text";
 }
 
-/** Build a project's src/ tree from its bundled files (FLOW §8). */
-function srcTree(files: Record<string, string>): VfsDir {
-  const root = dir("src", []);
+/** Mount path → contents entries into a directory, creating subdirs. */
+function mountFiles(target: VfsDir, files: Record<string, string>): void {
   for (const [path, raw] of Object.entries(files)) {
     const segments = path.split("/");
     const name = segments.pop()!;
-    let cursor = root;
+    let cursor = target;
     for (const seg of segments) {
       let next = cursor.children.find(
         (c): c is VfsDir => c.kind === "dir" && c.name === seg,
@@ -74,6 +73,12 @@ function srcTree(files: Record<string, string>): VfsDir {
     }
     cursor.children.push(file(name, raw, { language: languageFor(name) }));
   }
+}
+
+/** Build a project's src/ tree from its bundled files (FLOW §8). */
+function srcTree(files: Record<string, string>): VfsDir {
+  const root = dir("src", []);
+  mountFiles(root, files);
   return root;
 }
 
@@ -86,6 +91,8 @@ function buildHome(): VfsDir {
     dir(
       "projects",
       projects.map((p) => {
+        // Local bundle (this site) mounts now; GitHub source slices graft in
+        // lazily after boot — see graftProjectSources below.
         const bundled = siteSource[p.slug];
         return dir(p.slug, [
           file("README.md", projectReadmeMd(p), { render: "project-readme", meta: p.slug }),
@@ -144,4 +151,26 @@ export function readFile(path: string): VfsFile | null {
 export function listDir(path: string): VfsNode[] | null {
   const node = resolveNode(path);
   return node?.kind === "dir" ? node.children : null;
+}
+
+/**
+ * Mount lazily-loaded GitHub source slices into ~/projects/<slug>/, keeping
+ * each repo's real layout (Cargo.toml at the root, its own src/ where it has
+ * one). The chunk stays off the critical path; the terminal grafts it right
+ * after boot (Terminal.tsx). Idempotent per slug.
+ */
+const grafted = new Set<string>();
+
+export function graftProjectSources(sources: Record<string, Record<string, string>>): void {
+  const projectsDir = resolveNode("~/projects");
+  if (projectsDir?.kind !== "dir") return;
+  for (const [slug, files] of Object.entries(sources)) {
+    if (grafted.has(slug)) continue;
+    const projectDir = projectsDir.children.find(
+      (n): n is VfsDir => n.kind === "dir" && n.name === slug,
+    );
+    if (!projectDir) continue;
+    grafted.add(slug);
+    mountFiles(projectDir, files);
+  }
 }

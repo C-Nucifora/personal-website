@@ -20,4 +20,25 @@ export const projectsConfig = {
 
   /** How many recent commits to bundle for the `git log` easter egg. */
   commitCount: 8,
+
+  /**
+   * Source bundling: a curated slice of each repo lands under
+   * ~/projects/<slug>/src/ for browsing with ls/cat/vim. Everything ships
+   * in the client bundle, so the caps are the budget.
+   */
+  source: {
+    /** File extensions worth reading. */
+    extensions: [
+      ".rs", ".lua", ".ts", ".tsx", ".js", ".jsx", ".mjs",
+      ".py", ".c", ".h", ".sh", ".toml", ".yml", ".yaml",
+      ".json", ".scm", ".vim", ".m1scr",
+    ],
+    /** Directories never worth shipping. */
+    excludeDirs: ["node_modules", "target", "dist", "build", "vendor", ".git", "out"],
+    /** Generated/lock files never worth shipping. */
+    excludeFiles: ["package-lock.json", "Cargo.lock", "parser.c", "grammar.json"],
+    maxFileBytes: 50_000,
+    maxFilesPerRepo: 25,
+    maxBytesPerRepo: 120_000,
+  },
 };
