@@ -102,6 +102,30 @@ export function executeCommand(line: string, opts: ExecOptions): void {
     cmdLine = entry;
   }
 
+  // Vim habits at the shell prompt (EASTER_EGGS §2).
+  if (cmdLine === ":q" || cmdLine === ":q!") {
+    store.dispatch({ type: "append-line", windowKey, command: cmdLine, node: null });
+    store.dispatch({
+      type: "append-line",
+      windowKey,
+      command: null,
+      node: <p className="text-fg">you&apos;re not in vim. yet.</p>,
+    });
+    store.dispatch({ type: "history-append", line: cmdLine });
+    return;
+  }
+  if (cmdLine === ":wq" || cmdLine === ":x") {
+    store.dispatch({ type: "append-line", windowKey, command: cmdLine, node: null });
+    store.dispatch({
+      type: "append-line",
+      windowKey,
+      command: null,
+      node: <p className="text-fg">nothing to write. nothing to quit. take a breath.</p>,
+    });
+    store.dispatch({ type: "history-append", line: cmdLine });
+    return;
+  }
+
   // Echo first — typed and clicked sessions read identically in scrollback.
   store.dispatch({
     type: "append-line",
@@ -135,6 +159,8 @@ export function executeCommand(line: string, opts: ExecOptions): void {
       cleared = true;
     },
     setCwd: (path) => store.dispatch({ type: "set-cwd", windowKey, path }),
+    openEditor: (path, note) =>
+      store.dispatch({ type: "open-editor", windowKey, path, note }),
     notify: (text) =>
       store.dispatch({ type: "set-notice", text, until: Date.now() + 3000 }),
     confirmOpenUrl: (url) =>

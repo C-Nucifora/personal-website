@@ -203,6 +203,43 @@ describe("session commands", () => {
   });
 });
 
+describe("vim viewer (FLOW §8.1)", () => {
+  test("vim <file> opens the editor in the active pane", () => {
+    executeCommand("cd ~/projects/terminal-portfolio/src", { source: "typed" });
+    executeCommand("vim lib/vim/machine.ts", { source: "typed" });
+    const pane = getPane(store.getState(), "projects");
+    expect(pane.view).toBe("editor");
+    expect(pane.editorPath).toBe("~/projects/terminal-portfolio/src/lib/vim/machine.ts");
+  });
+
+  test("vim on a missing file errors and stays in the shell", () => {
+    executeCommand("vim nope.ts", { source: "typed" });
+    renderLast();
+    expect(screen.getByText(/vim: no such file or directory: nope.ts/)).toBeTruthy();
+    expect(store.getState().lobby.panes[0].view).toBe("shell");
+  });
+});
+
+describe("vim-at-the-shell eggs (EASTER_EGGS §2)", () => {
+  test(":q at the shell prompt knows better", () => {
+    executeCommand(":q", { source: "typed" });
+    renderLast();
+    expect(screen.getByText(/you're not in vim\. yet\./)).toBeTruthy();
+  });
+
+  test(":wq gets the breath line", () => {
+    executeCommand(":wq", { source: "typed" });
+    renderLast();
+    expect(screen.getByText(/nothing to write\. nothing to quit\. take a breath\./)).toBeTruthy();
+  });
+
+  test(":x gets the breath line too", () => {
+    executeCommand(":x", { source: "typed" });
+    renderLast();
+    expect(screen.getByText(/nothing to write\. nothing to quit\. take a breath\./)).toBeTruthy();
+  });
+});
+
 describe("theme", () => {
   test("theme <name> goes through the theme env", () => {
     let current = "tokyo-night";

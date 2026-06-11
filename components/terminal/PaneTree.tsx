@@ -4,8 +4,10 @@ import { useRef, type MouseEvent, type PointerEvent } from "react";
 import { CopyIndicator } from "./CopyIndicator";
 import { PaneScrollback } from "./PaneScrollback";
 import { Prompt } from "./Prompt";
+import { VimViewer } from "@/components/editor/VimViewer";
+import { TmuxClock } from "@/components/effects/TmuxClock";
 import { registerScroller } from "@/lib/terminal/scroll-registry";
-import { getWindow } from "@/lib/terminal/reducer";
+import { activeWindowKey, getPaneById, getWindow } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { PaneLayout, WindowId, WindowKey } from "@/lib/terminal/types";
@@ -20,11 +22,25 @@ function PaneView({
   framed: boolean;
 }) {
   const isActive = useTerminalStore((s) => getWindow(s, windowKey).activePane === paneId);
+  const view = useTerminalStore((s) => getPaneById(s, windowKey, paneId)?.view ?? "shell");
+  const editorPath = useTerminalStore(
+    (s) => getPaneById(s, windowKey, paneId)?.editorPath ?? null,
+  );
+  const editorNote = useTerminalStore(
+    (s) => getPaneById(s, windowKey, paneId)?.editorNote ?? null,
+  );
+  const showClock = useTerminalStore(
+    (s) =>
+      s.overlay === "clock" &&
+      activeWindowKey(s) === windowKey &&
+      getWindow(s, windowKey).activePane === paneId,
+  );
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     if (windowKey !== "lobby" && !isActive) {
       store.dispatch({ type: "focus-pane", window: windowKey as WindowId, paneId });
     }
+    if (view === "editor") return;
     if (window.getSelection()?.toString()) return;
     if ((e.target as HTMLElement).closest("a,button,select,input,textarea,label")) return;
     e.currentTarget
@@ -39,15 +55,23 @@ function PaneView({
       ref={(el) => registerScroller(`${windowKey}:${paneId}`, el)}
       onClick={onClick}
       className={[
-        "min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5",
+        "relative min-h-0 min-w-0 flex-1",
+        view === "editor" ? "overflow-hidden" : "space-y-4 overflow-y-auto px-4 py-4 sm:px-5",
         // Active pane: bright border; inactive: dim (§7.3) — only when split.
         framed ? "border" : "",
         framed && isActive ? "border-accent" : framed ? "border-border" : "",
       ].join(" ")}
     >
-      <CopyIndicator windowKey={windowKey} paneId={paneId} />
-      <PaneScrollback windowKey={windowKey} paneId={paneId} />
-      <Prompt windowKey={windowKey} paneId={paneId} />
+      {view === "editor" && editorPath ? (
+        <VimViewer windowKey={windowKey} paneId={paneId} path={editorPath} note={editorNote} />
+      ) : (
+        <>
+          <CopyIndicator windowKey={windowKey} paneId={paneId} />
+          <PaneScrollback windowKey={windowKey} paneId={paneId} />
+          <Prompt windowKey={windowKey} paneId={paneId} />
+        </>
+      )}
+      {showClock && <TmuxClock />}
     </div>
   );
 }

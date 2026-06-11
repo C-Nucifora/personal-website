@@ -35,6 +35,7 @@ export interface CommandContext {
   write(node: ReactNode): void;
   clear(): void;
   setCwd(path: string): void;
+  openEditor(path: string, note?: string): void; // vim/view — read-only viewer (§8.1)
   notify(text: string): void;
   confirmOpenUrl(url: string): void;
   runClick(cmd: string): void;

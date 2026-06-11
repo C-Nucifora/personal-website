@@ -41,6 +41,8 @@ export interface PaneState {
   vim: LineVimState; // NORMAL-mode line-editing state (§6.2)
   view: "shell" | "editor";
   editorPath: string | null;
+  /** One-shot message-line text shown when the editor opens (vi joke). */
+  editorNote: string | null;
 }
 
 export interface WindowState {
@@ -61,6 +63,8 @@ export interface AppState {
   pendingConfirm: { kind: "openUrl" | "closePane"; payload: string } | null;
   /** Ctrl+b w window picker overlay; index = highlighted row. */
   picker: { index: number } | null;
+  /** Full-pane effect overlay (tmux clock, later: sl, matrix…). */
+  overlay: "clock" | null;
   history: string[];
   nextLineId: number;
   nextPaneId: number;
@@ -102,6 +106,9 @@ export type Action =
   | { type: "zoom-pane"; window: WindowId }
   | { type: "set-ratio"; window: WindowId; splitId: string; ratio: number }
   | { type: "set-picker"; picker: { index: number } | null }
+  | { type: "set-overlay"; overlay: AppState["overlay"] }
+  | { type: "open-editor"; windowKey: WindowKey; path: string; note?: string }
+  | { type: "close-editor"; windowKey: WindowKey }
   | { type: "set-notice"; text: string; until: number }
   | { type: "clear-notice" }
   | { type: "set-confirm"; confirm: AppState["pendingConfirm"] }

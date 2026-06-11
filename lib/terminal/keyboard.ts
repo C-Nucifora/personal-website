@@ -90,6 +90,10 @@ function handlePrefixKey(key: string): void {
   if (key === "?") return printBindingCheatsheet();
   if (key === "%") return trySplit("row");
   if (key === '"') return trySplit("col");
+  if (key === "t") {
+    store.dispatch({ type: "set-overlay", overlay: "clock" });
+    return;
+  }
 
   if (win) {
     const w = state.windows[win];
@@ -279,6 +283,14 @@ export function initKeyboard(): () => void {
 
     const state = store.getState();
 
+    // Any input dismisses a full-pane overlay (clock, sl, …).
+    if (state.overlay) {
+      e.preventDefault();
+      e.stopPropagation();
+      store.dispatch({ type: "set-overlay", overlay: null });
+      return;
+    }
+
     // A keypress during a click animation completes it instantly (§5).
     if (state.animating) {
       e.preventDefault();
@@ -316,15 +328,18 @@ export function initKeyboard(): () => void {
       return;
     }
 
-    // Ctrl+b: the tmux prefix, consumed in all modes and views (§6.4).
+    // Ctrl+b: the tmux prefix, consumed in all modes and views — including
+    // inside the editor; stopPropagation keeps it from CodeMirror (§6.4).
     if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "b") {
       e.preventDefault();
+      e.stopPropagation();
       store.dispatch({ type: "set-pending-prefix", pending: true });
       return;
     }
 
     if (state.pendingPrefix) {
       e.preventDefault();
+      e.stopPropagation();
       if (e.key === "Escape") {
         store.dispatch({ type: "set-pending-prefix", pending: false });
         return;
@@ -336,15 +351,17 @@ export function initKeyboard(): () => void {
     // Mode dispatch for the active pane (§6.4 priority order).
     const windowKey = activeWindowKey(state);
     const pane = activePane(state);
-    if (pane.view === "shell") {
-      if (pane.mode === "COPY") {
-        handleCopyKey(e, windowKey);
-        return;
-      }
-      if (pane.mode === "NORMAL") {
-        handleNormalKey(e, windowKey);
-        return;
-      }
+    if (pane.view === "editor") {
+      // CodeMirror's vim owns everything else while a file is open.
+      return;
+    }
+    if (pane.mode === "COPY") {
+      handleCopyKey(e, windowKey);
+      return;
+    }
+    if (pane.mode === "NORMAL") {
+      handleNormalKey(e, windowKey);
+      return;
     }
 
     // Ctrl+l clears the active pane (INSERT affordance, §6.1).

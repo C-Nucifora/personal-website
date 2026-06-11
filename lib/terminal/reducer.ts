@@ -27,6 +27,7 @@ function freshPane(id: string, cwd: string): PaneState {
     vim: initialVimState(),
     view: "shell",
     editorPath: null,
+    editorNote: null,
   };
 }
 
@@ -54,6 +55,7 @@ export function initialState(initialWindow: WindowId | null): AppState {
     notice: null,
     pendingConfirm: null,
     picker: null,
+    overlay: null,
     history: [...HISTORY_SEED],
     nextLineId: 1,
     nextPaneId: 1,
@@ -225,6 +227,25 @@ export function reduce(state: AppState, action: Action): AppState {
 
     case "set-picker":
       return { ...state, picker: action.picker };
+
+    case "set-overlay":
+      return { ...state, overlay: action.overlay };
+
+    case "open-editor":
+      return withPane(state, action.windowKey, (p) => ({
+        ...p,
+        view: "editor",
+        editorPath: action.path,
+        editorNote: action.note ?? null,
+      }));
+
+    case "close-editor":
+      return withPane(state, action.windowKey, (p) => ({
+        ...p,
+        view: "shell",
+        editorPath: null,
+        editorNote: null,
+      }));
 
     case "split-pane": {
       const w = state.windows[action.window];

@@ -151,6 +151,50 @@ async function main() {
   ok("dd clears the line, i returns to INSERT", (await page.innerText("body")).includes("-- INSERT --"));
   ok("buffer empty after dd", (await activeInput("projects").inputValue()) === "");
 
+  // ---- read-only vim viewer (§8.1)
+  await activeInput("projects").fill("vim ~/projects/terminal-portfolio/src/lib/vim/motions.ts");
+  await activeInput("projects").press("Enter");
+  await page.waitForSelector("[data-editor]", { timeout: 8000 });
+  ok("vim opens the editor", true);
+  ok("statusline shows RO", (await paneText("projects")).includes("[RO]"));
+  ok("EDITOR [RO] in the status bar", (await page.innerText("body")).includes("EDITOR [RO]"));
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("i");
+  await page.waitForTimeout(150);
+  ok("edit attempt gets E21", (await paneText("projects")).includes("E21: Cannot make changes"));
+  await page.keyboard.press(":");
+  await page.keyboard.type("help 42");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  ok(":help 42 answers", (await paneText("projects")).includes("usr_42.txt"));
+  // tmux interop: window switch keeps the file open
+  await page.keyboard.press("Control+b");
+  await page.keyboard.press("1");
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Control+b");
+  await page.keyboard.press("2");
+  await page.waitForTimeout(300);
+  ok("open file survives window switches", (await page.locator("[data-editor]").count()) === 1);
+  await page.locator(".cm-content").click();
+  await page.keyboard.press(":");
+  await page.keyboard.type("q");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(250);
+  ok(":q returns the pane to its shell", (await page.locator("[data-editor]").count()) === 0);
+  ok(
+    "scrollback intact after :q",
+    (await paneText("projects")).includes("vim ~/projects/terminal-portfolio"),
+  );
+
+  // ---- tmux clock (EASTER_EGGS §3)
+  await page.keyboard.press("Control+b");
+  await page.keyboard.press("t");
+  await page.waitForTimeout(200);
+  ok("Ctrl+b t shows the clock", (await page.locator("[aria-label^=Clock]").count()) === 1);
+  await page.keyboard.press("x");
+  await page.waitForTimeout(150);
+  ok("any key dismisses the clock", (await page.locator("[aria-label^=Clock]").count()) === 0);
+
   // ---- COPY mode (§6.3)
   await page.keyboard.press("Control+b");
   await page.keyboard.press("[");

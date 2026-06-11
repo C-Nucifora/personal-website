@@ -1,16 +1,12 @@
 import type { CommandModule } from "../registry";
 import { ErrorLine, Hint } from "@/components/content/messages";
-import { renderFile } from "@/components/terminal/output/renderers";
 
-/**
- * `vim <file>` — for now renders the file inline like `cat`; the read-only
- * full-pane viewer (FLOW §8.1) replaces this run() in the next phase.
- */
+/** `vim <file>` — the read-only full-pane viewer (FLOW §8.1). */
 export const vim: CommandModule = {
   meta: {
     name: "vim",
     aliases: ["view", "vi"],
-    description: "Open a file read-only.",
+    description: "Open a file in a read-only vim.",
     usage: "vim <file>",
   },
   run: (ctx) => {
@@ -26,6 +22,9 @@ export const vim: CommandModule = {
     if (node.kind === "dir") {
       return <ErrorLine>vim: {arg}: Is a directory</ErrorLine>;
     }
-    return renderFile(node);
+    // `vi <file>` opens normally — with a statusline acknowledgment (§2).
+    const viaVi = /^vi(\s|$)/.test(ctx.raw);
+    ctx.openEditor(path, viaVi ? "vi improved. you're welcome." : undefined);
+    return null;
   },
 };
