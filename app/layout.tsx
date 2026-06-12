@@ -75,6 +75,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* First focusable on every page: jump past the chrome to content. */}
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         {/* Apply the saved theme before first paint to avoid a colour flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
         <script

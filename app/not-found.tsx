@@ -3,7 +3,11 @@ import { profile } from "@/data/profile";
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[880px] flex-col items-center justify-center px-4 py-10">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="mx-auto flex min-h-dvh w-full max-w-[880px] flex-col items-center justify-center px-4 py-10 outline-none"
+    >
       <div className="w-full overflow-hidden rounded-xl border border-border bg-window shadow-[0_24px_60px_-12px_var(--shadow)]">
         <div className="flex items-center gap-2 border-b border-border bg-elevated px-3 py-2.5">
           <span className="h-3 w-3 rounded-full bg-ansi-red" aria-hidden="true" />
