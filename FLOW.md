@@ -286,6 +286,8 @@ LSP-grade features ship after everything else works (see §12.7 phasing). Tiered
 | 2 | TS / JS / TSX / JSON / CSS / HTML | hover types (`K`), diagnostics, go-to-definition (`gd`) **within the project's bundled files**, document outline | TypeScript language service + vscode CSS/JSON/HTML services in a Web Worker over a virtual FS of the bundled `src/` |
 | 3 (best-effort) | other languages a showcased project uses | hover/diagnostics where a maintained WASM language server exists | `codemirror-languageserver` against a WASM LSP, lazy-loaded per language |
 
+> **Status:** tier 2 for the TS family (ts/tsx/js — hover `K`, `gd` + jumplist `Ctrl+o`/`Ctrl+i`, diagnostics, `:symbols`) shipped via `lib/intel/`; remaining tier-2 services and tier-3 adapters follow per the 2026-06-12 spec.
+
 Rules: all intelligence runs client-side in workers (no backend, no latency cliffs on nav); workers and grammars lazy-load on first `vim` open of a relevant file, never on page load; `gd` across files opens the target in the same pane's editor with a jumplist (`Ctrl+o` / `Ctrl+i` to go back/forward); if a tier-3 server is unavailable for a language, the editor degrades silently to tier 1 — no error states for missing intelligence. Tier 2 alone covers a TS/Next.js portfolio's own source, which is the highest-value target: visitors reading this site's code, in this site, with working go-to-definition.
 
 ---

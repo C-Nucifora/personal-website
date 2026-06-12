@@ -7,5 +7,5 @@
 export type ProviderGroup = "ts";
 
 export const workerLoaders: Record<ProviderGroup, () => Worker> = {
-  ts: () => new Worker(new URL("./ts/worker.ts", import.meta.url)),
+  ts: () => new Worker(new URL("./ts/worker.ts", import.meta.url), { type: "module" }),
 };

@@ -198,6 +198,52 @@ async function main() {
     (await paneText("projects")).includes("vim ~/projects/terminal-portfolio"),
   );
 
+  // ---- language intelligence (FLOW §8.2, tier 2)
+  await activeInput("projects").fill("vim ~/projects/terminal-portfolio/src/lib/terminal/routing.ts");
+  await activeInput("projects").press("Enter");
+  await page.waitForSelector("[data-editor]", { timeout: 8000 });
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("/");
+  await page.keyboard.type("initRouting");
+  await page.keyboard.press("Enter");
+  // The TS worker lazy-loads and parses the lib bundle; poll K until ready.
+  let hoverOk = false;
+  for (let i = 0; i < 30 && !hoverOk; i++) {
+    await page.keyboard.press("K");
+    await page.waitForTimeout(700);
+    hoverOk = (await page.locator(".cm-intel-hover").count()) > 0;
+  }
+  ok("K shows a hover tooltip", hoverOk);
+  ok(
+    "hover names the symbol under the cursor",
+    hoverOk && (await page.locator(".cm-intel-hover").innerText()).includes("initRouting"),
+  );
+
+  await page.keyboard.press("/");
+  await page.keyboard.type("ACTIVE_WINDOW_IDS");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("g");
+  await page.keyboard.press("d");
+  await page.waitForSelector('[data-editor*="vfs/types.ts"]', { timeout: 10000 });
+  ok("gd jumps across files to the definition", true);
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("Control+o");
+  await page.waitForSelector('[data-editor*="terminal/routing.ts"]', { timeout: 10000 });
+  ok("Ctrl+o returns along the jumplist", true);
+
+  await page.locator(".cm-content").click();
+  await page.keyboard.press(":");
+  await page.keyboard.type("symbols");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(600);
+  ok(":symbols prints the outline", (await paneText("projects")).includes("document symbols"));
+
+  await page.keyboard.press(":");
+  await page.keyboard.type("q");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  ok("intel session closes cleanly", (await page.locator("[data-editor]").count()) === 0);
+
   // ---- tmux clock (EASTER_EGGS §3)
   await page.keyboard.press("Control+b");
   await page.keyboard.press("t");

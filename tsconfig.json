@@ -32,6 +32,8 @@
   ],
   "exclude": [
     "node_modules",
+    // the static export must never be type-checked (copied worker sources)
+    "out",
     // macOS/iCloud "name 2.ts" conflict copies of generated Next types
     "**/* ?.ts",
     "**/* ?/**"
