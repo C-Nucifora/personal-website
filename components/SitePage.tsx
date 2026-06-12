@@ -11,7 +11,7 @@ import type { WindowId } from "@/lib/terminal/types";
  */
 export function SitePage({ initialWindow = null }: { initialWindow?: WindowId | null }) {
   return (
-    <main className="min-h-dvh w-full">
+    <main id="main" tabIndex={-1} className="min-h-dvh w-full outline-none">
       <div className="interactive">
         <Terminal initialWindow={initialWindow} />
       </div>
