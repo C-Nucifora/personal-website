@@ -1,7 +1,9 @@
 import { profile } from "@/data/profile";
 import { stripTodo } from "@/lib/strip-todo";
 import { BackToTerminal } from "@/components/ui/BackToTerminal";
+import { blogPosts } from "@/data/generated/blog";
 import { About } from "./About";
+import { BlogPosts } from "./BlogPosts";
 import { ContactForm } from "./ContactForm";
 import { Resume } from "./Resume";
 import { Projects } from "./Projects";
@@ -59,6 +61,12 @@ export function StaticContent() {
           <Socials />
           <ContactForm />
         </Section>
+
+        {blogPosts.length > 0 && (
+          <Section id="blog" title="blog">
+            <BlogPosts />
+          </Section>
+        )}
       </div>
     </div>
   );
