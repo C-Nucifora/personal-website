@@ -28,6 +28,7 @@ export const sourceManifest = {
     "lib/vfs/types.ts",
     "app/globals.css",
     "tsconfig.json",
+    ".github/workflows/ci.yml",
     "components/terminal/Terminal.tsx",
     "components/terminal/PaneTree.tsx",
     "components/terminal/Prompt.tsx",

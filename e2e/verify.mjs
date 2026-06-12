@@ -264,6 +264,25 @@ async function main() {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
 
+  // ---- tier-3 data intelligence (yaml, FLOW §8.2)
+  await activeInput("projects").fill("vim ~/projects/terminal-portfolio/src/.github/workflows/ci.yml");
+  await activeInput("projects").press("Enter");
+  await page.waitForSelector('[data-editor*="ci.yml"]', { timeout: 8000 });
+  await page.locator(".cm-content").click();
+  let yamlSyms = false;
+  for (let i = 0; i < 15 && !yamlSyms; i++) {
+    await page.keyboard.press(":");
+    await page.keyboard.type("symbols");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    yamlSyms = (await paneText("projects")).includes("jobs");
+  }
+  ok("yaml :symbols lists top-level keys", yamlSyms);
+  await page.keyboard.press(":");
+  await page.keyboard.type("q");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+
   // ---- tmux clock (EASTER_EGGS §3)
   await page.keyboard.press("Control+b");
   await page.keyboard.press("t");

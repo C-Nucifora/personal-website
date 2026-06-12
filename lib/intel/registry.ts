@@ -16,6 +16,8 @@ const GROUP: Partial<Record<VfsLanguage, ProviderGroup>> = {
   json: "web",
   css: "web",
   html: "web",
+  yaml: "data",
+  toml: "data",
 };
 
 const cache = new Map<string, Promise<IntelProvider | null>>();

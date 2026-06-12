@@ -50,6 +50,9 @@ const EXT_LANGUAGE: Record<string, VfsLanguage> = {
   css: "css",
   html: "html",
   md: "markdown",
+  yml: "yaml",
+  yaml: "yaml",
+  toml: "toml",
 };
 
 function languageFor(name: string): VfsLanguage {

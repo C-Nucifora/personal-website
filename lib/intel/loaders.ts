@@ -4,9 +4,10 @@
  * new Worker(new URL(...)) form is what the bundler statically analyzes
  * into a lazy chunk.
  */
-export type ProviderGroup = "ts" | "web";
+export type ProviderGroup = "ts" | "web" | "data";
 
 export const workerLoaders: Record<ProviderGroup, () => Worker> = {
   ts: () => new Worker(new URL("./ts/worker.ts", import.meta.url), { type: "module" }),
   web: () => new Worker(new URL("./web/worker.ts", import.meta.url), { type: "module" }),
+  data: () => new Worker(new URL("./data/worker.ts", import.meta.url), { type: "module" }),
 };

@@ -27,6 +27,8 @@ export type VfsLanguage =
   | "json"
   | "css"
   | "html"
+  | "yaml"
+  | "toml"
   | "text";
 
 /**
