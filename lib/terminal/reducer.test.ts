@@ -199,3 +199,17 @@ describe("visited flag", () => {
     expect(s.windows.help.visited).toBe(true);
   });
 });
+
+describe("editor offset (intel gd, spec 2026-06-12)", () => {
+  test("open-editor carries an optional offset; close clears it", () => {
+    let s = reduce(initialState(null), {
+      type: "open-editor",
+      windowKey: "about",
+      path: "~/projects/terminal-portfolio/src/lib/vim/motions.ts",
+      offset: 120,
+    });
+    expect(getPane(s, "about").editorOffset).toBe(120);
+    s = reduce(s, { type: "close-editor", windowKey: "about" });
+    expect(getPane(s, "about").editorOffset).toBeNull();
+  });
+});

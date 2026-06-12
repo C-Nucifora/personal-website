@@ -31,6 +31,9 @@ function PaneView({
   const editorNote = useTerminalStore(
     (s) => getPaneById(s, windowKey, paneId)?.editorNote ?? null,
   );
+  const editorOffset = useTerminalStore(
+    (s) => getPaneById(s, windowKey, paneId)?.editorOffset ?? null,
+  );
   const overlay = useTerminalStore((s) =>
     activeWindowKey(s) === windowKey && getWindow(s, windowKey).activePane === paneId
       ? s.overlay
@@ -64,7 +67,13 @@ function PaneView({
       ].join(" ")}
     >
       {view === "editor" && editorPath ? (
-        <VimViewer windowKey={windowKey} paneId={paneId} path={editorPath} note={editorNote} />
+        <VimViewer
+          windowKey={windowKey}
+          paneId={paneId}
+          path={editorPath}
+          note={editorNote}
+          offset={editorOffset}
+        />
       ) : (
         <>
           <CopyIndicator windowKey={windowKey} paneId={paneId} />

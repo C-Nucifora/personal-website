@@ -28,6 +28,7 @@ function freshPane(id: string, cwd: string): PaneState {
     view: "shell",
     editorPath: null,
     editorNote: null,
+    editorOffset: null,
   };
 }
 
@@ -241,6 +242,7 @@ export function reduce(state: AppState, action: Action): AppState {
         view: "editor",
         editorPath: action.path,
         editorNote: action.note ?? null,
+        editorOffset: action.offset ?? null,
       }));
 
     case "close-editor":
@@ -249,6 +251,7 @@ export function reduce(state: AppState, action: Action): AppState {
         view: "shell",
         editorPath: null,
         editorNote: null,
+        editorOffset: null,
       }));
 
     case "split-pane": {

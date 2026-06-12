@@ -43,6 +43,8 @@ export interface PaneState {
   editorPath: string | null;
   /** One-shot message-line text shown when the editor opens (vi joke). */
   editorNote: string | null;
+  /** Initial cursor offset — set by intel gd jumps (spec 2026-06-12). */
+  editorOffset: number | null;
 }
 
 export interface WindowState {
@@ -110,7 +112,7 @@ export type Action =
   | { type: "set-picker"; picker: { index: number } | null }
   | { type: "unlock-crt" }
   | { type: "set-overlay"; overlay: AppState["overlay"] }
-  | { type: "open-editor"; windowKey: WindowKey; path: string; note?: string }
+  | { type: "open-editor"; windowKey: WindowKey; path: string; note?: string; offset?: number }
   | { type: "close-editor"; windowKey: WindowKey }
   | { type: "set-notice"; text: string; until: number }
   | { type: "clear-notice" }

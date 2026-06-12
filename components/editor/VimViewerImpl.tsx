@@ -16,9 +16,13 @@ import { css } from "@codemirror/lang-css";
 import { html } from "@codemirror/lang-html";
 import { markdown } from "@codemirror/lang-markdown";
 import { Vim, vim } from "@replit/codemirror-vim";
+import { setDiagnostics } from "@codemirror/lint";
 import { readFile } from "@/lib/vfs/tree";
 import { store } from "@/lib/terminal/store";
+import { projectFilesFor, relativeTo } from "@/lib/intel/project-files";
+import { providerFor } from "@/lib/intel/registry";
 import type { VfsLanguage } from "@/lib/vfs/types";
+import { defineIntelVimCommands, intelCtx, intelSupport } from "./intel";
 import type { VimViewerProps } from "./VimViewer";
 
 function languageExtension(language: VfsLanguage) {
@@ -133,7 +137,12 @@ function defineExCommands(): void {
   }
 }
 
-export default function VimViewerImpl({ windowKey, path, note }: Omit<VimViewerProps, "paneId">) {
+export default function VimViewerImpl({
+  windowKey,
+  path,
+  note,
+  offset,
+}: Omit<VimViewerProps, "paneId">) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ line: 1, col: 1, pct: 0 });
   const [message, setMessage] = useState<string | null>(note);
@@ -147,6 +156,7 @@ export default function VimViewerImpl({ windowKey, path, note }: Omit<VimViewerP
   useEffect(() => {
     if (!file || !containerRef.current) return;
     defineExCommands();
+    defineIntelVimCommands();
 
     const view = new EditorView({
       parent: containerRef.current,
@@ -165,6 +175,7 @@ export default function VimViewerImpl({ windowKey, path, note }: Omit<VimViewerP
           highlightActiveLine(),
           ...languageExtension(file.language),
           syntaxHighlighting(classHighlighter),
+          intelSupport(),
           EditorState.readOnly.of(true),
           EditorView.updateListener.of((u) => {
             if (!u.selectionSet && !u.docChanged && !u.viewportChanged) return;
@@ -212,6 +223,53 @@ export default function VimViewerImpl({ windowKey, path, note }: Omit<VimViewerP
 
     hooks.set(view, { close, message: (text) => setMessage(text) });
 
+    // gd landings: place the cursor where the definition lives (§8.2).
+    if (offset != null) {
+      const pos = Math.min(offset, view.state.doc.length);
+      view.dispatch({
+        selection: { anchor: pos },
+        effects: EditorView.scrollIntoView(pos, { y: "center" }),
+      });
+    }
+
+    // Language intelligence: silent best-effort. The registry resolves to
+    // null for unknown languages or failed workers — tier 1, no UI.
+    let intelCancelled = false;
+    const pf = projectFilesFor(path);
+    const rel = pf ? relativeTo(pf.root, path) : null;
+    if (pf && rel) {
+      intelCtx.set(view, {
+        provider: null,
+        relPath: rel,
+        vfsPath: path,
+        root: pf.root,
+        windowKey,
+        openFile: (vfsPath, targetOffset) =>
+          store.dispatch({ type: "open-editor", windowKey, path: vfsPath, offset: targetOffset }),
+        message: (text) => setMessage(text),
+      });
+      void providerFor(file.language, pf.root, pf.files).then((provider) => {
+        if (intelCancelled || !provider) return;
+        const ctx = intelCtx.get(view);
+        if (ctx) ctx.provider = provider;
+        void provider.diagnostics(rel).then((diags) => {
+          if (intelCancelled) return;
+          const len = view.state.doc.length;
+          view.dispatch(
+            setDiagnostics(
+              view.state,
+              diags.map((d) => ({
+                from: Math.min(d.from, len),
+                to: Math.min(Math.max(d.to, d.from), len),
+                severity: d.severity,
+                message: d.message,
+              })),
+            ),
+          );
+        });
+      });
+    }
+
     // Visual-mode yank also writes the system clipboard — the one place
     // clipboard integration exists (§8.1).
     const onKeyDown = (e: KeyboardEvent) => {
@@ -225,8 +283,10 @@ export default function VimViewerImpl({ windowKey, path, note }: Omit<VimViewerP
     view.focus();
 
     return () => {
+      intelCancelled = true;
       view.dom.removeEventListener("keydown", onKeyDown);
       hooks.delete(view);
+      intelCtx.delete(view);
       view.destroy();
     };
     // The viewer is recreated per file open; everything else lives inside CM.

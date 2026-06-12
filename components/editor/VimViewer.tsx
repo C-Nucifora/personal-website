@@ -10,6 +10,8 @@ export interface VimViewerProps {
   paneId: string;
   path: string;
   note: string | null;
+  /** Initial cursor offset — set by intel gd jumps (FLOW §8.2). */
+  offset: number | null;
 }
 
 /**
