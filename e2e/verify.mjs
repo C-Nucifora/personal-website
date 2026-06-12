@@ -52,6 +52,11 @@ async function main() {
   // ---- ls is a clickable menu (§3.1)
   await run("lobby", "ls");
   ok("ls lists the five window dirs", /about\/[\s\S]*projects\/[\s\S]*help\//.test(await paneText("lobby")));
+  ok("blog window dormant: no dir in ls", !(await paneText("lobby")).includes("blog/"));
+  ok(
+    "blog window dormant: no tab",
+    (await page.locator('nav[aria-label="Sections"] >> text="blog"').count()) === 0,
+  );
 
   // ---- Tab click animates the real command (§5)
   await clickTab("projects");
@@ -231,6 +236,12 @@ async function main() {
   ok("deep link prints the MOTD above", deep.toLowerCase().includes("last login:"));
   ok("deep link echoes the cd", deep.includes("cd ~/contact"));
   ok("deep link auto-displays content", deep.includes(EMAIL));
+
+  // ---- blog route absent while dormant (spec 2026-06-12)
+  ok(
+    "blog route 404s while dormant",
+    (await page.request.get(BASE + "/blog/")).status() === 404,
+  );
 
   // ---- static fallback in raw HTML (non-negotiable #5)
   const raw = await (await page.request.get(BASE + "/resume/")).text();

@@ -94,6 +94,14 @@ Each project is a directory under `~/projects` and a focusable card in the
 fallback. `liveUrl` and `sourceUrl` open in a new tab with
 `rel="noopener noreferrer"`. Missing links simply hide their badge.
 
+## `data/blog/` — markdown posts
+
+One `.md` file per post (filename = slug) with `title:` and `date:`
+frontmatter; see `data/blog/README.md` for the exact format.
+`scripts/bundle-blog.mjs` (predev/prebuild, or `npm run bundle-blog`)
+generates `data/generated/blog.ts`. **Zero posts keeps the `6:blog`
+window, its route, and the plain-view section hidden entirely.**
+
 ## `data/socials.ts`
 
 ```ts

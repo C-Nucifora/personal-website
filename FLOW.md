@@ -71,10 +71,12 @@ Top-level directories ARE tmux windows. This identity is the load-bearing design
 │       └── ...
 ├── contact/
 │   └── contact.md
-└── help/
-    ├── guide.md            ← full novice-friendly site guide
-    ├── commands.md         ← shell command reference
-    └── keybindings.md      ← vim + tmux reference, tiered
+├── help/
+│   ├── guide.md            ← full novice-friendly site guide
+│   ├── commands.md         ← shell command reference
+│   └── keybindings.md      ← vim + tmux reference, tiered
+└── blog/                   ← appears once data/blog/ has posts (6:blog, dormant otherwise)
+    └── <slug>.md           ← one per post
 ```
 
 The `help` command (§9) prints the quick inline cheatsheet and ends with a clickable `full guide → cd ~/help`. Window and command serve the same content at two depths.
@@ -91,7 +93,7 @@ The `help` command (§9) prints the quick inline cheatsheet and ends with a clic
 
 Window switching never resets a window's cwd. If the user was deep in `~/projects/foo/src` and switches to resume and back, they return to `~/projects/foo/src`. The animated command for a tab click into a previously-visited window is therefore `cd <that window's saved cwd>`, not the window root.
 
-**First-entry auto-display.** On a window's first activation in a session (by any method — tab, `cd`, `Ctrl+b`), its shell auto-runs one echoed real command so no one ever arrives at an empty prompt: `cat about.md` (about), `ls` (projects), `cat resume.md` (resume), `cat contact.md` (contact), `cat guide.md` (help). The command appears in scrollback exactly as if typed — consistent with the real-commands-only vocabulary, and another passive teaching beat. Subsequent visits restore existing scrollback untouched.
+**First-entry auto-display.** On a window's first activation in a session (by any method — tab, `cd`, `Ctrl+b`), its shell auto-runs one echoed real command so no one ever arrives at an empty prompt: `cat about.md` (about), `ls` (projects), `cat resume.md` (resume), `cat contact.md` (contact), `cat guide.md` (help), `ls` (blog, when active). The command appears in scrollback exactly as if typed — consistent with the real-commands-only vocabulary, and another passive teaching beat. Subsequent visits restore existing scrollback untouched.
 
 The home directory `~` is a valid location belonging to no window. The user can `ls` from `~` to see the five directories. This is the "lobby" state and is also the initial state on page load (see §4).
 
@@ -220,7 +222,7 @@ Mouse/touch scrolling works in every mode without entering COPY; COPY exists for
 
 ### 7.1 Windows
 
-Five fixed windows: `1:about 2:projects 3:resume 4:contact 5:help`. Users cannot create or kill windows. Numbering is stable and matches the tab bar. (Future window slots — e.g. a writing/blog window — append after 5; never renumber existing windows.)
+Five fixed windows: `1:about 2:projects 3:resume 4:contact 5:help`. Users cannot create or kill windows. Numbering is stable and matches the tab bar. The appended `6:blog` window exists but stays dormant — no tab, no route, no `Ctrl+b 6` — until `data/blog/` contains at least one post; existing windows are never renumbered.
 
 ### 7.2 Prefix bindings (`Ctrl+b`, then:)
 
