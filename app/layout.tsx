@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { blogPosts } from "@/data/generated/blog";
 import { profile } from "@/data/profile";
 import { socials } from "@/data/socials";
 import { stripTodo } from "@/lib/strip-todo";
@@ -26,6 +27,14 @@ const description =
     ? profile.tagline
     : `${profile.name} — ${role}. A terminal-style developer portfolio.`;
 
+// Match the browser chrome to the default themes (Tokyo Night / Day --bg).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#16161e" },
+    { media: "(prefers-color-scheme: light)", color: "#d5d6db" },
+  ],
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(profile.siteUrl),
   title: `${profile.name} — ${role}`,
@@ -34,7 +43,13 @@ export const metadata: Metadata = {
   authors: [{ name: profile.name, url: profile.siteUrl }],
   creator: profile.name,
   keywords: [profile.name, role, "developer", "portfolio", "software engineer"],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    // Advertised only once the blog wakes up; /feed.xml itself always exists.
+    ...(blogPosts.length
+      ? { types: { "application/rss+xml": [{ url: "/feed.xml", title: "Blog feed" }] } }
+      : {}),
+  },
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
