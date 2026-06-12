@@ -25,7 +25,8 @@ interface RpcResponse {
 }
 
 export interface WorkerClient {
-  request<T>(method: string, params: unknown[]): Promise<T>;
+  /** timeoutMs overrides the client default — init parses 2 MB of libs. */
+  request<T>(method: string, params: unknown[], timeoutMs?: number): Promise<T>;
   terminate(): void;
 }
 
@@ -52,13 +53,13 @@ export function createWorkerClient(
   });
 
   return {
-    request<T>(method: string, params: unknown[]): Promise<T> {
+    request<T>(method: string, params: unknown[], requestTimeoutMs?: number): Promise<T> {
       const id = nextId++;
       return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {
           pending.delete(id);
           reject(new Error(`intel: ${method} timed out`));
-        }, timeoutMs);
+        }, requestTimeoutMs ?? timeoutMs);
         pending.set(id, { resolve: resolve as (v: unknown) => void, reject, timer });
         worker.postMessage({ id, method, params } satisfies RpcRequest);
       });
