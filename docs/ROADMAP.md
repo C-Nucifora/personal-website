@@ -63,10 +63,17 @@ Build in phases. Each phase ends in something that works and looks intentional.
 - CRT (Konami unlock): full token theme + scanline/flicker/curvature
   effects, palette-only under reduced motion.
 
-## Later ideas (optional)
-- FLOW §8.2 tier 2/3 language intelligence: TypeScript language service in a
-  Web Worker for hover/go-to-definition/diagnostics inside the bundled
-  source; WASM language servers for other languages. Explicitly deferred —
-  the only component with heavy lazy dependencies and zero navigation impact.
-- A writing/blog window appended after `5:help` (never renumber).
-- Contact form via a third-party endpoint.
+## Phase 8 — Later ideas ✅ (all shipped 2026-06)
+- FLOW §8.2 tier 2/3 language intelligence: TS language service + web-stack
+  and yaml/toml providers in Web Workers (hover/gd/diagnostics/:symbols).
+  Python/Rust evaluated and dropped — no browser-capable servers exist
+  (see docs/superpowers/plans/2026-06-12-intel-phase-d-record.md).
+- Blog window `6:blog` appended after `5:help`, dormant until the first
+  post in `data/blog/`; RSS at /feed.xml.
+- Contact form via a third-party endpoint, dormant until
+  `profile.formEndpoint` is set.
+
+## Polish (2026-06) ✅
+- Recruiter pass: plain view, welcome strip, title-bar shortcuts.
+- Per-route metadata + full sitemap, skip link, security headers
+  (vercel.json), web manifest + icons + theme-color, Umami (dormant), CI.
