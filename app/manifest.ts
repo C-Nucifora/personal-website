@@ -13,9 +13,10 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "browser",
     background_color: "#16161e",
     theme_color: "#16161e",
+    // Static export emits the generated icon routes extensionless.
     icons: [
-      { src: "/icon.png", sizes: "512x512", type: "image/png" },
-      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { src: "/icon", sizes: "512x512", type: "image/png" },
+      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
     ],
   };
 }

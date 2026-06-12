@@ -403,6 +403,41 @@ async function main() {
   );
   await mob.close();
 
+  // ---- per-route metadata, sitemap, feed, manifest (sweep polish)
+  const aboutHtml = await (await fetch(BASE + "/about/")).text();
+  ok("about route has its own title", aboutHtml.includes("<title>About — "));
+  const sm = await (await fetch(BASE + "/sitemap.xml")).text();
+  ok("sitemap lists window routes", sm.includes("/about/") && sm.includes("/help/"));
+  ok("sitemap omits the dormant blog", !sm.includes("/blog/"));
+  const feedRes = await fetch(BASE + "/feed.xml");
+  const feedXml = await feedRes.text();
+  ok(
+    "feed.xml serves valid empty RSS",
+    feedRes.status === 200 && feedXml.includes("<rss") && !feedXml.includes("<item>"),
+  );
+  const mf = JSON.parse(await (await fetch(BASE + "/manifest.webmanifest")).text());
+  ok("manifest references the emitted icon routes", mf.icons?.[0]?.src === "/icon");
+  ok("generated icon route serves", (await fetch(BASE + "/icon")).status === 200);
+  ok(
+    "theme-color metas for both color schemes",
+    (await page.$$eval('meta[name="theme-color"]', (els) => els.length)) >= 2,
+  );
+
+  // ---- skip link (sweep polish)
+  const skip = await page.evaluate(() => {
+    const el = document.querySelector("a.skip-link");
+    if (!el) return { exists: false };
+    // Next injects a hidden placeholder div first; what matters is that
+    // nothing focusable precedes the skip link.
+    const first = document.querySelector("a, button, input, [tabindex]") === el;
+    el.focus();
+    const shown = getComputedStyle(el).transform === "none";
+    return { exists: true, first, shown, target: !!document.getElementById("main") };
+  });
+  ok("skip link is the first focusable element", skip.exists && skip.first);
+  ok("skip link becomes visible on focus", skip.exists && skip.shown);
+  ok("skip link target #main exists", skip.exists && skip.target);
+
   ok("no console or page errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 
   await browser.close();
