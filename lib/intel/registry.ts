@@ -13,6 +13,9 @@ const GROUP: Partial<Record<VfsLanguage, ProviderGroup>> = {
   typescript: "ts",
   tsx: "ts",
   javascript: "ts",
+  json: "web",
+  css: "web",
+  html: "web",
 };
 
 const cache = new Map<string, Promise<IntelProvider | null>>();

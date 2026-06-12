@@ -26,6 +26,8 @@ export const sourceManifest = {
     "lib/vfs/path.ts",
     "lib/vfs/builders.ts",
     "lib/vfs/types.ts",
+    "app/globals.css",
+    "tsconfig.json",
     "components/terminal/Terminal.tsx",
     "components/terminal/PaneTree.tsx",
     "components/terminal/Prompt.tsx",

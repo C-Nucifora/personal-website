@@ -244,6 +244,26 @@ async function main() {
   await page.waitForTimeout(300);
   ok("intel session closes cleanly", (await page.locator("[data-editor]").count()) === 0);
 
+  // ---- web-stack intelligence (css, FLOW §8.2 tier 2)
+  await activeInput("projects").fill("vim ~/projects/terminal-portfolio/src/app/globals.css");
+  await activeInput("projects").press("Enter");
+  await page.waitForSelector('[data-editor*="globals.css"]', { timeout: 8000 });
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("/");
+  await page.keyboard.type("display");
+  await page.keyboard.press("Enter");
+  let cssHover = false;
+  for (let i = 0; i < 15 && !cssHover; i++) {
+    await page.keyboard.press("K");
+    await page.waitForTimeout(500);
+    cssHover = (await page.locator(".cm-intel-hover").count()) > 0;
+  }
+  ok("css hover answers from the web worker", cssHover);
+  await page.keyboard.press(":");
+  await page.keyboard.type("q");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+
   // ---- tmux clock (EASTER_EGGS §3)
   await page.keyboard.press("Control+b");
   await page.keyboard.press("t");
