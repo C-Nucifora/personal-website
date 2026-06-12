@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { profile } from "@/data/profile";
-import { WINDOW_IDS } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
 import { activePane } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
@@ -65,7 +65,7 @@ export function StatusBar() {
       </span>
 
       <ul className="flex shrink-0 items-center gap-1" aria-hidden="true">
-        {WINDOW_IDS.map((id, i) => (
+        {ACTIVE_WINDOW_IDS.map((id, i) => (
           <li key={id}>
             <button
               type="button"

@@ -4,6 +4,7 @@
  * against this synchronously.
  */
 import { projects } from "@/data/projects";
+import { blogPosts } from "@/data/generated/blog";
 import { siteSource } from "@/data/generated/site-source";
 import { experience } from "@/data/resume";
 import { bashrc, nothingToSeeHere, vimrc } from "@/data/dotfiles";
@@ -11,6 +12,7 @@ import { commandsMd, guideMd, keybindingsMd } from "@/data/help-docs";
 import { profile } from "@/data/profile";
 import {
   aboutMd,
+  blogPostMd,
   contactMd,
   etcPasswd,
   experiencePageMd,
@@ -114,6 +116,10 @@ function buildHome(): VfsDir {
       file("commands.md", commandsMd),
       file("keybindings.md", keybindingsMd),
     ]),
+    // Dormant until the first post (spec 2026-06-12): no posts, no ~/blog.
+    ...(blogPosts.length
+      ? [dir("blog", blogPosts.map((p) => file(`${p.slug}.md`, blogPostMd(p))))]
+      : []),
     file(".bashrc", bashrc, { hidden: true }),
     file(".plan", planText(), { hidden: true }),
     file(".vimrc", vimrc, { hidden: true }),

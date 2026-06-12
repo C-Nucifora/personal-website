@@ -1,11 +1,11 @@
 "use client";
 
 import { PaneTree } from "./PaneTree";
-import { WINDOW_IDS } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { WindowKey } from "@/lib/terminal/types";
 
-const ALL_KEYS: WindowKey[] = ["lobby", ...WINDOW_IDS];
+const ALL_KEYS: WindowKey[] = ["lobby", ...ACTIVE_WINDOW_IDS];
 
 /**
  * All six shells (lobby + five windows) stay mounted; inactive ones are

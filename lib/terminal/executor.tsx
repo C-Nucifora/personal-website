@@ -33,6 +33,7 @@ export const AUTO_DISPLAY: Record<WindowId, string> = {
   resume: "cat resume.md",
   contact: "cat contact.md",
   help: "cat guide.md",
+  blog: "ls",
 };
 
 const SECTION_WORDS = new Set(["about", "projects", "resume", "contact"]);

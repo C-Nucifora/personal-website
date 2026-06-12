@@ -134,6 +134,10 @@ export function projectReadmeMd(p: Project): string {
   ].join("\n");
 }
 
+export function blogPostMd(p: { title: string; date: string; body: string }): string {
+  return [`# ${p.title}`, "", `*${p.date}*`, "", p.body, ""].join("\n");
+}
+
 export function etcPasswd(): string {
   return [
     "root:x:0:0:root:/root:/bin/zsh",

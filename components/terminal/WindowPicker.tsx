@@ -1,6 +1,6 @@
 "use client";
 
-import { WINDOW_IDS } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
 import { ensureWindowDisplayed } from "@/lib/terminal/executor";
 import { store } from "@/lib/terminal/store";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
@@ -13,7 +13,7 @@ export function WindowPicker() {
 
   const choose = (index: number) => {
     store.dispatch({ type: "set-picker", picker: null });
-    store.dispatch({ type: "switch-window", window: WINDOW_IDS[index] });
+    store.dispatch({ type: "switch-window", window: ACTIVE_WINDOW_IDS[index] });
     ensureWindowDisplayed();
   };
 
@@ -28,7 +28,7 @@ export function WindowPicker() {
         className="min-w-64 rounded-md border border-border bg-elevated p-2 font-mono text-sm shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        {WINDOW_IDS.map((id, i) => (
+        {ACTIVE_WINDOW_IDS.map((id, i) => (
           <li key={id}>
             <button
               type="button"

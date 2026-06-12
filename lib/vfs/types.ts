@@ -3,9 +3,20 @@
  * windows (FLOW.md §2) — WINDOW_IDS doubles as the canonical window list.
  */
 
-export const WINDOW_IDS = ["about", "projects", "resume", "contact", "help"] as const;
+import { blogPosts } from "@/data/generated/blog";
+
+export const WINDOW_IDS = ["about", "projects", "resume", "contact", "help", "blog"] as const;
 
 export type WindowId = (typeof WINDOW_IDS)[number];
+
+/**
+ * The windows that actually exist this build. `blog` is dormant until the
+ * first post (spec 2026-06-12): no tab, no route, no Ctrl+b slot. State
+ * containers stay keyed by the full WINDOW_IDS tuple.
+ */
+export const ACTIVE_WINDOW_IDS: readonly WindowId[] = blogPosts.length
+  ? WINDOW_IDS
+  : WINDOW_IDS.filter((id) => id !== "blog");
 
 /** Languages the viewer/highlighter understands; "text" is the fallback. */
 export type VfsLanguage =

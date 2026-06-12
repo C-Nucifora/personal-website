@@ -13,7 +13,7 @@
  *   is set it stops propagation and re-emits "terminal:popstate", which we
  *   handle here as a pure window switch. No fetch, no remount.
  */
-import { WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
 import { ensureWindowDisplayed } from "./executor";
 import { store } from "./store";
 
@@ -25,7 +25,7 @@ declare global {
 
 export function windowFromPath(pathname: string): WindowId | null {
   const seg = pathname.replace(/\/+$/, "").split("/").pop() ?? "";
-  return (WINDOW_IDS as readonly string[]).includes(seg) ? (seg as WindowId) : null;
+  return (ACTIVE_WINDOW_IDS as readonly string[]).includes(seg) ? (seg as WindowId) : null;
 }
 
 export function pathForWindow(window: WindowId | null): string {

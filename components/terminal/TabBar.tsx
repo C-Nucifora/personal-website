@@ -1,6 +1,6 @@
 "use client";
 
-import { WINDOW_IDS } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
 import { windowForPath } from "@/lib/vfs/path";
 import { getPane } from "@/lib/terminal/reducer";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
@@ -13,13 +13,13 @@ import { runClick } from "@/lib/terminal/run-click";
 export function TabBar() {
   const active = useTerminalStore((s) => s.activeWindow);
   const savedCwds = useTerminalStore((s) =>
-    WINDOW_IDS.map((id) => getPane(s, id).cwd).join("\n"),
+    ACTIVE_WINDOW_IDS.map((id) => getPane(s, id).cwd).join("\n"),
   ).split("\n");
 
   return (
     <nav aria-label="Sections" className="border-b border-border bg-elevated">
       <ul className="flex overflow-x-auto">
-        {WINDOW_IDS.map((id, i) => {
+        {ACTIVE_WINDOW_IDS.map((id, i) => {
           const isActive = id === active;
           // Tab click restores the window's last cwd — never resets it (§2.1).
           const saved = savedCwds[i];

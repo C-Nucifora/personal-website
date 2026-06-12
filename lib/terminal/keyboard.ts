@@ -6,7 +6,7 @@
  * INSERT-mode line editing stays on the prompt <input>; NORMAL/COPY arrive
  * with the vim grammar phase and slot in below the prefix handling here.
  */
-import { WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
+import { ACTIVE_WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
 import { handleKey } from "@/lib/vim/machine";
 import { MAX_PANES, activePane, activeWindowKey } from "./reducer";
 import { executeCommand, ensureWindowDisplayed } from "./executor";
@@ -24,9 +24,9 @@ function switchWindow(target: WindowId | null): void {
 
 function cycleWindow(delta: 1 | -1): void {
   const current = store.getState().activeWindow;
-  const idx = current ? WINDOW_IDS.indexOf(current) : delta === 1 ? -1 : 1;
-  const next = (idx + delta + WINDOW_IDS.length) % WINDOW_IDS.length;
-  switchWindow(WINDOW_IDS[next]);
+  const idx = current ? ACTIVE_WINDOW_IDS.indexOf(current) : delta === 1 ? -1 : 1;
+  const next = (idx + delta + ACTIVE_WINDOW_IDS.length) % ACTIVE_WINDOW_IDS.length;
+  switchWindow(ACTIVE_WINDOW_IDS[next]);
 }
 
 function notify(text: string): void {
@@ -84,7 +84,7 @@ function handlePrefixKey(key: string): void {
     return;
   }
   if (key === "w") {
-    const index = win ? WINDOW_IDS.indexOf(win) : 0;
+    const index = win ? ACTIVE_WINDOW_IDS.indexOf(win) : 0;
     store.dispatch({ type: "set-picker", picker: { index: Math.max(0, index) } });
     return;
   }
@@ -121,8 +121,8 @@ function handlePrefixKey(key: string): void {
   }
 
   const digit = Number(key);
-  if (digit >= 1 && digit <= WINDOW_IDS.length) {
-    return switchWindow(WINDOW_IDS[digit - 1]);
+  if (digit >= 1 && digit <= ACTIVE_WINDOW_IDS.length) {
+    return switchWindow(ACTIVE_WINDOW_IDS[digit - 1]);
   }
   // Any unbound key cancels the prefix silently (§6.4).
 }
@@ -134,7 +134,7 @@ function handlePickerKey(e: KeyboardEvent): void {
   if (e.key === "j" || e.key === "ArrowDown") {
     store.dispatch({
       type: "set-picker",
-      picker: { index: Math.min(WINDOW_IDS.length - 1, picker.index + 1) },
+      picker: { index: Math.min(ACTIVE_WINDOW_IDS.length - 1, picker.index + 1) },
     });
     return;
   }
@@ -144,13 +144,13 @@ function handlePickerKey(e: KeyboardEvent): void {
   }
   if (e.key === "Enter") {
     store.dispatch({ type: "set-picker", picker: null });
-    switchWindow(WINDOW_IDS[picker.index]);
+    switchWindow(ACTIVE_WINDOW_IDS[picker.index]);
     return;
   }
   const digit = Number(e.key);
-  if (digit >= 1 && digit <= WINDOW_IDS.length) {
+  if (digit >= 1 && digit <= ACTIVE_WINDOW_IDS.length) {
     store.dispatch({ type: "set-picker", picker: null });
-    switchWindow(WINDOW_IDS[digit - 1]);
+    switchWindow(ACTIVE_WINDOW_IDS[digit - 1]);
     return;
   }
   if (e.key === "Escape" || e.key === "q" || e.key === "w") {
