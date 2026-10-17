@@ -47,7 +47,7 @@ function showPhase(nextPhase, index) {
     overview: "Click a unit to open a project.",
     extracting: "",
     focusing: "",
-    project: "Esc to return to the rack.",
+    project: "Use All projects to return.",
     returning: "",
   };
   hint.textContent = hints[nextPhase];

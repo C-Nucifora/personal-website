@@ -18,6 +18,8 @@ The cabinet follows a shared rack-unit grid. Satin aluminium network faces sit a
 
 Space Grotesk carries navigation, headings and descriptions. IBM Plex Mono is reserved for equipment labels, dimensions and small technical details. Plain navigation and a numbered project list leave the cabinet as the main visual. Project details put the source link immediately below the summary. M1's fifteen repositories are grouped into language tools, editor integration and project tools.
 
+The [checklist review](CHECKLIST.md) records how all thirty points in the user's AIToolPick reference apply here. M1 groups use native disclosures to keep the longer list manageable; the language tools start open. The opening title states the subject, and mobile links and controls have at least 44px targets in both dimensions.
+
 The HTML index and actual model share the same project order, unit sizes and selection. A row hover or keyboard focus marks the matching physical unit with a small amber tab. Rack screens describe the software: playlists for Wavelength, notch utilities for Islet and development tools for M1. They do not show simulated operational telemetry. Extraction takes 600ms, followed by a 700ms camera move; reduced motion reaches the same final state immediately.
 
 ## Project allocation
