@@ -6,7 +6,7 @@ export const U = 0.4;
 export const FACE_Z = 2.31;
 export const EXTRACTION = 4.42;
 const COLORS = {
-  frame: '#343b3e', edge: '#596468', silver: '#b8c2c8', bright: '#dce3e5',
+  frame: '#353b3c', edge: '#60696b', silver: '#b8c2c8', bright: '#dce3e5',
   darkSilver: '#7d898e', graphite: '#51514c', black: '#101719', rubber: '#242a2b',
   pcb: '#315b50', trace: '#9e9a68', copper: '#ad7952', orange: '#dd8451', green: '#a5c9a6',
 };
@@ -66,12 +66,26 @@ export function createRackModel(renderer) {
   brushed.repeat.set(1.7, 1.3);
   brushed.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   textures.push(brushed);
+  const polymerCanvas = document.createElement('canvas');
+  polymerCanvas.width = polymerCanvas.height = 128;
+  const polymerContext = polymerCanvas.getContext('2d');
+  polymerContext.fillStyle = '#eeeeee';
+  polymerContext.fillRect(0, 0, 128, 128);
+  for (let grain = 0; grain < 5000; grain++) {
+    const value = Math.round(185 + random() * 65);
+    polymerContext.fillStyle = `rgba(${value},${value},${value},0.32)`;
+    polymerContext.fillRect(Math.floor(random() * 128), Math.floor(random() * 128), 1, 1);
+  }
+  const polymerGrain = new THREE.CanvasTexture(polymerCanvas);
+  polymerGrain.wrapS = polymerGrain.wrapT = THREE.RepeatWrapping;
+  polymerGrain.repeat.set(5, 4);
+  textures.push(polymerGrain);
   // Vertex colours let all the different metal finishes share a draw call per chassis.
   const materials = {
-    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.84, roughness: 0.32, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.006 }),
-    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.12, roughness: 0.53 }),
+    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.84, roughness: 0.38, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.004 }),
+    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain, bumpMap: polymerGrain, bumpScale: 0.002 }),
     board: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.26, roughness: 0.62 }),
-    light: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, emissive: '#ffffff', emissiveIntensity: 0.18, metalness: 0.2, roughness: 0.35 }),
+    light: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, emissive: '#ffffff', emissiveIntensity: 0.08, metalness: 0.2, roughness: 0.35 }),
   };
   allMaterials.push(...Object.values(materials));
 
@@ -86,6 +100,7 @@ export function createRackModel(renderer) {
       const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1, 1, 1));
       geometry.applyMatrix4(matrix);
       const rgb = new THREE.Color(COLORS[color] || color);
+      if (finish === 'metal') rgb.multiplyScalar(0.985 + random() * 0.03);
       const attribute = new Float32Array(geometry.attributes.position.count * 3);
       for (let i = 0; i < attribute.length; i += 3) {
         attribute[i] = rgb.r;
@@ -222,7 +237,7 @@ export function createRackModel(renderer) {
   for (let v = 0; v < 21; v++) rackParts.rounded('black', [0.065, 0.014, 2.2], [-1.4 + v * 0.14, half + 0.007, -0.1], 0.016, [0, 0, 0], 'plastic');
   rackParts.finish();
   texturePlane(rack, 4.34, 0.21, [0, half - 0.24, 2.428], g => {
-    g.text('CN / ENGINEERING SYSTEMS', -1.97, 0, 0.077, '#c0c9c5');
+    g.text('CHRISTIAN NUCIFORA / PROJECTS', -1.97, 0, 0.077, '#c0c9c5');
     g.text(`${totalU}U`, 1.99, 0, 0.075, '#9eaaa4', 'right');
     g.rect(1.58, 0, 0.035, 0.035, '#a5c9a6', 0.01);
   });
@@ -322,7 +337,7 @@ export function createRackModel(renderer) {
     if (unit.type === 'network') {
       display(-1.57, 0, 0.42, 0.225, (g, x, py) => {
         g.text('CI', x, py + 0.042, 0.07, '#d3e8df', 'center');
-        g.text('ONLINE', x, py - 0.052, 0.036, '#92b8a7', 'center');
+        g.text('RUNNERS', x, py - 0.052, 0.036, '#92b8a7', 'center');
       });
       for (let col = 0; col < 24; col++) rj45(-1.2 + col * 0.12, -0.044, 0.102, 0.095);
       for (let col = 0; col < 24; col++) faceLabel(String(col + 1), -1.2 + col * 0.12, -0.126, 0.025, 'center');
@@ -333,8 +348,8 @@ export function createRackModel(renderer) {
     } else if (unit.type === 'router') {
       for (let col = 0; col < 4; col++) sfp(-1.64 + col * 0.32, -0.023);
       display(0.06, 0, 0.96, 0.23, (g, x, py) => {
-        g.text('ARTIFACT / READY', x - 0.41, py + 0.05, 0.046, '#d4e8dc');
-        for (let i = 0; i < 11; i++) g.rect(x - 0.39 + i * 0.077, py - 0.054, 0.052, 0.044, i < 8 ? '#779b89' : '#2b3b37', 0.008);
+        g.text('ARTIFACTS', x - 0.41, py + 0.05, 0.058, '#d4e8dc');
+        g.text('SELF-HOSTED PUBLISHING', x - 0.41, py - 0.054, 0.037, '#9bada3');
       });
       vents(1.18, 0, 0.94, 0.21, 12, 2);
       led(1.89, 0.06);
@@ -342,11 +357,10 @@ export function createRackModel(renderer) {
     } else if (unit.type === 'instrument') {
       faceLabel('NVIM / STM32', -1.8, h / 2 - 0.09, 0.075);
       display(-0.97, -0.02, 1.44, 0.39, (g, x, py, w) => {
-        g.text('FIRMWARE MONITOR', x - w / 2 + 0.07, py + 0.127, 0.046, '#9cbbb8');
-        const points = [];
-        for (let p = 0; p < 70; p++) points.push([x - 0.63 + p * 0.018, py - 0.01 + Math.sin(p * 0.38) * 0.061]);
-        g.line(points, '#a8cdb9', 0.009);
-        g.text('UART CONNECTED', x - w / 2 + 0.07, py - 0.134, 0.043, '#bacfd0');
+        g.text('FIRMWARE TOOLS', x - w / 2 + 0.07, py + 0.127, 0.057, '#c4d2c8');
+        g.line([[x - 0.64, py + 0.045], [x + 0.64, py + 0.045]], '#384942', 0.006);
+        g.text('BUILD / FLASH', x - w / 2 + 0.07, py - 0.025, 0.06, '#b0c5b8');
+        g.text('ST-LINK / UART', x - w / 2 + 0.07, py - 0.134, 0.043, '#8caaa1');
       });
       for (let port = 0; port < 3; port++) bnc(0.14 + port * 0.3, -0.17);
       knob(parts, 1.36, 0.018, 0.17);
@@ -355,19 +369,19 @@ export function createRackModel(renderer) {
       led(1.83, 0.22);
     } else if (unit.type === 'control') {
       display(-1.19, 0.02, 1.05, 0.39, (g, x, py, w) => {
-        g.text('MOZA / PROXY', x - w / 2 + 0.07, py + 0.105, 0.055, '#c8dcd3');
-        g.text('WHEEL  >  BRIDGE', x - w / 2 + 0.07, py - 0.009, 0.045, '#80a7a2');
-        g.text('USB CONNECTED', x - w / 2 + 0.07, py - 0.114, 0.043, '#d5b693');
+        g.text('MOZAPROXY', x - w / 2 + 0.07, py + 0.105, 0.055, '#c8dcd3');
+        g.text('WHEEL SETTINGS', x - w / 2 + 0.07, py - 0.009, 0.045, '#80a7a2');
+        g.text('INPUT MONITOR', x - w / 2 + 0.07, py - 0.114, 0.043, '#d5b693');
       });
       for (let row = 0; row < 2; row++) for (let col = 0; col < 6; col++) button(-0.22 + col * 0.235, 0.13 - row * 0.265, 0.15, 0.17, row === 1 && col === 3 ? 'orange' : col === 0 ? 'green' : 'rubber');
       knob(parts, 1.59, 0, 0.165, 'darkSilver');
       faceLabel('MOZAPROXY', -1.76, h / 2 - 0.085, 0.068);
-      faceLabel('ROUTING CONTROL', 1.18, -h / 2 + 0.075, 0.044, 'center');
+      faceLabel('WHEEL CONTROL', 1.18, -h / 2 + 0.075, 0.044, 'center');
     } else if (unit.type === 'compute') {
       faceLabel('M1 / LANGUAGE TOOLCHAIN', -1.68, h / 2 - 0.155, 0.096);
       display(-0.95, h / 2 - 0.49, 1.42, 0.29, (g, x, py) => {
-        g.text('M1 SYSTEM / 15 MODULES', x - 0.63, py + 0.065, 0.056, '#d0d9cd');
-        g.text('CORE  /  ANALYSIS  /  EDITORS', x - 0.63, py - 0.064, 0.043, '#8eb3a2');
+        g.text('M1 TOOLCHAIN', x - 0.63, py + 0.065, 0.056, '#d0d9cd');
+        g.text('15 MODULES / RUST / LUA', x - 0.63, py - 0.064, 0.043, '#8eb3a2');
       });
       for (let i = 0; i < 3; i++) rj45(0.43 + i * 0.36, h / 2 - 0.5, 0.23, 0.15);
       led(1.6, h / 2 - 0.45, 'orange');
@@ -395,26 +409,36 @@ export function createRackModel(renderer) {
         const x = -1.5 + col * 0.49;
         const py = 0.2 - row * 0.42;
         knob(parts, x, py, 0.102, col === 0 && row === 1 ? 'orange' : 'silver');
-        faceLabel(['GAIN', 'FREQ', 'WIDTH', 'MIX'][col], x, py - 0.155, 0.042, 'center');
+        faceLabel(['GENRE', 'ARTIST', 'ALBUM', 'PLAYLIST'][col], x, py - 0.155, 0.042, 'center');
       }
       display(1.15, 0.035, 1.05, 0.65, (g, x, py) => {
-        g.text('SPECTRUM', x - 0.43, py + 0.235, 0.048, '#b6c9bf');
-        for (let b = 0; b < 18; b++) {
-          const bh = 0.075 + Math.sin(b * 0.39) ** 2 * 0.29;
-          g.rect(x - 0.42 + b * 0.049, py - 0.17 + bh / 2, 0.025, bh, b > 13 ? '#c6a37e' : '#8bb5a6', 0.008);
+        g.text('PLAYLISTS', x - 0.43, py + 0.235, 0.06, '#c6d2c7');
+        const trackWidths = [0.53, 0.41, 0.58];
+        for (let row = 0; row < 3; row++) {
+          const rowY = py + 0.1 - row * 0.13;
+          g.rect(x - 0.375, rowY, 0.1, 0.1, ['#9caa92', '#b39a7d', '#829b92'][row], 0.012);
+          g.rect(x - 0.255 + trackWidths[row] / 2, rowY + 0.019, trackWidths[row], 0.021, '#9aafa2', 0.007);
+          g.rect(x - 0.255 + 0.145, rowY - 0.022, 0.29, 0.013, '#496354', 0.005);
         }
-        g.text('L -18.6    R -18.4', x - 0.43, py - 0.25, 0.041, '#93aba4');
+        g.text('GENRES / ARTISTS', x - 0.43, py - 0.25, 0.041, '#8da397');
       });
       led(1.83, 0.36);
       bnc(1.8, -0.28);
     } else if (unit.type === 'display') {
       display(-0.32, 0.055, 2.69, 0.79, (g, x, py, w, ph) => {
         g.text('ISLET', x - w / 2 + 0.12, py + ph / 2 - 0.12, 0.075, '#d5e0d7');
-        const grid = '#1c3439';
-        for (let i = 0; i < 6; i++) g.line([[x - 1.2, py - 0.25 + i * 0.1], [x + 1.18, py - 0.25 + i * 0.1]], grid, 0.004);
-        const outline = [[-0.94,-0.06],[-0.75,0.1],[-0.42,0.02],[-0.2,0.18],[0.06,0.11],[0.27,0.22],[0.45,0.05],[0.87,-0.07],[0.71,-0.2],[0.31,-0.14],[0.03,-0.24],[-0.31,-0.18],[-0.55,-0.28],[-0.8,-0.17],[-0.94,-0.06]];
-        g.line(outline.map(([px, py2]) => [x + px, py + py2]), '#9db9a8', 0.012);
-        g.text('WORKSPACE / 01', x + 1.16, py + 0.27, 0.043, '#8fa5a0', 'right');
+        // Static top-edge activity sketch for the Islet screen.
+        g.line([[x - 1.2, py + 0.19], [x + 1.2, py + 0.19]], '#394d44', 0.006);
+        g.rect(x, py + 0.19, 0.63, 0.17, '#020607', 0.053);
+        g.rect(x + 0.225, py + 0.2, 0.027, 0.027, '#30403b', 0.012);
+        const activities = ['TIMER', 'MEDIA', 'FILES'];
+        activities.forEach((title, i) => {
+          const cx = x - 0.79 + i * 0.79;
+          g.rect(cx, py - 0.065, 0.66, 0.245, '#1e2c27', 0.035);
+          g.text(title, cx, py - 0.05, 0.057, '#bac8ba', 'center');
+          g.line([[cx - 0.2, py - 0.121], [cx + 0.2, py - 0.121]], '#617b68', 0.01);
+        });
+        g.text('MACOS / TOP EDGE', x + 1.16, py - 0.29, 0.043, '#91a699', 'right');
       });
       knob(parts, 1.48, 0.11, 0.17, 'darkSilver');
       for (let i = 0; i < 3; i++) button(1.12 + i * 0.28, -0.31, 0.15, 0.1, i === 0 ? 'green' : 'rubber');
@@ -435,8 +459,8 @@ export function createRackModel(renderer) {
       for (let i = 0; i < 4; i++) rj45(-1.63 + i * 0.31, -0.005);
       display(0.48, 0, 1.27, 0.22, (g, x, py) => {
         g.text('RECONCILE', x - 0.55, py + 0.045, 0.057, '#bbd2c7');
-        g.text('MATCHED / READY', x - 0.55, py - 0.052, 0.04, '#81a595');
-        for (let i = 0; i < 4; i++) g.rect(x + 0.3 + i * 0.06, py + 0.04, 0.025, 0.048, '#b9b28c', 0.007);
+        g.text('SHARED EXPENSES', x - 0.55, py - 0.052, 0.042, '#95ad9e');
+        g.text('=', x + 0.45, py + 0.025, 0.13, '#b8ae8d', 'center');
       });
       vents(1.49, 0, 0.49, 0.22, 6, 2);
       led(-1.92, 0.05);
@@ -451,7 +475,7 @@ export function createRackModel(renderer) {
       }
       display(1.64, 0, 0.38, 0.2, (g, x, py) => {
         g.text('mountd', x, py + 0.035, 0.051, '#bacfc1', 'center');
-        g.text('4 / 4', x, py - 0.043, 0.038, '#91b7a4', 'center');
+        g.text('NFS/SMB', x, py - 0.043, 0.038, '#91b7a4', 'center');
       });
     } else if (unit.type === 'archive') {
       for (let drive = 0; drive < 2; drive++) {
@@ -470,7 +494,7 @@ export function createRackModel(renderer) {
     } else {
       display(-0.97, 0, 1.43, 0.23, (g, x, py) => {
         g.text('> SMALL UTILITIES', x - 0.63, py + 0.04, 0.054, '#b8cebe');
-        g.text('TOOLS / READY', x - 0.63, py - 0.056, 0.04, '#86a797');
+        g.text('SCRIPTS / SHORTCUTS', x - 0.63, py - 0.056, 0.04, '#86a797');
       });
       for (let i = 0; i < 3; i++) {
         cut(0.18 + i * 0.37, 0, 0.21, 0.092, 0.028);
@@ -656,12 +680,12 @@ export function createRackModel(renderer) {
     hit.userData.index = index;
     bay.add(hit);
     hitTargets.push(hit);
-    const highlightGeometry = roundedBox(0.022, Math.max(0.14, h - 0.08), 0.012, 0.01);
+    const highlightGeometry = roundedBox(0.026, Math.min(0.27, h - 0.08), 0.012, 0.01);
     geometries.add(highlightGeometry);
-    const highlightMaterial = new THREE.MeshBasicMaterial({ color: '#e4a06b', toneMapped: false });
+    const highlightMaterial = new THREE.MeshStandardMaterial({ color: '#c58352', metalness: 0.15, roughness: 0.6 });
     allMaterials.push(highlightMaterial);
     const highlight = new THREE.Mesh(highlightGeometry, highlightMaterial);
-    highlight.position.set(-2.1, 0, FACE_Z + 0.06);
+    highlight.position.set(-2.1, unit.u === 1 ? 0 : h / 2 - 0.2, FACE_Z + 0.06);
     highlight.visible = false;
     bay.add(highlight);
     highlights.push(highlight);

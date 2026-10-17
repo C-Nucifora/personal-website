@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101211">
-  <meta name="description" content="Christian Nucifora's software, language tools and interface experiments, assembled in a 24U project cabinet.">
-  <title>Christian Nucifora · Project cabinet</title>
+  <meta name="description" content="Software projects by Christian Nucifora. Language tools, native apps, embedded development and small utilities.">
+  <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/space-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="./styles.css">
@@ -14,176 +14,167 @@
 <body>
   <a class="skip-link" href="#project-index">Skip to projects</a>
   <header class="site-header">
-    <a class="identity" href="#" aria-label="Christian Nucifora, cabinet overview"><span class="identity-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Christian Nucifora</span></a>
-    <span class="header-note">Software & systems</span>
-    <div class="header-links"><a class="header-github" href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub ↗</a><a class="contact-link" href="mailto:cgnucifora@proton.me">Get in touch <span aria-hidden="true">↗</span></a></div>
+    <a class="identity" href="#" aria-label="Christian Nucifora, back to work">Christian Nucifora</a>
+    <nav class="header-links" aria-label="Main navigation"><a class="overview-link" href="#" aria-current="page">Work</a><a href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a><a href="mailto:cgnucifora@proton.me">Email</a></nav>
   </header>
   <main class="workspace" id="main">
-    <section class="stage" aria-label="Interactive project cabinet">
-      <div class="stage-heading">
-        <p class="eyebrow"><span class="tiny-cross" aria-hidden="true">+</span> Project cabinet / 01</p>
-        <h1>Selected<br>work<span>.</span></h1>
-        <p class="intro">Software, tools<br>and experiments.</p>
-        <div class="rack-spec"><span>24U cabinet</span><span>12 systems</span><span>One M1 toolchain</span></div>
-      </div>
+    <section class="stage" aria-label="Interactive project rack">
+      <div class="stage-heading"><h1>Work</h1></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
-      <div class="scene-loading" id="scene-loading" role="status"><span class="loading-mark" aria-hidden="true"></span> Preparing the cabinet</div>
-      <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>Every project is still available in the index.</p></div>
-      <div class="phase-label"><span class="phase-dot" aria-hidden="true"></span><span id="phase-label" role="status" aria-live="polite">Cabinet overview</span></div>
-      <div class="stage-controls" aria-label="Cabinet view controls">
-        <div class="view-switch"><button type="button" data-view="perspective" aria-pressed="true"><span aria-hidden="true">◇</span> Perspective</button><button type="button" data-view="front" aria-pressed="false"><span aria-hidden="true">▥</span> Front</button></div>
-        <button class="reset-view" type="button" id="reset-view" aria-label="Reset cabinet and camera view">↺ <span>Reset</span></button>
+      <div class="scene-loading" id="scene-loading" role="status">Loading the rack…</div>
+      <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still read every project in the list.</p></div>
+      <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
+      <div class="stage-controls" role="group" aria-label="3D view controls">
+        <div class="view-switch"><button type="button" data-view="perspective" aria-pressed="true">Perspective</button><button type="button" data-view="front" aria-pressed="false">Front</button></div>
+        <div class="view-utilities"><button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">Reset view</button><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div>
       </div>
-      <div class="stage-caption"><span class="tiny-cross" aria-hidden="true">+</span><span id="scene-hint">Select a unit to pull it out</span><span class="orbit-hint">Drag to rotate <span aria-hidden="true">↔</span></span></div>
+      <div class="stage-caption"><p id="scene-hint">Click a unit to open a project.</p><p class="orbit-hint">Drag to turn the rack.</p></div>
     </section>
     <aside class="project-panel" aria-label="Projects">
       <div class="project-index" id="project-index" tabindex="-1">
-        <div class="panel-heading"><h2>Equipment index</h2><span>12 / 24U</span></div>
-        <p class="index-intro">Open a unit. Explore the project.</p>
-        <nav aria-label="Select a project unit">
+        <div class="panel-heading"><h2>Projects</h2><span aria-label="12 projects">12</span></div>
+        <nav aria-label="Select a project">
           <a class="project-row" href="#ci-runner-console" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>CI Runner Console</strong><span>Build infrastructure</span></span><span class="row-size">1U</span></a>
           <a class="project-row" href="#artifact-platform" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>Artifact Platform</strong><span>Self-hosted publishing</span></span><span class="row-size">1U</span></a>
           <a class="project-row" href="#nvim-stm32" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>nvim-stm32</strong><span>Embedded development</span></span><span class="row-size">2U</span></a>
           <a class="project-row" href="#mozaproxy" data-project="3"><span class="bay-number">04</span><span class="row-copy"><strong>mozaproxy</strong><span>Wheel control</span></span><span class="row-size">2U</span></a>
-          <a class="project-row is-bundle" href="#m1-toolchain" data-project="4"><span class="bay-number">05</span><span class="row-copy"><strong>M1 Toolchain</strong><span>Language tools</span></span><span class="row-size">6U</span></a>
+          <a class="project-row" href="#m1-toolchain" data-project="4"><span class="bay-number">05</span><span class="row-copy"><strong>M1 Toolchain</strong><span>Language tools · 15 repositories</span></span><span class="row-size">6U</span></a>
           <a class="project-row" href="#wavelength" data-project="5"><span class="bay-number">06</span><span class="row-copy"><strong>Wavelength</strong><span>Music discovery</span></span><span class="row-size">3U</span></a>
           <a class="project-row" href="#islet" data-project="6"><span class="bay-number">07</span><span class="row-copy"><strong>Islet</strong><span>Desktop utility</span></span><span class="row-size">3U</span></a>
           <a class="project-row" href="#personal-website" data-project="7"><span class="bay-number">08</span><span class="row-copy"><strong>Personal Website</strong><span>Interface experiments</span></span><span class="row-size">2U</span></a>
           <a class="project-row" href="#reconcile-app" data-project="8"><span class="bay-number">09</span><span class="row-copy"><strong>Reconcile</strong><span>Shared expenses</span></span><span class="row-size">1U</span></a>
           <a class="project-row" href="#mountd" data-project="9"><span class="bay-number">10</span><span class="row-copy"><strong>mountd</strong><span>Network storage</span></span><span class="row-size">1U</span></a>
           <a class="project-row" href="#gphotos-album-downloader" data-project="10"><span class="bay-number">11</span><span class="row-copy"><strong>Photos Downloader</strong><span>Media archive</span></span><span class="row-size">1U</span></a>
-          <a class="project-row is-bundle" href="#small-utilities" data-project="11"><span class="bay-number">12</span><span class="row-copy"><strong>Small Utilities</strong><span>Scripts + shortcuts</span></span><span class="row-size">1U</span></a></nav>
-        <div class="index-note"><span class="mini-rack" aria-hidden="true"><i></i><i></i><i></i><i></i></span><p>One cabinet.<br>A collection of things I've built.</p></div>
+          <a class="project-row" href="#small-utilities" data-project="11"><span class="bay-number">12</span><span class="row-copy"><strong>Small Utilities</strong><span>Scripts + shortcuts</span></span><span class="row-size">1U</span></a>
+        </nav>
       </div>
       <section class="project-details" id="project-details" aria-label="Project details">
-        <div class="details-toolbar"><a href="#" id="back-to-rack">← Cabinet</a><span id="detail-bay">Unit 01</span></div>
-
+        <div class="details-toolbar"><a href="#" id="back-to-rack">← All projects</a><span id="detail-bay">01 / 1U</span></div>
         <article id="ci-runner-console" data-detail="0">
-          <p class="eyebrow">Build infrastructure / 1U</p>
+          <p class="project-category">Build infrastructure</p>
           <h2 tabindex="-1">CI Runner Console</h2>
-          <p class="project-summary">Manage self-hosted GitHub Actions runners from one web console.</p>
-          <p>A console for runner instances on a dedicated CI virtual machine. It reconciles GitHub registrations with local services, manages their lifecycle over restricted SSH, and authenticates users through Authentik.</p>
+          <p class="project-summary">A web console for self-hosted GitHub Actions runners.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/ci-runner-console" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A console for runner instances on a dedicated CI virtual machine. It reconciles GitHub registrations with local services, manages their lifecycle over restricted SSH, and authenticates users through Authentik.</p>
           <div class="project-stack"><span>TypeScript</span><span>Node.js</span><span>GitHub Actions</span><span>OIDC</span></div>
           <dl><div><dt>Interface</dt><dd>Web console</dd></div><div><dt>Control</dt><dd>GitHub API + SSH</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/ci-runner-console" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="artifact-platform" data-detail="1">
-          <p class="eyebrow">Self-hosted publishing / 1U</p>
+          <p class="project-category">Self-hosted publishing</p>
           <h2 tabindex="-1">Artifact Platform</h2>
-          <p class="project-summary">Publish small web tools through a mesh of your own devices.</p>
-          <p>Each device hosts its own static artifacts and discovers other nodes on the tailnet. A combined catalog links tools, dashboards and documents, with Tailscale Funnel publishing and optional OIDC administration.</p>
+          <p class="project-summary">Small web tools, hosted across a Tailscale network.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/artifact-platform" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">Each device hosts its own static artifacts and discovers other nodes on the tailnet. A combined catalog links tools, dashboards and documents, with Tailscale Funnel publishing and optional OIDC administration.</p>
           <div class="project-stack"><span>Python</span><span>Caddy</span><span>Tailscale</span><span>Docker</span></div>
           <dl><div><dt>Content</dt><dd>Static web artifacts</dd></div><div><dt>Discovery</dt><dd>Tailscale SSH</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/artifact-platform" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="nvim-stm32" data-detail="2">
-          <p class="eyebrow">Embedded development / 2U</p>
+          <p class="project-category">Embedded development</p>
           <h2 tabindex="-1">nvim-stm32</h2>
-          <p class="project-summary">Build, inspect, flash and monitor STM32 firmware inside Neovim.</p>
-          <p>The plugin finds the firmware project for the current buffer, tracks build artifacts and reports memory use. It selects ST-LINK probes, programs the target through supported backends, and opens a UART monitor in the editor.</p>
+          <p class="project-summary">STM32 builds, flashing and serial monitoring in Neovim.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/nvim-stm32" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">The plugin finds the firmware project for the current buffer, tracks build artifacts and reports memory use. It selects ST-LINK probes, programs the target through supported backends, and opens a UART monitor in the editor.</p>
           <div class="project-stack"><span>Lua</span><span>Neovim</span><span>STM32</span><span>CMake / Make</span></div>
           <dl><div><dt>Platform</dt><dd>macOS + Linux</dd></div><div><dt>Target</dt><dd>STM32 firmware</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/nvim-stm32" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="mozaproxy" data-detail="3">
-          <p class="eyebrow">Wheel control / 2U</p>
+          <p class="project-category">Wheel control</p>
           <h2 tabindex="-1">mozaproxy</h2>
-          <p class="project-summary">A Linux desktop app for MOZA wheel settings and input monitoring.</p>
-          <p>A native Qt interface for reading and applying wheel settings, saving local profiles and viewing live controls. An optional uinput relay exposes a virtual wheel and forwards force-feedback effects. Hardware and game compatibility validation is ongoing.</p>
+          <p class="project-summary">MOZA wheel settings and live input monitoring on Linux.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/mozaproxy" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A native Qt interface for reading and applying wheel settings, saving local profiles and viewing live controls. An optional uinput relay exposes a virtual wheel and forwards force-feedback effects. Hardware and game compatibility validation is ongoing.</p>
           <div class="project-stack"><span>Python</span><span>Qt 6</span><span>Linux</span><span>uinput</span></div>
           <dl><div><dt>Interface</dt><dd>Native Qt desktop</dd></div><div><dt>Hardware</dt><dd>MOZA wheel systems</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/mozaproxy" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="m1-toolchain" data-detail="4">
-          <p class="eyebrow">Language tools / 6U</p>
+          <p class="project-category">Language tools</p>
           <h2 tabindex="-1">M1 Toolchain</h2>
-          <p class="project-summary">An ecosystem of editor and command-line tools for MoTeC M1 scripts.</p>
-          <p>One bundle for the language server, syntax grammar, formatter, linter and project-aware type checker. Related tools generate documentation, inspect CAN databases, visualise project relationships and evaluate scripts offline. Neovim integration and reusable CI workflows connect the tools to everyday development.</p>
+          <p class="project-summary">Editor and command-line tools for MoTeC M1 Script.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer">Toolchain on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">One bundle for the language server, syntax grammar, formatter, linter and project-aware type checker. Related tools generate documentation, inspect CAN databases, visualise project relationships and evaluate scripts offline. Neovim integration and reusable CI workflows connect the tools to everyday development.</p>
           <div class="project-stack"><span>Rust</span><span>Lua</span><span>Tree-sitter</span><span>LSP</span></div>
           <dl><div><dt>Language</dt><dd>MoTeC M1 Script</dd></div><div><dt>Bundle</dt><dd>15 public repositories</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer">View bundle source <span aria-hidden="true">↗</span></a>
-          <section class="bundle-modules" aria-label="Projects in M1 Toolchain"><div class="bundle-heading"><h3>Inside this bundle</h3><span>15 repos</span></div><a class="module-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer"><strong>m1-tools</strong><span>Toolchain manifest, setup and release coordination.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/tree-sitter-m1" target="_blank" rel="noreferrer"><strong>tree-sitter-m1</strong><span>M1 grammar, parser and editor highlight queries.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-core" target="_blank" rel="noreferrer"><strong>m1-core</strong><span>Shared syntax-tree access, diagnostics and annotations.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lsp" target="_blank" rel="noreferrer"><strong>m1-lsp</strong><span>Language server for navigation, completion and live diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-fmt" target="_blank" rel="noreferrer"><strong>m1-fmt</strong><span>Source formatter with CLI and library interfaces.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lint" target="_blank" rel="noreferrer"><strong>m1-lint</strong><span>Syntax-based style and correctness checks with safe autofixes.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-typecheck" target="_blank" rel="noreferrer"><strong>m1-typecheck</strong><span>Project-aware symbol resolution and semantic diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/nvim-m1" target="_blank" rel="noreferrer"><strong>nvim-m1</strong><span>Neovim setup for the bundled language and editor tools.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/telescope-m1.nvim" target="_blank" rel="noreferrer"><strong>telescope-m1.nvim</strong><span>Pickers for symbols, components, call rates and lint rules.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-ci" target="_blank" rel="noreferrer"><strong>m1-ci</strong><span>Reusable GitHub Actions workflows for M1 project checks.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-doc" target="_blank" rel="noreferrer"><strong>m1-doc</strong><span>Project references in Markdown, HTML and structured JSON.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-visualiser" target="_blank" rel="noreferrer"><strong>m1-visualiser</strong><span>Interactive project dependency graphs with experimental value overlays.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-eval" target="_blank" rel="noreferrer"><strong>m1-eval</strong><span>Experimental deterministic offline script evaluation and traces.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-can" target="_blank" rel="noreferrer"><strong>m1-can</strong><span>CAN topology inspection and standard DBC export.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-dbc" target="_blank" rel="noreferrer"><strong>m1-dbc</strong><span>M1 database export with committed-output drift checks.</span><i aria-hidden="true">↗</i></a></section>
+          <section class="bundle-modules" aria-label="Included projects"><h3>Included tools</h3><section class="module-group"><h4>Language tools</h4><a class="module-link" href="https://github.com/C-Nucifora/tree-sitter-m1" target="_blank" rel="noreferrer"><strong>tree-sitter-m1</strong><span>M1 grammar, parser and editor highlight queries.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-core" target="_blank" rel="noreferrer"><strong>m1-core</strong><span>Shared syntax-tree access, diagnostics and annotations.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lsp" target="_blank" rel="noreferrer"><strong>m1-lsp</strong><span>Language server for navigation, completion and live diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-fmt" target="_blank" rel="noreferrer"><strong>m1-fmt</strong><span>Source formatter with CLI and library interfaces.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lint" target="_blank" rel="noreferrer"><strong>m1-lint</strong><span>Syntax-based style and correctness checks with safe autofixes.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-typecheck" target="_blank" rel="noreferrer"><strong>m1-typecheck</strong><span>Project-aware symbol resolution and semantic diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-eval" target="_blank" rel="noreferrer"><strong>m1-eval</strong><span>Experimental deterministic offline script evaluation and traces.</span><i aria-hidden="true">↗</i></a></section><section class="module-group"><h4>Editor integration</h4><a class="module-link" href="https://github.com/C-Nucifora/nvim-m1" target="_blank" rel="noreferrer"><strong>nvim-m1</strong><span>Neovim setup for the bundled language and editor tools.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/telescope-m1.nvim" target="_blank" rel="noreferrer"><strong>telescope-m1.nvim</strong><span>Pickers for symbols, components, call rates and lint rules.</span><i aria-hidden="true">↗</i></a></section><section class="module-group"><h4>Project tools</h4><a class="module-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer"><strong>m1-tools</strong><span>Toolchain manifest, setup and release coordination.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-ci" target="_blank" rel="noreferrer"><strong>m1-ci</strong><span>Reusable GitHub Actions workflows for M1 project checks.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-doc" target="_blank" rel="noreferrer"><strong>m1-doc</strong><span>Project references in Markdown, HTML and structured JSON.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-visualiser" target="_blank" rel="noreferrer"><strong>m1-visualiser</strong><span>Interactive project dependency graphs with experimental value overlays.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-can" target="_blank" rel="noreferrer"><strong>m1-can</strong><span>CAN topology inspection and standard DBC export.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-dbc" target="_blank" rel="noreferrer"><strong>m1-dbc</strong><span>M1 database export with committed-output drift checks.</span><i aria-hidden="true">↗</i></a></section></section>
         </article>
         <article id="wavelength" data-detail="5">
-          <p class="eyebrow">Music discovery / 3U</p>
+          <p class="project-category">Music discovery</p>
           <h2 tabindex="-1">Wavelength</h2>
-          <p class="project-summary">Turn genres, artist seeds and discographies into Apple Music playlists.</p>
-          <p>An experimental native macOS app with a SwiftUI interface and a bundled local Bun engine. It builds playlists through the user's Apple Music web session and generates covers through Music Automation. It requires an Apple Music subscription.</p>
+          <p class="project-summary">A macOS app for building Apple Music playlists.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/wavelength" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">An experimental native macOS app with a SwiftUI interface and a bundled local Bun engine. It builds playlists through the user's Apple Music web session and generates covers through Music Automation. It requires an Apple Music subscription.</p>
           <div class="project-stack"><span>SwiftUI</span><span>Bun</span><span>Apple Music</span></div>
           <dl><div><dt>Platform</dt><dd>macOS</dd></div><div><dt>Interface</dt><dd>Native SwiftUI app</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/wavelength" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="islet" data-detail="6">
-          <p class="eyebrow">Desktop utility / 3U</p>
+          <p class="project-category">Desktop utility</p>
           <h2 tabindex="-1">Islet</h2>
-          <p class="project-summary">Timers, media controls, files and live status around the MacBook notch.</p>
-          <p>A macOS utility that opens at the top edge of the display. Its configurable activities include Now Playing, clipboard history, system metrics and a temporary file shelf, alongside contextual events, reminders and alerts.</p>
+          <p class="project-summary">Timers, media controls and files at the MacBook notch.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/islet" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A macOS utility that opens at the top edge of the display. Its configurable activities include Now Playing, clipboard history, system metrics and a temporary file shelf, alongside contextual events, reminders and alerts.</p>
           <div class="project-stack"><span>Swift</span><span>macOS</span><span>XcodeGen</span></div>
           <dl><div><dt>Platform</dt><dd>macOS 26+</dd></div><div><dt>Interaction</dt><dd>Top-edge reveal</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/islet" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="personal-website" data-detail="7">
-          <p class="eyebrow">Interface experiments / 2U</p>
+          <p class="project-category">Interface experiments</p>
           <h2 tabindex="-1">Personal Website</h2>
-          <p class="project-summary">A portfolio explored through terminal and spatial interfaces.</p>
-          <p>The original terminal portfolio combines a virtual filesystem, a read-only source viewer and shared typed, clicked and keyboard interactions. This rack is the next local interface experiment, opening project bays into their own detail views.</p>
+          <p class="project-summary">A portfolio built around interactive interfaces.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/personal-website" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">The original terminal portfolio combines a virtual filesystem, a read-only source viewer and shared typed, clicked and keyboard interactions. This rack is the next local interface experiment, opening project bays into their own detail views.</p>
           <div class="project-stack"><span>TypeScript</span><span>Next.js</span><span>Three.js</span></div>
           <dl><div><dt>Content</dt><dd>Projects + source</dd></div><div><dt>Format</dt><dd>Static website</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/personal-website" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="reconcile-app" data-detail="8">
-          <p class="eyebrow">Shared expenses / 1U</p>
+          <p class="project-category">Shared expenses</p>
           <h2 tabindex="-1">Reconcile</h2>
-          <p class="project-summary">Split group expenses and calculate who owes whom in the browser.</p>
-          <p>A browser app for shared costs with equal, exact, percentage and share-based splits. It calculates net balances and a settlement plan using integer cents, keeps records locally, and exports PDF reports without requiring an account.</p>
+          <p class="project-summary">A browser app for splitting shared expenses.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/reconcile-app" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A browser app for shared costs with equal, exact, percentage and share-based splits. It calculates net balances and a settlement plan using integer cents, keeps records locally, and exports PDF reports without requiring an account.</p>
           <div class="project-stack"><span>React</span><span>TypeScript</span><span>Vite</span></div>
           <dl><div><dt>Storage</dt><dd>Browser local storage</dd></div><div><dt>Export</dt><dd>PDF reports</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/reconcile-app" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="mountd" data-detail="9">
-          <p class="eyebrow">Network storage / 1U</p>
+          <p class="project-category">Network storage</p>
           <h2 tabindex="-1">mountd</h2>
-          <p class="project-summary">Mount network shares only when the network and server are ready.</p>
-          <p>A per-user macOS mount manager for NFS and SMB shares. It checks network conditions and dependencies, probes the file service before mounting, and tries ordered endpoints such as LAN, Tailscale and MagicDNS.</p>
+          <p class="project-summary">An NFS and SMB mount manager for macOS.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/mountd" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A per-user macOS mount manager for NFS and SMB shares. It checks network conditions and dependencies, probes the file service before mounting, and tries ordered endpoints such as LAN, Tailscale and MagicDNS.</p>
           <div class="project-stack"><span>Rust</span><span>macOS</span><span>NFS / SMB</span></div>
           <dl><div><dt>Platform</dt><dd>macOS LaunchAgent</dd></div><div><dt>Protocols</dt><dd>NFS + SMB</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/mountd" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="gphotos-album-downloader" data-detail="10">
-          <p class="eyebrow">Media archive / 1U</p>
+          <p class="project-category">Media archive</p>
           <h2 tabindex="-1">Photos Downloader</h2>
-          <p class="project-summary">Download original media from large shared Google Photos albums.</p>
-          <p>A resumable Python downloader with an internal web-API backend and a Playwright fallback. It handles shared-album enumeration and original downloads, including the temporary library-save steps required for media owned by someone else.</p>
+          <p class="project-summary">A resumable downloader for shared Google Photos albums.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora/gphotos-album-downloader" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A resumable Python downloader with an internal web-API backend and a Playwright fallback. It handles shared-album enumeration and original downloads, including the temporary library-save steps required for media owned by someone else.</p>
           <div class="project-stack"><span>Python</span><span>Playwright</span><span>gpwc</span></div>
           <dl><div><dt>Interface</dt><dd>Command line</dd></div><div><dt>Source</dt><dd>Shared Google Photos albums</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora/gphotos-album-downloader" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a>
 
         </article>
         <article id="small-utilities" data-detail="11">
-          <p class="eyebrow">Scripts + shortcuts / 1U</p>
+          <p class="project-category">Scripts + shortcuts</p>
           <h2 tabindex="-1">Small Utilities</h2>
-          <p class="project-summary">Personal shortcuts, account cleanup scripts and programming exercises.</p>
-          <p>A compact collection of smaller repositories. Version-controlled iOS Shortcuts sit alongside a Python Instagram unlike script and LeetCode solutions, with each source linked separately.</p>
+          <p class="project-summary">Shortcuts, one-off scripts and programming exercises.</p>
+          <a class="source-link" href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub profile <span aria-hidden="true">↗</span></a>
+          <p class="project-description">A compact collection of smaller repositories. Version-controlled iOS Shortcuts sit alongside a Python Instagram unlike script and LeetCode solutions, with each source linked separately.</p>
           <div class="project-stack"><span>Python</span><span>Apple Shortcuts</span></div>
           <dl><div><dt>Bundle</dt><dd>3 repositories</dd></div><div><dt>Format</dt><dd>Scripts + shortcuts</dd></div></dl>
-          <a class="source-link" href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">View bundle source <span aria-hidden="true">↗</span></a>
-          <section class="bundle-modules" aria-label="Projects in Small Utilities"><div class="bundle-heading"><h3>Inside this bundle</h3><span>3 repos</span></div><a class="module-link" href="https://github.com/C-Nucifora/iOS-Shortcuts" target="_blank" rel="noreferrer"><strong>iOS Shortcuts</strong><span>Version-controlled shortcut sources and installable builds.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/instagram-unliker" target="_blank" rel="noreferrer"><strong>Instagram Unliker</strong><span>A Python script for removing likes with persisted progress.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/leetcode" target="_blank" rel="noreferrer"><strong>LeetCode</strong><span>Programming exercises and solutions, primarily in Python.</span><i aria-hidden="true">↗</i></a></section>
+          <section class="bundle-modules" aria-label="Included projects"><h3>Repositories</h3><a class="module-link" href="https://github.com/C-Nucifora/iOS-Shortcuts" target="_blank" rel="noreferrer"><strong>iOS Shortcuts</strong><span>Version-controlled shortcut sources and installable builds.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/instagram-unliker" target="_blank" rel="noreferrer"><strong>Instagram Unliker</strong><span>A Python script for removing likes with persisted progress.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/leetcode" target="_blank" rel="noreferrer"><strong>LeetCode</strong><span>Programming exercises and solutions, primarily in Python.</span><i aria-hidden="true">↗</i></a></section>
         </article>
-        <a class="next-project" href="#artifact-platform" id="next-project">Next unit <span aria-hidden="true">→</span></a>
+        <a class="next-project" href="#artifact-platform" id="next-project">Next · Artifact Platform →</a>
       </section>
     </aside>
   </main>
-  <footer class="site-footer"><span class="footer-caption">An interactive index of my work<span class="footer-divider">/</span><span>2026</span></span><div class="footer-right"><span class="footer-instruction">Select → Extract → Explore</span><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div></footer>
-  <noscript><style>.scene-loading,.stage-controls,.phase-label,.orbit-hint{display:none}.stage{height:330px;min-height:330px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
+  <noscript><style>.scene-loading,.stage-controls,.phase-label,.stage-caption{display:none}.stage{height:200px!important;min-height:200px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

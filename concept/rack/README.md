@@ -14,9 +14,11 @@ Open port 4314 through T3's environment preview. A localhost URL in a different 
 
 The 17 October 2026 brief calls for a larger rack, varied real equipment, sizes related to project scope, one M1 bundle and dark mode by default. These choices supersede the initial four-server prototype and older terminal/PCB directions for this surface.
 
-The cabinet follows a shared rack-unit grid. Satin aluminium network faces sit above graphite compute hardware, a modular M1 enclosure, audio-style controls, a large display, a console and compact storage appliances. Beveled edges, recessed apertures, cross-head screws, washers, tray latches, etched labels and quiet displays provide detail at close range. Original procedural textures add brushed metal; large studio light cards give the metal visible reflections. The UI uses charcoal, warm white, muted sage, restrained lime selection and copper secondary text.
+The cabinet follows a shared rack-unit grid. Satin aluminium network faces sit above graphite compute hardware, a modular M1 enclosure, audio-style controls, a large display, a console and compact storage appliances. Beveled edges, recessed apertures, cross-head screws, washers, tray latches, etched labels and quiet displays provide detail at close range. Original procedural textures add brushed metal and fine polymer grain; large studio light cards give the metal visible reflections. The UI uses charcoal, warm white and a muted amber accent.
 
-Space Grotesk carries headings and descriptions. IBM Plex Mono carries equipment labels, dimensions and navigation. The HTML index and actual model share the same project order, unit sizes and selection. A row hover or keyboard focus highlights the matching physical unit.
+Space Grotesk carries navigation, headings and descriptions. IBM Plex Mono is reserved for equipment labels, dimensions and small technical details. Plain navigation and a numbered project list leave the cabinet as the main visual. Project details put the source link immediately below the summary. M1's fifteen repositories are grouped into language tools, editor integration and project tools.
+
+The HTML index and actual model share the same project order, unit sizes and selection. A row hover or keyboard focus marks the matching physical unit with a small amber tab. Rack screens describe the software: playlists for Wavelength, notch utilities for Islet and development tools for M1. They do not show simulated operational telemetry. Extraction takes 600ms, followed by a 700ms camera move; reduced motion reaches the same final state immediately.
 
 ## Project allocation
 
@@ -71,11 +73,11 @@ Space Grotesk by the Space Grotesk Project Authors and IBM Plex Mono by IBM are 
 ## Verification
 
 - JavaScript syntax checks pass for app, catalog, model and scene. HTML checks confirm twelve index/detail pairs, eighteen module source links, unique IDs and valid local assets. Authored files pass Git whitespace checks.
-- T3's local browser rendered the actual model at 1280 × 800 and 390 × 844 with no horizontal overflow. All runtime asset requests stayed on the local origin and succeeded, including self-hosted fonts. Mobile index rows measure 79px and the canvas preserves vertical touch scrolling.
+- T3's local browser rendered the polished model at 1280 × 800, 980 × 800 and 390 × 844 with no horizontal overflow. A 320px layout check also passed. All runtime asset requests stayed on the local origin and succeeded, including self-hosted fonts. The canvas preserves vertical touch scrolling. CSS and navigation use the same 900px stacking breakpoint.
 - Real model clicks selected the large M1 assembly and the top 1U network appliance. The normal-motion phase trace confirms extraction completes before camera focus begins. Selected M1 content exposes all fifteen source links.
 - Project navigation through 1U, 2U, 3U and 6U examples, browser Back, front view, reset, reduced motion and mobile project views were checked live. Independent app self-checks also cover early selection during module loading, scene-import failure, all eighteen old module hash aliases and mobile scroll behavior.
 - Independent model checks rebuild the actual geometry, check finite vertices and verify every unit selection across two overview views and five viewport proportions. All 120 selection checks and every extracted-unit camera bound pass. The M1 internals remain inside the chassis and attached to its moving assembly.
-- Interface text tokens meet 4.5:1 against the panel background. Keyboard alternatives and unenhanced HTML keep the project content accessible alongside the model.
+- Interface text tokens meet 4.5:1 against the base, panel and hover backgrounds. Keyboard alternatives and unenhanced HTML keep the project content accessible alongside the model. The M1 source action is visible without scrolling at 1280 × 800; all fifteen grouped repository links remain available on mobile.
 - Idle rendering scheduled zero animation frames over a 1.2 second live observation. Removing enhancement leaves all twelve descriptions visible. Simulated WebGL context loss displays the fallback and still allows opening a bundle and its source links.
 - The design-language repository validation and its five existing tests pass.
 

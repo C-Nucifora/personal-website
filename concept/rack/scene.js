@@ -4,7 +4,7 @@ import { createRackModel, FACE_Z, EXTRACTION } from './model.js';
 import { units } from './catalog.js';
 
 const BACKGROUND = '#101211';
-const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const ease = (t) => t * t * (3 - 2 * t);
 
 export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let renderer;
@@ -238,13 +238,13 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
     const current = capture();
     const hasSlide = current.slides.some((position) => position > 0.005);
     const cameraAway = current.position.distanceTo(overview.position) > 0.02 || current.target.distanceTo(overview.target) > 0.02;
-    if (cameraAway) queueStage('returning', 540, overview, current.slides, previous);
-    if (hasSlide) queueStage('returning', 520, overview, bays.map(() => 0), previous);
+    if (cameraAway) queueStage('returning', 460, overview, current.slides, previous);
+    if (hasSlide) queueStage('returning', 480, overview, bays.map(() => 0), previous);
     if (next !== null) {
       const slides = bays.map(() => 0);
       slides[next] = EXTRACTION;
-      queueStage('extracting', 760, overview, slides, next);
-      queueStage('focusing', 900, projectPose(next), slides, next);
+      queueStage('extracting', 600, overview, slides, next);
+      queueStage('focusing', 700, projectPose(next), slides, next);
     }
     if (!stages.length) { emit('overview'); requestRender(); return; }
     beginNext(performance.now());

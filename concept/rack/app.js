@@ -36,23 +36,23 @@ function showPhase(nextPhase, index) {
   });
   const project = units[index]?.title ?? "";
   const labels = {
-    overview: "Cabinet overview",
-    extracting: `Extracting ${project}`,
-    focusing: `Inspecting ${project}`,
-    project: `${project} / ${units[index]?.u ?? ""}U`,
-    returning: "Returning to cabinet",
+    overview: "",
+    extracting: `Opening ${project}…`,
+    focusing: `Opening ${project}…`,
+    project: "",
+    returning: "Returning to the rack…",
   };
   phaseLabel.textContent = labels[nextPhase];
   const hints = {
-    overview: "Select a unit to pull it out",
-    extracting: "Sliding the project out of the cabinet",
-    focusing: "Moving in for a closer look",
-    project: "Project open · Escape to return",
-    returning: "Returning the project to its position",
+    overview: "Click a unit to open a project.",
+    extracting: "",
+    focusing: "",
+    project: "Esc to return to the rack.",
+    returning: "",
   };
   hint.textContent = hints[nextPhase];
   if (isProject) {
-    document.querySelector("#detail-bay").textContent = `Unit ${String(index + 1).padStart(2, "0")} / ${units[index].u}U`;
+    document.querySelector("#detail-bay").textContent = `${String(index + 1).padStart(2, "0")} / ${units[index].u}U`;
     const next = (index + 1) % slugs.length;
     const link = document.querySelector("#next-project");
     link.href = `#${slugs[next]}`;
@@ -83,7 +83,7 @@ function openProject(index, updateHistory = true) {
   if (scene && !sceneFailed) scene.select(index);
   else showPhase(index === null ? "overview" : "project", index);
   if (index === null && previous !== null) rows[previous].focus({ preventScroll: true });
-  if (matchMedia("(max-width: 760px)").matches) {
+  if (matchMedia("(max-width: 900px)").matches) {
     const target = sceneFailed && index !== null ? articles[index] : document.querySelector(".stage");
     target.scrollIntoView({ behavior: motionInput.checked ? "instant" : "smooth", block: "start" });
   }
@@ -108,7 +108,7 @@ document.addEventListener("click", event => {
     event.preventDefault();
     const index = slugs.indexOf(link.hash.slice(1));
     if (index >= 0) openProject(index);
-  } else if (link.matches("#back-to-rack, .identity")) {
+  } else if (link.matches("#back-to-rack, .identity, .overview-link")) {
     event.preventDefault();
     openProject(null);
   }
@@ -164,7 +164,7 @@ try {
     onSelect: index => openProject(index),
     onHover: index => {
       rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
-      if (phase === "overview") hint.textContent = index === null ? "Select a unit to pull it out" : `Open ${units[index].title} · ${units[index].u}U`;
+      if (phase === "overview") hint.textContent = index === null ? "Click a unit to open a project." : `${units[index].title} · ${units[index].u}U`;
     },
     onPhase: ({ phase: nextPhase, index }) => showPhase(nextPhase, index),
     onReady: () => { loading.hidden = true; },
