@@ -1,6 +1,6 @@
-# The project rack
+# The project cabinet
 
-Local 3D portfolio prototype for Christian Nucifora. Each of four rack bays represents an existing software project. Select a bay on the model or in the HTML index. The server slides out, then the camera moves in to its open chassis and the project summary appears. Back to rack, Escape and Reset reverse the view. Ordinary hash navigation preserves direct project links and browser history.
+Local 3D portfolio prototype for Christian Nucifora. A dark 24U cabinet holds twelve project units. Selecting a unit slides it out, then moves the camera into its chassis and opens its project details. Back, Escape and Reset return it to the cabinet.
 
 Run from the repository root:
 
@@ -8,40 +8,75 @@ Run from the repository root:
 python3 -m http.server 4314 --bind 0.0.0.0 --directory concept/rack
 ```
 
-Use T3's environment-port preview for port 4314. A localhost link in another machine's browser does not reach this development environment. This is a static prototype alongside the existing Next application. It needs no install, build, external images, font service or runtime network dependency.
+Open port 4314 through T3's environment preview. A localhost URL in a different machine's browser does not reach this environment. This static prototype needs no package install or build. Geometry, fonts and modules are served locally; it has no runtime CDN, API or font-service dependency. The existing Next application remains separate.
 
-## Scope and design
+## Design
 
-The explicit brief on 17 October 2026 replaces the earlier terminal and PCB directions for this prototype. A compact rack constrains the composition. Dark metal, printed bay labels, exposed fastening and orange pull tabs give selection a physical cause. A warm light background keeps the rack silhouette readable. System sans type carries identity and copy; system mono labels the equipment and index. A single sequential extraction and camera move explains the transition. Reduced motion moves directly to the final state.
+The 17 October 2026 brief calls for a larger rack, varied real equipment, sizes related to project scope, one M1 bundle and dark mode by default. These choices supersede the initial four-server prototype and older terminal/PCB directions for this surface.
 
-The geometry is illustrative hardware, not a claim that these software projects run on a particular server. No Oxide source code, models or images are used. Project summaries come from the four public READMEs already recorded in `data/generated/github-projects.ts`. They are a short content scaffold for evaluating this interaction, not newly written full case studies. No biography, employment or performance claims are added.
+The cabinet follows a shared rack-unit grid. Satin aluminium network faces sit above graphite compute hardware, a modular M1 enclosure, audio-style controls, a large display, a console and compact storage appliances. Beveled edges, recessed apertures, cross-head screws, washers, tray latches, etched labels and quiet displays provide detail at close range. Original procedural textures add brushed metal; large studio light cards give the metal visible reflections. The UI uses charcoal, warm white, muted sage, restrained lime selection and copper secondary text.
 
-The HTML project index and descriptions remain usable without WebGL or JavaScript. All functional controls have equivalent keyboard access. Each mobile project row is a touch target. Front and perspective views, pointer rotation, Escape, direct links and browser Back are supported. The desktop sidebar becomes an ordinary section below the model on narrow screens.
+Space Grotesk carries headings and descriptions. IBM Plex Mono carries equipment labels, dimensions and navigation. The HTML index and actual model share the same project order, unit sizes and selection. A row hover or keyboard focus highlights the matching physical unit.
 
-Resolved design context: profile `personal`, product `personal-website`. Sources were the shared principles, personal profile/preferences and personal-website FACTS overlay in the central design-language repository. The current explicit rack brief takes priority over the snapshot's PCB/Astro implementation and this checkout's terminal design. `.design-context.json` records the existing registry mapping. This file owns prototype decisions and does not rewrite the existing application design.
+## Project allocation
 
-## Dependencies and provenance
+The rack heights are an editorial representation of relative project scope and bundle breadth, not a measurement of effort, repository disk usage, performance or real deployment. Larger native apps occupy 3U; embedded/control tools 2U; focused infrastructure tools and small collections 1U. The M1 ecosystem has the largest enclosure.
 
-Three.js r180 / 0.180.0 by the three.js authors, MIT. Vendored unchanged from the already pinned local prototype dependency, with notice in `vendor/THREE-LICENSE.txt`:
+| Project | Height | Physical reference |
+| --- | ---: | --- |
+| CI Runner Console | 1U | Silver network switch |
+| Artifact Platform | 1U | Gateway and port appliance |
+| nvim-stm32 | 2U | Firmware instrument |
+| mozaproxy | 2U | Control surface |
+| M1 Toolchain | 6U | Modular compute chassis |
+| Wavelength | 3U | Audio rack processor |
+| Islet | 3U | Display and control unit |
+| Personal Website | 2U | Rack console |
+| Reconcile | 1U | Compact appliance |
+| mountd | 1U | Storage caddies |
+| Photos Downloader | 1U | Archive appliance |
+| Small Utilities | 1U | Utility panel |
 
-- https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js
-- https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.core.js
-- https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js
-- https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/environments/RoomEnvironment.js
-- https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/utils/BufferGeometryUtils.js
-- https://github.com/mrdoob/three.js/blob/r180/LICENSE
+M1 is one selectable assembly containing fifteen separately linked public repositories: m1-tools, tree-sitter-m1, m1-core, m1-lsp, m1-fmt, m1-lint, m1-typecheck, nvim-m1, telescope-m1.nvim, m1-ci, m1-doc, m1-visualiser, m1-eval, m1-can and m1-dbc. Small Utilities groups iOS Shortcuts, Instagram Unliker and LeetCode.
 
-All rack geometry, procedural textures, interface styling and favicon are authored for this prototype. No other package is added to the existing application.
+All summaries were checked against current public GitHub READMEs. The catalog contains only public projects. Existing static source data was not refreshed or overwritten. Experimental capabilities and hardware-validation limits are retained where relevant. Hardware is an illustrative interface, not a claim that the software controls or runs on this physical equipment.
+
+`catalog.js` owns selection order, dimensions and project data. `index.html` also retains a static snapshot of every summary and source link so it works without JavaScript or if a module fails to load. Keep that snapshot in sync when editing catalog content.
+
+## Hardware research
+
+The models and textures are original. These primary references supplied proportions and component anatomy; none of their photos, CAD models, logos or code is included.
+
+- [Ubiquiti Pro Max 24](https://techspecs.ui.com/unifi/switching/usw-pro-max-24): 1U satin-silver fascia, left LCD, one row of Ethernet ports and small SFP sockets.
+- [Supermicro SSG-540P](https://www.supermicro.com/en/products/system/up_storage/4u/ssg-540p-e1ctr36h): perforated caddies, release tabs, mounting ears and vertical grab handles.
+- [Synology RS1221+](https://www.synology.com/en-us/products/RS1221%2B): shallow removable drive trays and narrow status indicators.
+- [Blackmagic Videohub](https://www.blackmagicdesign.com/products/blackmagicvideohub): matte black panels, LCD, square buttons and recessed encoders.
+- [Eaton rack guide](https://www.eaton.com/us/en-us/products/server-racks-enclosures-airflow-management/Enclosures/server-racks--everything-you-need-to-know.html): shared rack-unit sizing.
+- [Ubiquiti rack panels](https://store.ui.com/us/en/category/accessories-rack-mount/products/uacc-rack-panel-ocd?variant=uacc-rack-panel-brush-1u): panel spacing and ventilation vocabulary.
+
+## Interaction and access
+
+The extraction finishes before the camera starts its close-up. Switching units reverses the current view before extracting the next. Geometry and camera endpoints adapt to each unit's height and the viewport. Rendering runs on demand, pauses when the document is hidden and supports reduced motion without losing the final state.
+
+The ordinary HTML index, project summaries and source links remain available without WebGL or JavaScript. Native links preserve modified clicks and hash history. Old individual M1 project hashes open the grouped M1 unit. Keyboard focus, Escape, touch scrolling and a normal mobile project list provide access alongside the spatial scene. Failed WebGL contexts expose the HTML fallback.
+
+## Context and dependencies
+
+Resolved profile: `personal`; product: `personal-website`; no resolver warnings. Loaded shared principles, personal PROFILE/preferences and personal-website FACTS from the central design-language repository. The current explicit user brief has priority over the historical product snapshot and terminal design documents. This README owns the prototype's design decisions.
+
+Three.js r180 / 0.180.0 by the three.js authors, MIT, remains vendored unchanged. Its notice is `vendor/THREE-LICENSE.txt`. Entry modules are `three.module.js`, `three.core.js`, `OrbitControls.js` and `BufferGeometryUtils.js`. Original sources are under [the pinned Three.js release](https://github.com/mrdoob/three.js/tree/r180).
+
+Space Grotesk by the Space Grotesk Project Authors and IBM Plex Mono by IBM are unchanged Google Fonts distributions, under SIL OFL 1.1. Their full notices and exact download URLs are retained in `fonts/`. The files are self-hosted; using them does not make a runtime Google request.
 
 ## Verification
 
-- `node --check` passes for `app.js` and `scene.js`; local HTML assets and vendored module paths resolve.
-- T3's local browser rendered the real WebGL scene at 1280 × 800 and 390 × 844. All runtime requests were local and successful; neither layout had horizontal overflow.
-- Clicking the model selected the correct second bay. Normal motion reached extraction, then focus, then the project view. The slide completed before the camera moved in.
-- Project index navigation, next bay, rapid selection changes, direct project hashes, browser Back, front view and reset were checked. The model and visible project remained in sync.
-- Reduced motion reaches the same final selected or overview state. Idle rendering scheduled zero animation frames during a 1.2 second observation.
-- Simulated WebGL context loss displayed the fallback and retained a working HTML project index and descriptions.
-- An independent reviewer checked the actual source and the four project summaries. Review found and resolved touch-scroll capture and project selection during module loading. A delayed-module self-check confirmed the latter fix.
-- The central design-language validation and its five existing tests pass.
+- JavaScript syntax checks pass for app, catalog, model and scene. HTML checks confirm twelve index/detail pairs, eighteen module source links, unique IDs and valid local assets. Authored files pass Git whitespace checks.
+- T3's local browser rendered the actual model at 1280 × 800 and 390 × 844 with no horizontal overflow. All runtime asset requests stayed on the local origin and succeeded, including self-hosted fonts. Mobile index rows measure 79px and the canvas preserves vertical touch scrolling.
+- Real model clicks selected the large M1 assembly and the top 1U network appliance. The normal-motion phase trace confirms extraction completes before camera focus begins. Selected M1 content exposes all fifteen source links.
+- Project navigation through 1U, 2U, 3U and 6U examples, browser Back, front view, reset, reduced motion and mobile project views were checked live. Independent app self-checks also cover early selection during module loading, scene-import failure, all eighteen old module hash aliases and mobile scroll behavior.
+- Independent model checks rebuild the actual geometry, check finite vertices and verify every unit selection across two overview views and five viewport proportions. All 120 selection checks and every extracted-unit camera bound pass. The M1 internals remain inside the chassis and attached to its moving assembly.
+- Interface text tokens meet 4.5:1 against the panel background. Keyboard alternatives and unenhanced HTML keep the project content accessible alongside the model.
+- Idle rendering scheduled zero animation frames over a 1.2 second live observation. Removing enhancement leaves all twelve descriptions visible. Simulated WebGL context loss displays the fallback and still allows opening a bundle and its source links.
+- The design-language repository validation and its five existing tests pass.
 
-This remains an interaction prototype with short project summaries. Physical-device Safari performance and touch gestures have not been tested on actual hardware. No production deployment, push or change to the existing Next application is included.
+The previous prototype and its screenshots remain preserved in Git history and the earlier output folder. Physical-device Safari performance and touch gestures still require device testing.

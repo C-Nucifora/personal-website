@@ -1,10 +1,13 @@
-const slugs = ["m1-core", "m1-lsp", "nvim-m1", "tree-sitter-m1"];
+import { units } from "./catalog.js";
+
+const slugs = units.map(unit => unit.id);
 const workspace = document.querySelector(".workspace");
 const rows = [...document.querySelectorAll("[data-project]")];
 const articles = [...document.querySelectorAll("[data-detail]")];
 const loading = document.querySelector("#scene-loading");
 const hint = document.querySelector("#scene-hint");
 const phaseLabel = document.querySelector("#phase-label");
+const projectPanel = document.querySelector(".project-panel");
 const motionInput = document.querySelector("#reduce-motion");
 const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
 let scene;
@@ -12,6 +15,7 @@ let selected = null;
 let sceneFailed = false;
 let userMotionChoice = null;
 let phase = "overview";
+let indexScroll = 0;
 
 document.body.classList.add("is-enhanced");
 motionInput.checked = motionPreference.matches;
@@ -19,36 +23,40 @@ motionInput.checked = motionPreference.matches;
 function showPhase(nextPhase, index) {
   phase = nextPhase;
   const isProject = nextPhase === "project";
+  const wasProject = workspace.classList.contains("is-project");
+  if (isProject && !wasProject) indexScroll = projectPanel.scrollTop;
   workspace.classList.toggle("is-project", isProject);
+  if (isProject && !wasProject) projectPanel.scrollTop = 0;
+  else if (!isProject && wasProject) projectPanel.scrollTop = indexScroll;
   workspace.dataset.phase = nextPhase;
   articles.forEach((article, i) => article.classList.toggle("is-selected", i === index));
   rows.forEach((row, i) => {
     if (i === selected) row.setAttribute("aria-current", "true");
     else row.removeAttribute("aria-current");
   });
-  const project = index === null ? "" : slugs[index];
+  const project = units[index]?.title ?? "";
   const labels = {
-    overview: "Rack overview",
-    extracting: `Opening bay ${String(index + 1).padStart(2, "0")}`,
+    overview: "Cabinet overview",
+    extracting: `Extracting ${project}`,
     focusing: `Inspecting ${project}`,
-    project: `${project} / bay ${String(index + 1).padStart(2, "0")}`,
-    returning: "Returning to rack",
+    project: `${project} / ${units[index]?.u ?? ""}U`,
+    returning: "Returning to cabinet",
   };
   phaseLabel.textContent = labels[nextPhase];
   const hints = {
-    overview: "Select a bay or a project in the index",
-    extracting: "Sliding the project out of the rack",
+    overview: "Select a unit to pull it out",
+    extracting: "Sliding the project out of the cabinet",
     focusing: "Moving in for a closer look",
-    project: "Project open · Escape to return to rack",
-    returning: "Returning the project to its bay",
+    project: "Project open · Escape to return",
+    returning: "Returning the project to its position",
   };
   hint.textContent = hints[nextPhase];
   if (isProject) {
-    document.querySelector("#detail-bay").textContent = `Bay ${String(index + 1).padStart(2, "0")}`;
+    document.querySelector("#detail-bay").textContent = `Unit ${String(index + 1).padStart(2, "0")} / ${units[index].u}U`;
     const next = (index + 1) % slugs.length;
     const link = document.querySelector("#next-project");
     link.href = `#${slugs[next]}`;
-    link.innerHTML = `Next bay · ${slugs[next]} <span aria-hidden="true">→</span>`;
+    link.textContent = `Next · ${units[next].title} →`;
     articles[index].querySelector("h2").focus({ preventScroll: true });
   }
   document.querySelectorAll("[data-view]").forEach(button => {
@@ -57,7 +65,8 @@ function showPhase(nextPhase, index) {
 }
 
 function routeIndex() {
-  const index = slugs.indexOf(location.hash.slice(1));
+  const slug = location.hash.slice(1);
+  const index = units.findIndex(unit => unit.id === slug || unit.modules?.some(module => module.id === slug));
   return index < 0 ? null : index;
 }
 
@@ -74,6 +83,10 @@ function openProject(index, updateHistory = true) {
   if (scene && !sceneFailed) scene.select(index);
   else showPhase(index === null ? "overview" : "project", index);
   if (index === null && previous !== null) rows[previous].focus({ preventScroll: true });
+  if (matchMedia("(max-width: 760px)").matches) {
+    const target = sceneFailed && index !== null ? articles[index] : document.querySelector(".stage");
+    target.scrollIntoView({ behavior: motionInput.checked ? "instant" : "smooth", block: "start" });
+  }
 }
 
 function failScene(error) {
@@ -99,6 +112,15 @@ document.addEventListener("click", event => {
     event.preventDefault();
     openProject(null);
   }
+});
+
+rows.forEach((row, index) => {
+  const highlight = () => { if (phase === "overview") scene?.hover(index); };
+  const clear = () => { if (phase === "overview") scene?.hover(null); };
+  row.addEventListener("pointerenter", highlight);
+  row.addEventListener("pointerleave", clear);
+  row.addEventListener("focus", highlight);
+  row.addEventListener("blur", clear);
 });
 
 window.addEventListener("popstate", () => openProject(routeIndex(), false));
@@ -142,7 +164,7 @@ try {
     onSelect: index => openProject(index),
     onHover: index => {
       rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
-      if (phase === "overview") hint.textContent = index === null ? "Select a bay or a project in the index" : `Open bay ${String(index + 1).padStart(2, "0")} · ${slugs[index]}`;
+      if (phase === "overview") hint.textContent = index === null ? "Select a unit to pull it out" : `Open ${units[index].title} · ${units[index].u}U`;
     },
     onPhase: ({ phase: nextPhase, index }) => showPhase(nextPhase, index),
     onReady: () => { loading.hidden = true; },
