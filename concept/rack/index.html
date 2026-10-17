@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e9e7e1">
+  <meta name="description" content="Christian Nucifora's software projects, assembled into an interactive server rack.">
+  <title>Christian Nucifora · The project rack</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#project-index">Skip to projects</a>
+  <header class="site-header">
+    <a class="identity" href="#" aria-label="Christian Nucifora, rack overview"><span class="monogram" aria-hidden="true">cn<span>.</span></span><span>Christian<br>Nucifora</span></a>
+    <span class="header-note">A collection of software projects</span>
+    <a class="contact-link" href="mailto:cgnucifora@proton.me">Get in touch <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="workspace" id="main">
+    <section class="stage" aria-label="Interactive project rack">
+      <div class="stage-heading"><p class="eyebrow">Portfolio / rack 01</p><h1>Selected<br>work<span>.</span></h1><p class="intro">Four projects. One rack.<br>Open a bay to look inside.</p></div>
+      <canvas id="rack-canvas" aria-hidden="true"></canvas>
+      <div class="scene-loading" id="scene-loading" role="status">Assembling the rack<span aria-hidden="true">...</span></div>
+      <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still open every project in the index.</p></div>
+      <div class="stage-controls" aria-label="Rack view controls">
+        <div class="view-switch"><button type="button" data-view="perspective" aria-pressed="true">Perspective</button><button type="button" data-view="front" aria-pressed="false">Front</button></div>
+        <button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">↺ <span>Reset view</span></button>
+      </div>
+      <div class="stage-caption"><span class="caption-cross" aria-hidden="true">+</span><span id="scene-hint">Select a bay or a project in the index</span><span class="caption-cross" aria-hidden="true">+</span></div>
+      <div class="phase-label" id="phase-label" role="status" aria-live="polite">Rack overview</div>
+    </section>
+
+    <aside class="project-panel" aria-label="Projects">
+      <div class="project-index" id="project-index" tabindex="-1">
+        <div class="panel-heading"><h2>Project index</h2><span>01—04</span></div>
+        <nav aria-label="Select a project bay">
+          <a class="project-row" href="#m1-core" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>m1-core</strong><span>Language foundation</span></span><span class="row-arrow" aria-hidden="true">↗</span></a>
+          <a class="project-row" href="#m1-lsp" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>m1-lsp</strong><span>Language server</span></span><span class="row-arrow" aria-hidden="true">↗</span></a>
+          <a class="project-row" href="#nvim-m1" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>nvim-m1</strong><span>Editor integration</span></span><span class="row-arrow" aria-hidden="true">↗</span></a>
+          <a class="project-row" href="#tree-sitter-m1" data-project="3"><span class="bay-number">04</span><span class="row-copy"><strong>tree-sitter-m1</strong><span>Grammar & parsing</span></span><span class="row-arrow" aria-hidden="true">↗</span></a>
+        </nav>
+        <div class="index-note"><span class="mini-rack" aria-hidden="true"><i></i><i></i><i></i><i></i></span><p>Each bay opens a different part<br>of the M1 tooling stack.</p></div>
+        <div class="interaction-note"><span aria-hidden="true">↔</span><p>Drag to rotate the rack.<br>Select a bay to slide it out.</p></div>
+      </div>
+
+      <section class="project-details" id="project-details" aria-label="Project details">
+        <div class="details-toolbar"><a href="#" id="back-to-rack">← Back to rack</a><span id="detail-bay">Bay 01</span></div>
+        <article id="m1-core" data-detail="0"><p class="eyebrow">Language foundation / Rust</p><h2 tabindex="-1">m1-core</h2><p class="project-summary">The shared foundation for M1 language tools.</p><p>Typed syntax-tree access, incremental parsing and syntax diagnostics for the MoTeC M1 script language.</p><h3>What it connects</h3><p>The formatter, linter, type checker and language server use this library to work with the same source structure.</p><dl><div><dt>Language</dt><dd>Rust</dd></div><div><dt>Part of</dt><dd>M1 tooling</dd></div></dl><a class="source-link" href="https://github.com/C-Nucifora/m1-core" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a></article>
+        <article id="m1-lsp" data-detail="1"><p class="eyebrow">Language server / Rust</p><h2 tabindex="-1">m1-lsp</h2><p class="project-summary">M1 language tooling, inside the editor.</p><p>A Language Server Protocol server for M1 Script, with diagnostics, completion, navigation and formatting.</p><h3>What it connects</h3><p>Connects the parser, linter, type checker and formatter to editors through standard LSP over stdio.</p><dl><div><dt>Language</dt><dd>Rust</dd></div><div><dt>Interface</dt><dd>Language Server Protocol</dd></div></dl><a class="source-link" href="https://github.com/C-Nucifora/m1-lsp" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a></article>
+        <article id="nvim-m1" data-detail="2"><p class="eyebrow">Editor integration / Lua</p><h2 tabindex="-1">nvim-m1</h2><p class="project-summary">The M1 toolchain, ready for Neovim.</p><p>A Neovim plugin that brings together language-server support, syntax highlighting, formatting and linting.</p><h3>What it connects</h3><p>A single setup call configures the editor integration. Its install hook downloads the pinned toolchain binaries for the user's platform.</p><dl><div><dt>Language</dt><dd>Lua</dd></div><div><dt>Editor</dt><dd>Neovim</dd></div></dl><a class="source-link" href="https://github.com/C-Nucifora/nvim-m1" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a></article>
+        <article id="tree-sitter-m1" data-detail="3"><p class="eyebrow">Grammar & parsing / C</p><h2 tabindex="-1">tree-sitter-m1</h2><p class="project-summary">The grammar beneath the tools.</p><p>A Tree-sitter grammar for M1 Script, with a parser and highlighting, indentation and folding queries for editors.</p><h3>What it connects</h3><p>The generated parser feeds the Rust tooling. An external scanner handles M1 identifiers that contain spaces.</p><dl><div><dt>Language</dt><dd>C / JavaScript</dd></div><div><dt>Parser</dt><dd>Tree-sitter</dd></div></dl><a class="source-link" href="https://github.com/C-Nucifora/tree-sitter-m1" target="_blank" rel="noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a></article>
+        <a class="next-project" href="#m1-lsp" id="next-project">Next bay <span aria-hidden="true">→</span></a>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="site-footer"><span>Christian Nucifora <span class="footer-divider">/</span> Selected work</span><span class="footer-right"><label class="motion-toggle"><input id="reduce-motion" type="checkbox"> Reduce motion</label><a href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub ↗</a></span></footer>
+  <noscript><style>.scene-loading,.stage-controls{display:none}.stage{min-height:340px}.project-details{display:block}.workspace{align-items:start}</style></noscript>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
