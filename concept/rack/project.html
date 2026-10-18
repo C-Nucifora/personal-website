@@ -8,8 +8,8 @@
   <title>Project / Christian Nucifora</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-front-row-v2">
-  <link rel="stylesheet" href="./project.css?v=20261018-front-row-v2">
+  <link rel="stylesheet" href="./styles.css?v=20261018-navigation-v2">
+  <link rel="stylesheet" href="./project.css?v=20261018-navigation-v2">
 </head>
 <body class="project-page">
   <a class="skip-link" href="#project-content">Skip to project</a>
@@ -19,7 +19,7 @@
       <a href="./index.html" data-rack-link><span aria-hidden="true">←</span> Back to rack</a>
     </nav>
   </header>
-  <main class="project-document" id="project-content">
+  <main class="project-document" id="project-content" tabindex="-1">
     <div id="project-fallback">
       <h1>Project details</h1>
       <p class="document-summary">The rack includes descriptions and source links for every project.</p>
@@ -36,6 +36,10 @@
           <a class="document-source" id="project-source" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
         </div>
       </header>
+      <figure class="document-art" id="project-art" hidden>
+        <div id="project-art-object"></div>
+        <figcaption id="project-art-caption"></figcaption>
+      </figure>
       <div class="document-body">
         <section class="document-overview" aria-labelledby="overview-title">
           <h2 id="overview-title">Overview</h2>
@@ -56,6 +60,6 @@
       </footer>
     </article>
   </main>
-  <script type="module" src="./project.js?v=20261018-front-row-v2"></script>
+  <script type="module" src="./project.js?v=20261018-navigation-v2"></script>
 </body>
 </html>

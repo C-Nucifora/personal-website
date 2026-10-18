@@ -1,4 +1,5 @@
-import { collections, allUnits } from './collections.js?v=20261018-front-row-v2';
+import { collections, allUnits } from './collections.js?v=20261018-navigation-v2';
+import { projectArt } from './project-art.js?v=20261018-navigation-v2';
 
 const projectId = new URLSearchParams(window.location.search).get('project');
 const unit = allUnits.find((item) => item.id === projectId);
@@ -37,7 +38,28 @@ if (unit) {
     link.href = `./index.html?rack=${collection.id}#${encodeURIComponent(unit.id)}`;
     link.lastChild.textContent = module ? ' M1 Toolchain rack unit' : ` ${collection.label} rack`;
   }
+  const referrer = document.referrer ? new URL(document.referrer) : null;
+  if (referrer?.origin === location.origin && ['/', '/index.html'].includes(referrer.pathname) && history.length > 1) {
+    for (const link of document.querySelectorAll('[data-rack-link]')) {
+      link.addEventListener('click', event => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        history.back();
+      });
+    }
+  }
   document.querySelector('#project-placeholder').hidden = !unit.placeholder;
+  const article = document.querySelector('#project-article');
+  const artwork = projectArt(unit, module);
+  article.dataset.theme = artwork?.name ?? (unit.placeholder ? 'reserved' : 'record');
+  if (artwork) {
+    document.querySelector('#project-art-object').innerHTML = artwork.markup;
+    document.querySelector('#project-art-caption').textContent = artwork.caption;
+    document.querySelector('#project-art').hidden = false;
+  }
+  if (unit.placeholder) document.querySelector('#overview-title').textContent = 'Reserved project record';
+  else if (collection.id === 'experience') document.querySelector('#overview-title').textContent = 'Record';
+  else if (collection.id === 'hardware') document.querySelector('#overview-title').textContent = 'Team contribution';
   const stack = module ? [] : unit.stack;
   if (!stack.length) {
     document.querySelector('#project-stack-title').hidden = true;
@@ -64,10 +86,16 @@ if (unit) {
       for (const module of unit.modules.filter((item) => !group || item.group === group)) {
         const item = element('li');
         const link = element('a', '', 'document-module-link');
-        link.href = module.sourceUrl;
-        link.target = '_blank';
-        link.rel = 'noreferrer';
-        const arrow = element('span', '↗', 'module-arrow');
+        const localModule = unit.id === 'm1-toolchain';
+        if (localModule) {
+          item.className = 'document-module-item';
+          link.href = `./project.html?project=m1-toolchain&module=${encodeURIComponent(module.id)}`;
+        } else {
+          link.href = module.sourceUrl;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+        }
+        const arrow = element('span', localModule ? '→' : '↗', 'module-arrow');
         arrow.setAttribute('aria-hidden', 'true');
         link.append(
           element('strong', module.title),
@@ -75,6 +103,14 @@ if (unit) {
           arrow,
         );
         item.append(link);
+        if (localModule) {
+          const sourceLink = element('a', 'GitHub ↗', 'document-module-source');
+          sourceLink.href = module.sourceUrl;
+          sourceLink.target = '_blank';
+          sourceLink.rel = 'noreferrer';
+          sourceLink.setAttribute('aria-label', `${module.title} source on GitHub`);
+          item.append(sourceLink);
+        }
         list.append(item);
       }
       section.append(list);
