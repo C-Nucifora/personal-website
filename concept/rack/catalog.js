@@ -1,4 +1,4 @@
-export const units = [
+export const softwareUnits = [
   {
     id: 'ci-runner-console',
     title: 'CI Runner Console',
@@ -202,3 +202,5 @@ export const units = [
     ],
   },
 ];
+
+export const units = softwareUnits;
