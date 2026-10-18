@@ -1,12 +1,12 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-navigation-v2';
-import { collections } from './collections.js?v=20261018-navigation-v2';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-navigation-v2';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-mechanics-v2';
+import { collections } from './collections.js?v=20261018-mechanics-v2';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-mechanics-v2';
+import { stepSpring } from './motion.js?v=20261018-mechanics-v2';
 
 const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
-const ease = (t) => t * t * (3 - 2 * t);
 
 export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
@@ -81,6 +81,10 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     scene.add(built.rack);
     return built;
   });
+  const motionStates = models.map(built => ({ bays: built.bays.map(() => 0), modules: built.moduleAssemblies?.map(() => 0) ?? [] }));
+  const cameraVelocity = new THREE.Vector3();
+  const targetVelocity = new THREE.Vector3();
+  let motion = motionStates[collections.indexOf(collection)];
   let model = models[collections.indexOf(collection)];
   let { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], moduleAssemblies = [], slotY, heights } = model;
   scene.updateMatrixWorld(true);
@@ -191,7 +195,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     onModuleChange({ moduleId, phase: modulePhase, collectionId: collection.id });
   }
   function updateControls(preservePose = false) {
-    controls.enabled = modulePhase !== 'returning' && modulePhase !== 'extracting' && (phase === 'overview' || phase === 'project');
+    controls.enabled = !activeStage && modulePhase !== 'returning' && modulePhase !== 'extracting' && (phase === 'overview' || phase === 'project');
     if (controls.enabled) {
       const pose = phase === 'project' ? inspectionPose() : overviewPose();
       const distance = pose.position.distanceTo(pose.target);
@@ -221,25 +225,61 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   function beginNext(now) {
     const next = stages.shift();
     if (!next) { activeStage = null; return; }
-    activeStage = { ...next, start: capture(), startedAt: now };
+    activeStage = { ...next, lastAt: now, elapsed: 0 };
     if (next.modulePhase) emitModule(next.modulePhase, next.moduleId);
     emit(next.phase, next.index);
   }
-  function applyStage(stage, progress) {
-    const t = ease(progress);
-    camera.position.lerpVectors(stage.start.position, stage.position, t);
-    controls.target.lerpVectors(stage.start.target, stage.target, t);
+  function applyStage(stage, dt, snap = false) {
+    let mechanicsSettled = true;
+    let cameraSettled = true;
+    function advance(value, velocity, target, frequency, positionLimit, speedLimit, minimum, maximum) {
+      if (snap) return { value: target, velocity: 0, settled: true };
+      const next = stepSpring(value, velocity, target, frequency, dt, minimum, maximum);
+      next.settled = Math.abs(next.value - target) <= positionLimit && Math.abs(next.velocity) <= speedLimit;
+      if (next.settled) { next.value = target; next.velocity = 0; }
+      return next;
+    }
+    for (const axis of ['x', 'y', 'z']) {
+      const position = advance(camera.position[axis], cameraVelocity[axis], stage.position[axis], stage.entry || stage.zoom ? 14 : 9, 0.003, 0.015);
+      const target = advance(controls.target[axis], targetVelocity[axis], stage.target[axis], stage.entry || stage.zoom ? 15 : 10, 0.003, 0.015);
+      camera.position[axis] = position.value;
+      cameraVelocity[axis] = position.velocity;
+      controls.target[axis] = target.value;
+      targetVelocity[axis] = target.velocity;
+      cameraSettled &&= position.settled && target.settled;
+    }
     camera.lookAt(controls.target);
     bays.forEach((bay, index) => {
-      bay.position.z = THREE.MathUtils.lerp(stage.start.slides[index], stage.slides[index], t);
+      const next = advance(bay.position.z, motion.bays[index], stage.slides[index], 10, 0.0025, 0.02, 0, EXTRACTION);
+      bay.position.z = next.value;
+      motion.bays[index] = next.velocity;
+      mechanicsSettled &&= next.settled;
       interiors[index].visible = true;
     });
     moduleAssemblies.forEach((item, index) => {
-      item.group.position.z = THREE.MathUtils.lerp(stage.start.moduleSlides[index], stage.moduleSlides[index], t);
+      const next = advance(item.group.position.z, motion.modules[index], stage.moduleSlides[index], 16, 0.0025, 0.02, 0, 1.35);
+      item.group.position.z = next.value;
+      motion.modules[index] = next.velocity;
+      mechanicsSettled &&= next.settled;
     });
+    return mechanicsSettled && (stage.follow || cameraSettled);
   }
   function requestRender() {
     if (!frame && !disposed && !contextLost && !document.hidden) frame = requestAnimationFrame(render);
+  }
+  function drawScene() {
+    try {
+      models.forEach(built => built.updateMechanisms?.());
+      renderer.render(scene, camera);
+      return true;
+    } catch (error) {
+      contextLost = true;
+      pendingEntry = null;
+      stages = [];
+      activeStage = null;
+      onError(error);
+      return false;
+    }
   }
   function render(now) {
     frame = 0;
@@ -248,27 +288,25 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     let finishedEntry = null;
     // Reduced motion resolves the same state changes immediately, without simulating rapid movement.
     while (activeStage) {
-      const progress = activeStage.duration === 0 ? 1 : THREE.MathUtils.clamp((now - activeStage.startedAt) / activeStage.duration, 0, 1);
-      applyStage(activeStage, progress);
-      if (progress < 1) break;
+      const dt = THREE.MathUtils.clamp((now - activeStage.lastAt) / 1000, 0, 0.05);
+      activeStage.lastAt = Math.max(activeStage.lastAt, now);
+      activeStage.elapsed += dt;
+      const deadline = Math.max(1, activeStage.duration / 1000 * 2.5);
+      const snap = reducedMotion || activeStage.duration === 0 || activeStage.elapsed >= deadline;
+      if (!applyStage(activeStage, dt, snap)) break;
       const finishedPhase = activeStage.phase;
+      const preservePose = Boolean(activeStage.zoom);
       const entry = activeStage.entry;
       if (activeStage.modulePhase) emitModule(activeStage.modulePhase === 'extracting' ? 'open' : 'closed', activeStage.modulePhase === 'extracting' ? activeStage.moduleId : null);
       activeStage = null;
       if (stages.length) beginNext(now);
       else if (entry) finishedEntry = entry;
       else {
-        emit(selected === null ? 'overview' : 'project');
+        emit(selected === null ? 'overview' : 'project', selected, preservePose);
         if (finishedPhase === 'returning' && selected === null) controls.update();
       }
     }
-    try {
-      renderer.render(scene, camera);
-    } catch (error) {
-      contextLost = true;
-      onError(error);
-      return;
-    }
+    if (!drawScene()) return;
     if (finishedEntry && pendingEntry === finishedEntry && !disposed && !contextLost) {
       pendingEntry = null;
       emit('project', finishedEntry.index, true);
@@ -289,13 +327,14 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     setHover(null, true);
     canvas.style.cursor = controls.enabled ? 'grab' : 'default';
   }
-  function queueModuleReturn(current, index) {
-    if (!current.moduleSlides.some(position => position > 0.002)) {
+  function queueModuleReturn(current) {
+    const assembly = moduleAssemblies[current.moduleSlides.findIndex(position => position > 0.002)];
+    const owner = assembly?.projectIndex;
+    if (!Number.isInteger(owner) || owner < 0 || owner >= bays.length) {
       emitModule('closed', null);
       return;
     }
-    const previousModule = moduleAssemblies[current.moduleSlides.findIndex(position => position > 0.002)]?.moduleId;
-    queueStage('project', 380, { position: current.position, target: current.target }, current.slides, index, { modulePhase: 'returning', moduleId: previousModule });
+    queueStage('project', 380, { position: current.position, target: current.target }, current.slides, owner, { modulePhase: 'returning', moduleId: assembly.moduleId });
   }
   function inspectModule(moduleId) {
     if (selected === null || (phase !== 'project' && phase !== 'entering')) return;
@@ -314,7 +353,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     stages = [];
     activeStage = null;
     clearHover();
-    queueModuleReturn(current, selected);
+    queueModuleReturn(current);
     if (next !== null) {
       const moduleSlides = moduleAssemblies.map(item => item === assembly ? 1.35 : 0);
       queueStage('project', 560, modulePose(next), current.slides, selected, { moduleSlides, modulePhase: 'extracting', moduleId: next });
@@ -336,15 +375,21 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     activeStage = null;
     pointerDown = null;
     activePointers.clear();
-    models.forEach(built => {
+    models.forEach((built, index) => {
       built.bays.forEach(bay => { bay.position.z = 0; });
       built.interiors.forEach(interior => { interior.visible = true; });
       built.highlights.forEach(highlight => { highlight.visible = false; });
       built.moduleAssemblies?.forEach(item => { item.group.position.z = 0; });
+      motionStates[index].bays.fill(0);
+      motionStates[index].modules.fill(0);
+      built.updateMechanisms?.();
     });
     collection = next;
     units = collection.units;
     model = models[collections.indexOf(collection)];
+    motion = motionStates[collections.indexOf(collection)];
+    cameraVelocity.set(0, 0, 0);
+    targetVelocity.set(0, 0, 0);
     ({ rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], moduleAssemblies = [], slotY, heights } = model);
     selected = null;
     selectedModule = null;
@@ -376,9 +421,10 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     queueStage('entering', 520, pose, current.slides, index, { moduleSlides: current.moduleSlides, entry });
     beginNext(performance.now());
     if (reducedMotion) {
-      applyStage(activeStage, 1);
+      applyStage(activeStage, 0, true);
       activeStage = null;
       pendingEntry = null;
+      if (!drawScene()) return false;
       emit('project', index, true);
       if (moduleId === null) onProjectOpen(index);
       else onModuleOpen(moduleId);
@@ -402,23 +448,30 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     controls.enabled = false;
     const overview = overviewPose();
     const current = capture();
-    queueModuleReturn(current, previous);
+    queueModuleReturn(current);
     const hasSlide = current.slides.some((position) => position > 0.005);
     const cameraAway = current.position.distanceTo(overview.position) > 0.02 || current.target.distanceTo(overview.target) > 0.02;
-    if (cameraAway) queueStage('returning', 460, overview, current.slides, previous);
-    if (hasSlide) queueStage('returning', 480, overview, bays.map(() => 0), previous);
+    if (cameraAway || hasSlide) queueStage('returning', 480, overview, bays.map(() => 0), previous);
     if (next !== null) {
       const slides = bays.map(() => 0);
       slides[next] = EXTRACTION;
-      queueStage('extracting', 600, overview, slides, next);
-      queueStage('focusing', 700, projectPose(next), slides, next);
+      const focus = projectPose(next);
+      const approach = { position: overview.position.clone().lerp(focus.position, 0.28), target: overview.target.clone().lerp(focus.target, 0.28) };
+      queueStage('extracting', 600, approach, slides, next, { follow: true });
+      queueStage('focusing', 700, focus, slides, next);
     }
     if (!stages.length) { emit('overview'); requestRender(); return; }
     beginNext(performance.now());
     requestRender();
   }
   function poseForStage(stage) {
+    if (stage.zoom) return { position: stage.position, target: stage.target };
     if (stage.entry) return entryPose(stage.entry.index, stage.entry.moduleId);
+    if (stage.follow) {
+      const overview = overviewPose();
+      const focus = projectPose(stage.index);
+      return { position: overview.position.lerp(focus.position, 0.28), target: overview.target.lerp(focus.target, 0.28) };
+    }
     if (stage.modulePhase) return stage.modulePhase === 'extracting' ? modulePose(stage.moduleId) : projectPose(stage.index);
     return stage.phase === 'focusing' ? projectPose(stage.index) : overviewPose();
   }
@@ -442,16 +495,15 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
       const pose = selected === null ? overviewPose() : inspectionPose();
       camera.position.copy(pose.position);
       controls.target.copy(pose.target);
+      cameraVelocity.set(0, 0, 0);
+      targetVelocity.set(0, 0, 0);
       camera.lookAt(pose.target);
       updateControls();
     } else {
       const now = performance.now();
       if (activeStage) {
-        const remaining = Math.max(0, activeStage.duration - (now - activeStage.startedAt));
         const pose = poseForStage(activeStage);
-        activeStage.start = capture();
-        activeStage.startedAt = now;
-        activeStage.duration = remaining;
+        activeStage.lastAt = now;
         activeStage.position.copy(pose.position);
         activeStage.target.copy(pose.target);
       }
@@ -532,7 +584,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
     } else {
-      if (activeStage && hiddenAt !== null) activeStage.startedAt += performance.now() - hiddenAt;
+      if (activeStage && hiddenAt !== null) activeStage.lastAt = performance.now();
       hiddenAt = null;
       requestRender();
     }
@@ -587,11 +639,15 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     setCollection,
     enterProject,
     zoom(direction) {
-      if (!controls.enabled) return;
-      const offset = camera.position.clone().sub(controls.target);
+      if (!controls.enabled && !activeStage?.zoom) return;
+      const target = activeStage?.zoom ? activeStage.target.clone() : controls.target.clone();
+      const offset = (activeStage?.zoom ? activeStage.position : camera.position).clone().sub(target);
       const distance = THREE.MathUtils.clamp(offset.length() * (direction === 'in' ? 0.8 : 1.25), controls.minDistance, controls.maxDistance);
-      camera.position.copy(controls.target).add(offset.setLength(distance));
-      controls.update();
+      const current = capture();
+      stages = [];
+      activeStage = null;
+      queueStage(phase, 340, { position: target.clone().add(offset.setLength(distance)), target }, current.slides, selected, { moduleSlides: current.moduleSlides, zoom: true });
+      beginNext(performance.now());
       requestRender();
     },
     reset() { changeView('perspective'); },

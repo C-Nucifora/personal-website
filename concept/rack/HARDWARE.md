@@ -45,3 +45,19 @@ The models keep the existing closed engraved covers, their project-page click ta
 The follow-up closes unintended seams by aligning the chassis shell at 4.19 units wide and z=-2.05 through 2.30. Floors, sidewalls, lids and fascias overlap slightly instead of stopping short or sharing coplanar sheets. All lids remain visible in inactive units. Intended ventilation has closed backing.
 
 M1's fifteen carrier assemblies now own their faces, labels, screws, ejectors, closed narrow bodies and click targets. Each can move another 1.35 units, revealing stationary guides and the backplane behind it. Geometry checks cover all fifteen raycasts and 378 rays along enclosure seams across all twenty-one records. The additional engineering and experience enclosures are illustrative interface objects, with no claim to reproduce Christian's actual hardware.
+
+## Supported extraction and retention
+
+The rail pass uses [Dell's rail installation guide](https://downloads.dell.com/manuals/common/rail_installation_guide.pdf) for rack-fixed end brackets, locating pins, chassis standoffs, captive front screws and slide-release tabs. [Accuride's explanation of telescopic slides](https://help.accuride-europe.com/knowledge/what-is-the-difference-between-linear-and-telescopic-slides) establishes the three-member arrangement used for full extension. These are construction references, rather than a dimensionally exact rail-kit reproduction.
+
+Every enclosure has two folded outer channels attached to the front and rear uprights, two intermediate carriages, and chassis-mounted inner runners. Broad bearing strips separate their races. Inner attachment studs, travel stops and release tabs remain visible as the enclosure moves. Front mounting ears now reach the rack's actual x=±2.26 hole columns. Their captive screws and stationary cage-nut clips align with U centres; end-bracket pins use the corresponding ±0.115 hole spacing.
+
+The authored outer, intermediate and inner lengths are 4.50, 4.30 and 4.16 scene units. Intermediate carriages travel at half chassis speed. At the full 4.42-unit service extension, each side retains 2.21 units of outer-to-intermediate engagement and 1.97 units of intermediate-to-inner engagement. The complete chassis remains attached to the rack, including the taller engineering and experience enclosures.
+
+M1 ejectors have separate hinge pins and rotating levers. Their angle is limited to 0.66 radians and follows the first 0.24 units of carrier travel. The carrier's metal body, front panel and label stay rigid; fixed card guides and the backplane remain inside the parent enclosure. `updateMechanisms()` derives these positions from the current enclosure and carrier travel so interruptions and return motion retain mechanical alignment.
+
+## Physical label hierarchy
+
+Rack headers now put Software, Hardware or Experience first on a solid nameplate. The owner's name is secondary. Each equipment front has a larger, heavier project name placed within its existing control layout. Technical socket legends remain small. M1 carrier labels use bold dark text on all three metal finishes, including the darker editor pair.
+
+Engraved lid titles use 0.25-unit type and wrap long names to two lines. The project action is 0.19 units, with a larger matching hit area. Ink is light on painted covers and nearly black on bare metal; the shallow relief is 0.0025 units. Canvas text compensates for differing horizontal and vertical texture scales, preserving letter proportions in the lower-resolution inactive racks. Source-colour contrast checks for primary labels range from 5.48:1 to 10.58:1. Rendered metal still responds to lighting, so these values describe the authored ink and material colours.

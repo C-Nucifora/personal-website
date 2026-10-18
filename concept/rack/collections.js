@@ -1,4 +1,4 @@
-import { softwareUnits } from './catalog.js?v=20261018-navigation-v2';
+import { softwareUnits } from './catalog.js?v=20261018-mechanics-v2';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 

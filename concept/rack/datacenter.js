@@ -14,6 +14,8 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const parts = new Map();
   const geometries = [];
   const materials = [];
+  const textures = [];
+  const floorLabels = [];
   const backgroundHeight = Math.max(12.8, rackHeight + 2.4);
   const roofY = floorY + backgroundHeight;
   const ceilingY = roofY + 4;
@@ -22,6 +24,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const reservedSlots = RACK_SLOTS.map(({ position: [x, , z] }) => [x, z]);
   const rows = [];
   const cableManagers = [];
+  const feet = [];
 
   function finish(name, color, roughness = 0.8, metalness = 0.1, basic = false) {
     const material = basic
@@ -32,13 +35,14 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     parts.set(material, []);
     return material;
   }
-  const floor = finish('Raised floor', '#77777a', 0.88, 0);
+  const floor = finish('Raised floor', '#77777a', 0.9, 0);
   const wall = finish('Painted containment', '#95979b', 0.84, 0.05);
   const ceiling = finish('Ceiling deck', '#282a2e', 0.92, 0.1);
-  const cabinet = finish('Cabinet steel', '#24262a', 0.7, 0.45);
+  const cabinet = finish('Powder-coated cabinet steel', '#24262a', 0.78, 0.12);
   const recess = finish('Deep recess', '#090b0e', 0.94, 0);
-  const panel = finish('Server faceplates', '#41454b', 0.7, 0.4);
-  const silver = finish('Galvanised tray and rails', '#8e949c', 0.63, 0.6);
+  const panel = finish('Painted server faceplates', '#41454b', 0.72, 0.18);
+  const silver = finish('Galvanised tray and rails', '#8e949c', 0.57, 0.82);
+  const rubber = finish('Leveling pads and gaskets', '#16171a', 0.98, 0);
   const cable = finish('Blue cable bundles', '#39597a', 0.83, 0.05);
   const lamp = finish('White fixture diffusers', '#f0f2f5', 1, 0, true);
   const amber = finish('Equipment indicators', '#bca77b', 1, 0, true);
@@ -64,8 +68,13 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   // Supply grilles run across each service aisle, clear of the extracted chassis.
   for (const z of [5.2, -6.8, -18.8, -30.8]) {
     for (let x = -24; x <= 24; x += 6) {
-      box(panel, 2.3, 0.015, 1.7, x, floorY + 0.012, z);
-      for (let slat = 0; slat < 7; slat++) box(recess, 0.12, 0.012, 1.38, x - 0.84 + slat * 0.28, floorY + 0.025, z);
+      box(recess, 2.3, 0.025, 1.7, x, floorY + 0.013, z);
+      for (const edge of [-1, 1]) {
+        box(panel, 0.075, 0.07, 1.7, x + edge * 1.1125, floorY + 0.035, z);
+        box(panel, 2.3, 0.07, 0.075, x, floorY + 0.035, z + edge * 0.8125);
+      }
+      // Raised metal slats sit over a recessed, opaque supply plenum.
+      for (let slat = 0; slat < 7; slat++) box(silver, 0.13, 0.055, 1.54, x - 0.84 + slat * 0.28, floorY + 0.0425, z);
     }
   }
 
@@ -81,15 +90,41 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     rows.push({ x, z, height });
     // Closed cases and overlapping front uprights leave only narrow assembly seams.
     box(cabinet, 4.92, height, 4.84, x, y, z);
+    // An overlapping folded lid closes the top while retaining a service seam.
+    box(recess, 4.76, 0.035, 4.7, x, top - 0.055, z);
+    box(panel, 4.98, 0.075, 4.9, x, top + 0.0075, z);
     for (const side of [-1, 1]) {
       box(panel, 0.055, height - 0.4, 4.54, x + side * 2.48, y, z);
       box(cabinet, 0.2, height, 0.22, x + side * 2.36, y, z + 2.42);
       box(silver, 0.1, height - 0.28, 0.12, x + side * 2.24, y, z + 2.48);
-      box(recess, 0.4, 0.22, 0.7, x + side * 1.85, floorY + 0.11, z - 1.75);
+      // The removable side panel has an inset gasket and two broad quarter-turn latches.
+      box(rubber, 0.035, height - 0.52, 0.045, x + side * 2.519, y, z);
+      for (const latch of [-1, 1]) {
+        box(recess, 0.045, 0.28, 0.14, x + side * 2.52, y + latch * height * 0.28, z + 1.75);
+        box(silver, 0.055, 0.15, 0.045, x + side * 2.545, y + latch * height * 0.28, z + 1.75);
+      }
+      // Foreground cases stand on four levelers; the rear rows already meet the floor.
+      if (z === 0) {
+        for (const end of [-1, 1]) {
+          const footX = x + side * 1.86;
+          const footZ = z + end * 1.77;
+          pipe(rubber, 0.2, [footX, floorY, footZ], [footX, floorY + 0.065, footZ]);
+          pipe(silver, 0.07, [footX, floorY + 0.065, footZ], [footX, baseY + 0.035, footZ]);
+          box(cabinet, 0.31, 0.085, 0.31, footX, baseY + 0.005, footZ);
+          feet.push({ x: footX, z: footZ, bottom: floorY, top: baseY });
+        }
+      }
+      // Hinged rail covers protect the vertical wiring channel.
+      for (const hinge of [-1, 0, 1]) {
+        box(silver, 0.11, 0.23, 0.12, x + side * 2.32, y + hinge * height * 0.34, z + 2.565);
+        box(recess, 0.025, 0.19, 0.035, x + side * 2.32, y + hinge * height * 0.34, z + 2.64);
+      }
     }
     box(recess, 4.46, height - 0.65, 0.13, x, y, z + 2.43);
     for (const edge of [-1, 1]) box(panel, 4.7, 0.22, 0.18, x, y + edge * (height / 2 - 0.14), z + 2.49);
     box(silver, 1.08, 0.13, 0.12, x + 1.45, top - 0.42, z + 2.57);
+    box(rubber, 0.18, 0.68, 0.08, x + 2.31, y + 0.15, z + 2.61);
+    box(silver, 0.075, 0.5, 0.1, x + 2.31, y + 0.15, z + 2.68);
     let cursor = baseY + 0.45;
     let server = 0;
     while (cursor < top - 0.9) {
@@ -172,15 +207,52 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = material.name;
     mesh.receiveShadow = material === floor;
+    mesh.castShadow = material === cabinet || material === rubber;
     group.add(mesh);
+  });
+  // World-space wayfinding stays above the floor and below an extracted chassis.
+  // Depth testing lets equipment hide a label naturally during close inspection.
+  RACK_SLOTS.forEach(({ id, position: [x, , z] }, index) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 240;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#151618';
+    context.fillRect(16, 38, 1248, 164);
+    context.textBaseline = 'middle';
+    context.font = '500 82px "IBM Plex Sans", Arial, sans-serif';
+    context.fillStyle = '#cf9e77';
+    context.fillText(String(index + 1).padStart(2, '0'), 68, 122);
+    context.font = '500 102px "IBM Plex Sans", Arial, sans-serif';
+    context.fillStyle = '#f1ede5';
+    context.fillText(id.toUpperCase(), 218, 122);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
+    texture.anisotropy = 4;
+    textures.push(texture);
+    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false, toneMapped: false });
+    materials.push(material);
+    const label = new THREE.Sprite(material);
+    label.name = `${id} floor wayfinding`;
+    label.position.set(x, floorY + 0.95, z + 3.4);
+    label.scale.set(5, 0.9375, 1);
+    group.add(label);
+    floorLabels.push({ id, position: label.position.toArray(), size: [5, 0.9375] });
   });
   group.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(group);
   const stats = {
     cabinets: rows.length,
     cableManagers: cableManagers.length,
+    levelingFeet: feet.length,
+    footContact: { minY: Math.min(...feet.map(foot => foot.bottom)), maxY: Math.max(...feet.map(foot => foot.bottom)), floorY },
+    frontRoofY: floorY + 0.22 + rackHeight,
+    floorLabels,
     drawCalls: group.children.length,
-    triangles: geometries.reduce((sum, geometry) => sum + geometry.index.count / 3, 0),
+    triangles: geometries.reduce((sum, geometry) => sum + geometry.index.count / 3, floorLabels.length * 2),
     bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
     cabinetHeight: rackHeight,
     backgroundHeight,
@@ -191,7 +263,10 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     stats,
     dispose() {
       geometries.forEach(geometry => geometry.dispose());
+      const sprite = group.children.find(child => child.isSprite);
+      sprite?.geometry.dispose();
       materials.forEach(material => material.dispose());
+      textures.forEach(texture => texture.dispose());
       group.clear();
     },
   };

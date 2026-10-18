@@ -1,4 +1,4 @@
-import { collections, allUnits } from "./collections.js?v=20261018-navigation-v2";
+import { collections, allUnits } from "./collections.js?v=20261018-mechanics-v2";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -133,6 +133,12 @@ function inspectModule(id) {
 
 function showModuleState({ moduleId, phase: nextPhase }) {
   const module = m1Unit.modules.find(item => item.id === moduleId);
+  const previousModule = selectedModule;
+  const inspectorHadFocus = moduleInspector.contains(document.activeElement);
+  const pullHadFocus = moduleButtons.some(button => button === document.activeElement);
+  if (inspectorHadFocus && (nextPhase === "returning" || !module)) {
+    moduleButtons.find(button => button.dataset.module === previousModule)?.focus({ preventScroll: true });
+  }
   selectedModule = module?.id ?? null;
   modulePhase = nextPhase;
   moduleInspector.hidden = !module || units[selected]?.id !== "m1-toolchain";
@@ -153,6 +159,7 @@ function showModuleState({ moduleId, phase: nextPhase }) {
     document.querySelector("#module-source").href = module.sourceUrl;
     document.querySelector("#module-status").textContent = nextPhase === "extracting" ? "Pulling out module…" : nextPhase === "returning" ? "Returning module…" : "Module pulled out";
     document.querySelector("#return-module").disabled = nextPhase === "returning";
+    if (nextPhase === "extracting" && (pullHadFocus || inspectorHadFocus)) document.querySelector("#module-title").focus({ preventScroll: true });
   }
   if (phase === "project" && units[selected]?.id === "m1-toolchain") {
     hint.textContent = module && nextPhase === "open"
@@ -283,7 +290,9 @@ function openProject(index, updateHistory = true) {
 
 function failScene(error) {
   if (sceneFailed) return;
+  const removedFocus = moduleInspector.contains(document.activeElement) || moduleButtons.includes(document.activeElement) || stage.contains(document.activeElement);
   sceneFailed = true;
+  showModuleState({ moduleId: null, phase: "closed" });
   moduleButtons.forEach(button => { button.disabled = true; });
   loading.hidden = true;
   document.body.classList.add("no-scene");
@@ -291,6 +300,7 @@ function failScene(error) {
   document.querySelector("#rack-canvas").hidden = true;
   hint.textContent = "Use the project index to explore the work";
   if (selected !== null) showPhase("project", selected);
+  if (removedFocus) (selected !== null ? articles[selected].querySelector("h2") : document.querySelector(isHome ? "#collection-directory" : "#project-index")).focus({ preventScroll: true });
   console.warn("Rack 3D view unavailable", error?.message || error);
 }
 
@@ -334,6 +344,14 @@ document.querySelectorAll("[data-project]").forEach(row => {
 
 window.addEventListener("popstate", followRoute);
 window.addEventListener("hashchange", followRoute);
+document.querySelector(".skip-link").addEventListener("click", event => {
+  if (event.defaultPrevented || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  const target = document.querySelector(event.currentTarget.getAttribute("href"));
+  if (!target) return;
+  event.preventDefault();
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ block: "start", behavior: "instant" });
+});
 function openHelp() {
   help.open = true;
   help.querySelector("summary").focus({ preventScroll: true });
@@ -341,6 +359,7 @@ function openHelp() {
 }
 document.querySelector("#show-help").addEventListener("click", openHelp);
 document.addEventListener("keydown", event => {
+  if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
   const target = event.target;
   if (event.key === "Escape" && !target.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) {
     if (help.open) {
@@ -425,7 +444,7 @@ applyMotionPreference();
 followRoute();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-navigation-v2");
+  const { createRackScene } = await import("./scene.js?v=20261018-mechanics-v2");
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     collectionId: collection.id,

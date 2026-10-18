@@ -63,7 +63,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 #keyboard-instructions { padding: 0 0 12px; }
 #keyboard-instructions p { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.65; }
 kbd { font: 12px/1.5 var(--mono); color: var(--foreground); }
-.text-view .stage { display: none; }
+body.text-view .stage { display: none; }
 .text-view .workspace { display: block; height: auto; min-height: 0; }
 .text-view .project-panel { max-width: 900px; margin: 0 auto; border-left: 0; overflow: visible; }
 .stage:focus-visible { outline-offset: -4px; }

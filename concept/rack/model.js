@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261018-navigation-v2';
+import { softwareUnits } from './catalog.js?v=20261018-mechanics-v2';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;
@@ -149,13 +149,19 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     const sx = surface.width / width;
     const sy = surface.height / height;
     const graphic = {
-      text(text, x, y, size = 0.075, color = '#d8d7d3', align = 'left', weight = 500, angle = 0) {
-        ctx.font = `${weight} ${size * sy}px monospace`;
+      text(text, x, y, size = 0.075, color = '#d8d7d3', align = 'left', weight = 500, angle = 0, maxWidth) {
+        let pixels = size * sy;
+        ctx.font = `${weight} ${pixels}px monospace`;
+        if (maxWidth && ctx.measureText(text).width > maxWidth * sy) {
+          pixels *= maxWidth * sy / ctx.measureText(text).width;
+          ctx.font = `${weight} ${pixels}px monospace`;
+        }
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.textBaseline = 'middle';
         ctx.save();
         ctx.translate((x + width / 2) * sx, (height / 2 - y) * sy);
+        ctx.scale(sx / sy, 1);
         ctx.rotate(angle);
         ctx.fillText(text, 0, 0);
         ctx.restore();
@@ -268,18 +274,32 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     const sx = surface.width / width;
     const sy = surface.height / depth;
     const text = (value, x, py, size, weight = 500) => {
-      for (const [ctx, ink] of [[colorContext, painted ? '#c5c4c0' : '#303034'], [bumpContext, '#050505']]) {
+      for (const [ctx, ink] of [[colorContext, painted ? '#f5f3ee' : '#101114'], [bumpContext, '#050505']]) {
         ctx.font = `${weight} ${size * sy}px monospace`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = ink;
-        ctx.fillText(value, (x + width / 2) * sx, (depth / 2 - py) * sy);
+        ctx.save();
+        ctx.translate((x + width / 2) * sx, (depth / 2 - py) * sy);
+        ctx.scale(sx / sy, 1);
+        ctx.fillText(value, 0, 0);
+        ctx.restore();
       }
     };
-    text(`${String(index + 1).padStart(2, '0')} / ${unit.u}U`, -1.62, -0.34, 0.084);
-    text(unit.title, -1.62, -0.71, unit.title.length > 18 ? 0.17 : 0.21, 600);
-    text(unit.subtitle, -1.62, -1.0, 0.083);
-    text('Open project ↗', -1.62, -1.49, 0.135, 600);
+    const titleLines = [];
+    const titleSize = 0.25;
+    colorContext.font = `700 ${titleSize * sy}px monospace`;
+    for (const word of unit.title.split(' ')) {
+      const previous = titleLines.at(-1);
+      const candidate = previous ? `${previous} ${word}` : word;
+      if (previous && colorContext.measureText(candidate).width > 3.3 * sy) titleLines.push(word);
+      else if (previous) titleLines[titleLines.length - 1] = candidate;
+      else titleLines.push(word);
+    }
+    text(`${String(index + 1).padStart(2, '0')} / ${unit.u}U`, -1.62, -0.23, 0.105);
+    titleLines.forEach((line, lineIndex) => text(line, -1.62, titleLines.length === 1 ? -0.77 : -0.60 - lineIndex * 0.34, titleSize, 700));
+    text(unit.subtitle, -1.62, -1.23, 0.105);
+    text('Open project ↗', -1.62, -1.68, 0.19, 700);
     const map = new THREE.CanvasTexture(surface);
     map.colorSpace = THREE.SRGBColorSpace;
     const bumpMap = new THREE.CanvasTexture(relief);
@@ -288,7 +308,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       textures.push(texture);
     }
     // The colour and bump maps make a lit etch, rather than floating, unlit text.
-    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0015, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
+    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0025, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
     const rimMaterial = new THREE.MeshStandardMaterial({ color: COLORS[color], metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
     allMaterials.push(material, rimMaterial);
     // The etch belongs to the extrusion's top face, with no second sheet to shadow or fight it.
@@ -304,13 +324,13 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     cap.receiveShadow = true;
     parent.add(cap);
 
-    const linkGeometry = new THREE.PlaneGeometry(3.48, 1.5);
+    const linkGeometry = new THREE.PlaneGeometry(3.48, 1.8);
     geometries.add(linkGeometry);
     const linkMaterial = new THREE.MeshBasicMaterial({ visible: false });
     allMaterials.push(linkMaterial);
     const link = new THREE.Mesh(linkGeometry, linkMaterial);
     link.rotation.x = -Math.PI / 2;
-    link.position.set(0, y + 0.029, z + 0.96);
+    link.position.set(0, y + 0.029, z + 1.02);
     link.userData = { index, projectId: unit.id, kind: 'project-link', href: `project.html?project=${encodeURIComponent(unit.id)}` };
     parent.add(link);
     projectLinkTargets.push(link);
@@ -343,16 +363,17 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       rackParts.box('black', [0.018, 0.035, 1.8], [x * 1.004, -half + 1.0 + v * 0.1, -0.57], [0, 0, 0], 'plastic');
     }
     for (const z of [-1.77, 1.65]) {
-      rackParts.rounded('black', [0.44, 0.2, 0.63], [x * 0.84, -half - 0.1, z], 0.06, [0, 0, 0], 'plastic');
+      rackParts.rounded('black', [0.44, 0.208, 0.63], [x * 0.84, -half - 0.104, z], 0.06, [0, 0, 0], 'plastic');
     }
   }
   rackParts.box('black', [4.5, stackHeight + 0.1, 0.06], [0, 0, -2.28], [0, 0, 0], 'plastic');
   for (let v = 0; v < 21; v++) rackParts.rounded('black', [0.065, 0.014, 2.2], [-1.4 + v * 0.14, half + 0.007, -0.1], 0.016, [0, 0, 0], 'plastic');
+  rackParts.box('frame', [4.5, 0.30, 0.045], [0, half - 0.255, 2.401]);
   rackParts.finish();
-  texturePlane(rack, 4.34, 0.21, [0, half - 0.24, 2.428], g => {
-    g.text(`CHRISTIAN NUCIFORA / ${label.toUpperCase()}`, -1.97, 0, 0.077, '#c9c8c4');
-    g.text(`${totalU}U`, 1.99, 0, 0.075, '#aaa8a4', 'right');
-    g.rect(1.58, 0, 0.035, 0.035, '#e4b17f', 0.01);
+  texturePlane(rack, 4.34, 0.28, [0, half - 0.25, 2.428], g => {
+    g.text(label.toUpperCase(), -1.97, 0.032, 0.15, '#f5f3ee', 'left', 700);
+    g.text('CHRISTIAN NUCIFORA', -1.97, -0.086, 0.044, '#cfceca');
+    g.text(`${totalU}U`, 1.99, 0.028, 0.105, '#f5f3ee', 'right', 700);
   });
   for (const side of [-1, 1]) {
     texturePlane(rack, 0.11, stackHeight, [side * 2.365, 0, 2.371], g => {
@@ -367,6 +388,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
   const projectLinkTargets = [];
   const moduleAssemblies = [];
   const moduleTargets = [];
+  const railAssemblies = [];
   const highlights = [];
   const slotY = [];
   const heights = [];
@@ -447,8 +469,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     };
     const lightFace = ['network', 'router', 'instrument', 'appliance'].includes(unit.type);
     const faceColor = unit.type === 'audio' ? 'navy' : unit.type === 'compute' ? 'silver' : lightFace ? 'silver' : 'frame';
-    const ink = lightFace || unit.type === 'compute' ? '#37383c' : '#cccac5';
-    const faceLabel = (text, x, py, size = 0.07, align = 'left') => paintCommands.push(g => g.text(text, x, py, size, ink, align));
+    const ink = lightFace || unit.type === 'compute' ? '#17181b' : '#f5f3ee';
+    const faceLabel = (text, x, py, size = 0.07, align = 'left', weight = 500, maxWidth) => paintCommands.push(g => g.text(text, x, py, size, ink, align, weight, 0, maxWidth));
     const usb = (x, py) => {
       cut(x, py, 0.14, 0.065, 0.007);
       parts.box('black', [0.148, 0.074, 0.07], [x, py, FACE_Z - 0.04], [0, 0, 0], 'plastic');
@@ -466,7 +488,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         g.text('CI', x, py + 0.035, 0.072, '#e6e4de', 'center');
         g.text('RUNNERS', x, py - 0.064, 0.025, '#b4b0a9', 'center');
       });
-      faceLabel('CI RUNNER', -1.39, -0.085, 0.075);
+      faceLabel('CI RUNNER', -1.39, -0.07, 0.105, 'left', 700, 0.62);
       for (let col = 0; col < 12; col++) for (let row = 0; row < 2; row++) {
         const x = -0.67 + col * 0.198;
         const py = 0.077 - row * 0.154;
@@ -487,11 +509,11 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (let col = 0; col < 4; col++) for (let row = 0; row < 2; row++) rj45(0.53 + col * 0.202, 0.075 - row * 0.152, 0.174, 0.116);
       rj45(1.42, -0.073, 0.18, 0.117);
       sfp(1.77, 0.075); sfp(1.77, -0.077);
-      faceLabel('ARTIFACT', -1.42, 0.052, 0.061);
-      faceLabel('PUBLISHING', -1.42, -0.054, 0.039);
+      faceLabel('ARTIFACT', -1.16, 0.035, 0.11, 'left', 700);
+      faceLabel('PUBLISHING', -1.16, -0.075, 0.045);
     } else if (unit.type === 'engineering') {
       // Illustrative test enclosure, not a reproduction of a project circuit board.
-      faceLabel(unit.faceTitle || unit.title, -1.77, h / 2 - 0.2, 0.095);
+      faceLabel(unit.faceTitle || unit.title, -1.77, h / 2 - 0.22, 0.20, 'left', 700, 3.45);
       faceLabel('UQ RACING / TEAM ENGINEERING', -1.77, h / 2 - 0.4, 0.045);
       display(-0.54, 0.14, 2.35, Math.min(1.45, h - 0.9), (g, x, py, w, ph) => {
         g.text(unit.subtitle.toUpperCase(), x - w / 2 + 0.15, py + ph / 2 - 0.18, 0.068, '#d8d7d3');
@@ -510,7 +532,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       handle(parts, 1.96, 0, h - 0.4, 'darkSilver');
     } else if (unit.type === 'record') {
       // Document drawers hold roles, education and explicitly reserved content.
-      faceLabel(unit.faceTitle || unit.title, -1.68, h / 2 - 0.24, 0.12);
+      faceLabel(unit.faceTitle || unit.title, -1.68, h / 2 - 0.25, 0.19, 'left', 700, 3.35);
       faceLabel(unit.subtitle, -1.68, h / 2 - 0.49, 0.056);
       parts.rounded('black', [2.55, 0.22, 0.06], [0, -h / 2 + 0.35, FACE_Z + 0.06], 0.04, [0, 0, 0], 'plastic');
       parts.rounded('darkSilver', [1.9, 0.055, 0.12], [0, -h / 2 + 0.34, FACE_Z + 0.11], 0.025);
@@ -539,10 +561,10 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         bnc(x, -0.237);
       }
       usb(-1.78, -0.26);
-      faceLabel('FIRMWARE WORKBENCH', -1.68, h / 2 - 0.046, 0.041);
+      faceLabel('NVIM STM32', -1.68, h / 2 - 0.061, 0.095, 'left', 700);
     } else if (unit.type === 'control') {
       // Videohub anatomy: dense labelled key matrix, four routing keys, LCD, jog dial.
-      faceLabel('MOZAPROXY', -1.8, 0.253, 0.088);
+      faceLabel('MOZAPROXY', -1.8, 0.253, 0.135, 'left', 700);
       faceLabel('WHEEL CONTROL', -1.8, 0.117, 0.045);
       const keyLabels = ['FFB', 'DAMP', 'FRIC', 'INRT', 'SPR', 'GAIN', 'ROT', 'BRAKE', 'THROT', 'CLUTCH', 'AXIS', 'INPUT'];
       for (let row = 0; row < 2; row++) for (let col = 0; col < 6; col++) {
@@ -559,7 +581,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (let i = 0; i < 3; i++) button(1.79, 0.27 - i * 0.253, 0.083, 0.058);
     } else if (unit.type === 'compute') {
       // A 6U Eurocard subrack, not disk drawers. Each repository has a tall plug-in panel.
-      faceLabel('M1 / LANGUAGE TOOLCHAIN', -1.68, h / 2 - 0.095, 0.075);
+      faceLabel('M1 TOOLCHAIN', -1.68, h / 2 - 0.105, 0.16, 'left', 700);
       cut(0, -0.015, 3.5, h - 0.42, 0.008);
       parts.box('pcb', [3.57, h - 0.35, 0.065], [0, -0.015, -0.7], [0, 0, 0], 'board');
       for (const py of [-h / 2 + 0.15, h / 2 - 0.15]) {
@@ -582,12 +604,19 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         sledParts.box(tint, [0.213, bladeH, 0.065], [0, bladeY, FACE_Z + 0.068]);
         for (const py of [-bladeH / 2 + 0.075, bladeH / 2 - 0.075]) screw(sledParts, 0, py + bladeY, FACE_Z + 0.107, 0.018);
         sledParts.rounded('black', [0.13, 0.23, 0.055], [0, -bladeH / 2 + 0.24, FACE_Z + 0.115], 0.017, [0, 0, 0], 'plastic');
-        sledParts.rounded(moduleIndex < 7 ? 'navy' : moduleIndex < 9 ? 'orange' : 'graphite', [0.075, 0.135, 0.09], [0, -bladeH / 2 + 0.205, FACE_Z + 0.157], 0.014, [0.1, 0, 0], 'plastic');
+        sledParts.cylinder('darkSilver', 0.024, 0.119, [0, -bladeH / 2 + 0.28, FACE_Z + 0.157], [0, 0, Math.PI / 2], 12);
+        const latch = new THREE.Group();
+        latch.position.set(0, -bladeH / 2 + 0.28, FACE_Z + 0.157);
+        sled.add(latch);
+        const latchParts = batch(latch);
+        latchParts.rounded(moduleIndex < 7 ? 'navy' : moduleIndex < 9 ? 'orange' : 'graphite', [0.075, 0.135, 0.075], [0, -0.065, 0.015], 0.014, [0, 0, 0], 'plastic');
+        latchParts.box('darkSilver', [0.033, 0.09, 0.025], [0, -0.035, -0.025]);
+        latchParts.finish();
         if (moduleIndex === 0 || moduleIndex === 7 || moduleIndex === 9) sledParts.box(moduleIndex === 7 ? 'orange' : 'navy', [0.14, 0.035, 0.008], [0, bladeH / 2 - 0.16, FACE_Z + 0.108], [0, 0, 0], 'plastic');
         sledParts.box('rubber', [0.145, bladeH - 0.21, 0.055], [0, bladeY, FACE_Z + 0.04 - 2.88], [0, 0, 0], 'plastic');
         sledParts.finish();
         texturePlane(sled, 0.2, bladeH - 0.29, [0, 0.06, FACE_Z + 0.104], g => {
-          g.text(module.id, 0, 0, 0.046, moduleIndex < 7 ? '#303238' : moduleIndex < 9 ? '#eeece7' : '#383a40', 'center', 500, -Math.PI / 2);
+          g.text(module.id, 0, 0, 0.085, '#111214', 'center', 700, -Math.PI / 2);
         }, [0, 0, 0], 128);
         for (const sign of [-1, 1]) {
           parts.box('black', [0.21, 0.032, 2.96], [x, bladeY + sign * (bladeH / 2 - 0.035), FACE_Z - 1.49], [0, 0, 0], 'plastic');
@@ -601,7 +630,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         hitTarget.position.set(0, bladeY, FACE_Z + 0.12);
         hitTarget.userData = { index: moduleIndex, projectIndex: index, moduleId: module.id };
         sled.add(hitTarget);
-        moduleAssemblies.push({ projectIndex: index, index: moduleIndex, moduleId: module.id, group: sled, hitTarget });
+        moduleAssemblies.push({ projectIndex: index, index: moduleIndex, moduleId: module.id, group: sled, hitTarget, latch });
         moduleTargets.push(hitTarget);
       });
       faceLabel('LANGUAGE', -0.915, -h / 2 + 0.061, 0.049, 'center');
@@ -611,7 +640,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       handle(parts, 1.88, -0.03, h - 0.36, 'darkSilver');
     } else if (unit.type === 'audio') {
       // Portico II's repeated control groups and stepped colour knobs, adapted to 3U.
-      faceLabel('WAVELENGTH', -1.77, 0.46, 0.09);
+      faceLabel('WAVELENGTH', -1.77, 0.46, 0.15, 'left', 700);
       const controls = ['GENRE', 'ARTIST', 'ALBUM', 'PLAYLIST'];
       for (let group = 0; group < 2; group++) {
         const cx = -1.16 + group * 1.29;
@@ -657,7 +686,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
           g.text('DRAG / DROP', x + 0.67, py - 0.32, 0.041, '#aaa7a1', 'right');
         }
       });
-      faceLabel('ISLET / MACOS', -1.71, -0.49, 0.049);
+      faceLabel('ISLET / MACOS', -1.71, -0.49, 0.10, 'left', 700);
       parts.rounded('black', [0.23, 0.026, 0.012], [0, 0.516, FACE_Z + 0.041], 0.008, [0, 0, 0], 'plastic');
     } else if (unit.type === 'console') {
       // Closed KVM drawer: a broad pull bar and latch replace the implausible front LCD.
@@ -667,12 +696,12 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       parts.rounded('black', [1.35, 0.17, 0.02], [0, -0.044, FACE_Z + 0.06], 0.055, [0, 0, 0], 'plastic');
       parts.rounded('darkSilver', [1.21, 0.065, 0.12], [0, -0.044, FACE_Z + 0.13], 0.025);
       parts.rounded('orange', [0.16, 0.08, 0.025], [1.49, -0.045, FACE_Z + 0.065], 0.014, [0, 0, 0], 'plastic');
-      raisedPaintCommands.push(g => g.text('CHRISTIAN NUCIFORA / PERSONAL WEBSITE', -1.45, 0.164, 0.058, '#cccac5'));
+      raisedPaintCommands.push(g => g.text('PERSONAL WEBSITE', -1.45, 0.164, 0.12, '#f5f3ee', 'left', 700));
       faceLabel('CONSOLE DRAWER', -1.64, -0.293, 0.043);
       usb(-1.64, -0.25);
     } else if (unit.type === 'appliance') {
       // Netgate-style shallow firewall: vented blank left, grouped I/O at right.
-      faceLabel('RECONCILE', -1.73, 0.062, 0.075);
+      faceLabel('RECONCILE', -1.73, 0.062, 0.108, 'left', 700);
       faceLabel('SHARED EXPENSES', -1.73, -0.065, 0.043);
       vents(-0.47, 0.005, 0.8, 0.23, 8, 2);
       usb(0.15, 0.065); usb(0.15, -0.065);
@@ -681,7 +710,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       led(1.79, 0.075); led(1.79, -0.065, 'orange');
     } else if (unit.type === 'storage') {
       // RS422+ has a thin control rail above four full-width lockable tray fronts.
-      faceLabel('mountd / NFS + SMB', -1.64, 0.13, 0.047);
+      faceLabel('mountd', -1.64, 0.13, 0.085, 'left', 700);
+      faceLabel('NFS + SMB', -1.14, 0.13, 0.047);
       for (let i = 0; i < 5; i++) led(0.31 + i * 0.19, 0.13);
       for (let drive = 0; drive < 4; drive++) {
         const x = -1.33 + drive * 0.89;
@@ -696,7 +726,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (const x of [-1.45, 1.45]) for (let row = 0; row < 2; row++) parts.box('black', [0.5, 0.018, 0.012], [x, 0.143 - row * 0.037, FACE_Z + 0.037], [0, 0, 0], 'plastic');
     } else if (unit.type === 'archive') {
       // HyperDeck: two thin media slots, transport keys, status display and jog wheel.
-      faceLabel('PHOTO ARCHIVE', -1.76, 0.12, 0.053);
+      faceLabel('PHOTO ARCHIVE', -1.76, 0.12, 0.089, 'left', 700);
       for (let slot = 0; slot < 2; slot++) {
         const x = -1.14 + slot * 1.04;
         cut(x, -0.035, 0.92, 0.1, 0.012);
@@ -713,7 +743,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (let group = 0; group < 3; group++) {
         const x = -1.15 + group * 1.15;
         parts.box('darkSilver', [1.06, 0.066, 0.018], [x, 0.12, FACE_Z + 0.044]);
-        raisedPaintCommands.push(g => g.text(['SHORTCUTS', 'SCRIPTS', 'EXERCISES'][group], x, 0.12, 0.041, '#e3e0da', 'center'));
+        raisedPaintCommands.push(g => g.text(['SMALL UTILITIES', 'SCRIPTS', 'EXERCISES'][group], x, 0.12, group === 0 ? 0.075 : 0.056, '#f5f3ee', 'center', 700));
         for (let col = 0; col < 6; col++) for (let row = 0; row < 2; row++) jack(x - 0.455 + col * 0.182, 0.015 - row * 0.115);
       }
     }
@@ -736,11 +766,65 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       handle(parts, -1.93, 0, h - 0.27, 'darkSilver');
       handle(parts, 1.93, 0, h - 0.27, 'darkSilver');
     }
-    // Side rails track the entire extracted assembly rather than floating between projects.
-    for (const x of [-2.13, 2.13]) {
-      parts.rounded('silver', [0.035, 0.055, 3.8], [x, bottom + 0.07, 0.09], 0.01);
-      parts.box('edge', [0.021, 0.028, 3.3], [x * 1.01, bottom + 0.08, 0.08]);
+    // Rack-fixed channels, half-speed carriages and chassis runners stay engaged at full travel.
+    const outer = new THREE.Group();
+    outer.position.y = y;
+    rack.add(outer);
+    const intermediate = new THREE.Group();
+    intermediate.position.y = y;
+    rack.add(intermediate);
+    const inner = new THREE.Group();
+    bay.add(inner);
+    const outerParts = batch(outer);
+    const carriageParts = batch(intermediate);
+    const runnerParts = batch(inner);
+    const railY = bottom + 0.09;
+    const railLength = 4.5;
+    const intermediateLength = 4.3;
+    const innerLength = 4.16;
+    const lowerUCenter = -unit.u * U / 2 + U / 2;
+    const mountYs = unit.u === 1 ? [0] : [lowerUCenter, -lowerUCenter];
+    for (const sign of [-1, 1]) {
+      const ox = sign * 2.225;
+      outerParts.box('darkSilver', [0.035, 0.18, railLength], [ox, railY, 0.02]);
+      for (const edge of [-1, 1]) {
+        outerParts.box('silver', [0.095, 0.018, railLength], [sign * 2.195, railY + edge * 0.09, 0.02]);
+        carriageParts.box('silver', [0.065, 0.014, intermediateLength], [sign * 2.15, railY + edge * 0.057, 0]);
+        carriageParts.box('rubber', [0.015, 0.016, 1.7], [sign * 2.19, railY + edge * 0.073, 0], [0, 0, 0], 'plastic');
+      }
+      carriageParts.box('bright', [0.027, 0.114, intermediateLength], [sign * 2.174, railY, 0]);
+      runnerParts.box('silver', [0.024, 0.078, innerLength], [sign * 2.121, railY, 0.05]);
+      for (const edge of [-1, 1]) runnerParts.box('rubber', [0.026, 0.012, 1.55], [sign * 2.142, railY + edge * 0.044, 0.15], [0, 0, 0], 'plastic');
+      for (const z of [-1.8, -0.35, 1.5]) {
+        runnerParts.cylinder('darkSilver', 0.026, 0.042, [sign * 2.11, railY, z], [0, 0, Math.PI / 2], 12);
+        runnerParts.cylinder('bright', 0.039, 0.012, [sign * 2.139, railY, z], [0, 0, Math.PI / 2], 12);
+      }
+      for (const z of [-2.2, 2.26]) {
+        outerParts.box('darkSilver', [0.12, 0.28, 0.055], [sign * 2.235, lowerUCenter, z]);
+        for (const offset of [-0.115, 0.115]) outerParts.cylinder('silver', 0.023, 0.045, [sign * 2.26, lowerUCenter + offset, z + 0.024], [Math.PI / 2, 0, 0], 12);
+      }
+      carriageParts.box('darkSilver', [0.065, 0.035, 0.09], [sign * 2.16, railY, -2.09]);
+      carriageParts.box('rubber', [0.04, 0.04, 0.065], [sign * 2.17, railY, 2.08], [0, 0, 0], 'plastic');
+      runnerParts.box('darkSilver', [0.026, 0.052, 0.16], [sign * 2.141, railY, -1.92]);
+      runnerParts.rounded('navy', [0.035, 0.046, 0.18], [sign * 2.145, railY, 1.83], 0.012, [0, 0, 0], 'plastic');
+      // Front ears bridge the fascia to real U-centre mounting points on the upright.
+      parts.box(faceColor, [0.22, h - 0.035, 0.038], [sign * 2.22, 0, 2.37]);
+      parts.box(faceColor, [0.065, h - 0.055, 0.06], [sign * 2.12, 0, 2.342]);
+      for (const py of mountYs) {
+        outerParts.box('black', [0.079, 0.079, 0.04], [sign * 2.26, py, 2.211], [0, 0, 0], 'plastic');
+        for (const side of [-1, 1]) {
+          const clipX = sign * 2.26 + side * 0.034;
+          outerParts.box('silver', [0.015, 0.075, 0.1335], [clipX, py, 2.28175]);
+          // Folded lips clear the upright face without entering the seated mounting ear.
+          outerParts.box('silver', [0.023, 0.075, 0.004], [clipX, py, 2.3485]);
+        }
+        screw(parts, sign * 2.26, py, FACE_Z + 0.086, 0.034);
+      }
     }
+    outerParts.finish();
+    carriageParts.finish();
+    runnerParts.finish();
+    railAssemblies.push({ projectIndex: index, bay, outer, intermediate, inner, railLength, intermediateLength, innerLength });
 
     createCover(inside, unit, index, h);
     parts.finish();
@@ -765,8 +849,13 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     bay.add(highlight);
     highlights.push(highlight);
   }
+  function updateMechanisms() {
+    for (const assembly of railAssemblies) assembly.intermediate.position.z = THREE.MathUtils.clamp(assembly.bay.position.z, 0, EXTRACTION) * 0.5;
+    for (const assembly of moduleAssemblies) assembly.latch.rotation.x = -0.66 * THREE.MathUtils.smoothstep(assembly.group.position.z, 0, 0.24);
+  }
+  updateMechanisms();
   return {
-    rack, bays, interiors, hitTargets, projectLinkTargets, moduleAssemblies, moduleTargets, highlights, slotY, heights, totalU, height,
+    rack, bays, interiors, hitTargets, projectLinkTargets, moduleAssemblies, moduleTargets, railAssemblies, updateMechanisms, highlights, slotY, heights, totalU, height,
     dispose() {
       geometries.forEach(geometry => geometry.dispose());
       textures.forEach(texture => texture.dispose());
