@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261018-admin-materials-v1';
+import { setFinishUVs } from './finishes.js?v=20261018-curated-rack-v1';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
 import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js';
 

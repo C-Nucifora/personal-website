@@ -1,4 +1,4 @@
-import { softwareUnits } from './catalog.js?v=20261018-admin-materials-v1';
+import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261018-curated-rack-v1';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 
@@ -176,4 +176,5 @@ export const collections = [
   },
 ];
 
-export const allUnits = collections.flatMap((collection) => collection.units);
+export const unplacedSoftwareUnits = softwareProjectRecords.filter(unit => personalProjectIds.includes(unit.id));
+export const allUnits = [...collections.flatMap((collection) => collection.units), ...unplacedSoftwareUnits];

@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261018-admin-materials-v1';
+import { renderProject } from './project-content.js?v=20261018-curated-rack-v1';
 
 // Map the real document onto the four corners of the physical rack display.
 export function projectTransform(points, width, height) {
@@ -44,7 +44,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (!stylesheetPromise) stylesheetPromise = new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = './project.css?v=20261018-admin-materials-v1';
+      link.href = './project.css?v=20261018-curated-rack-v1';
       link.onload = resolve;
       link.onerror = () => { link.remove(); stylesheetPromise = null; reject(new Error('Project styles could not load')); };
       document.head.append(link);

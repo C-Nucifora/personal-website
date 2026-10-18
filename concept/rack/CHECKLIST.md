@@ -11,7 +11,7 @@ Reviewed against [AIToolPick's website checklist](https://aitoolpick.org/blog/ai
 | Imagery, five checks | Original code-built hardware illustrates the rack concept. Displays refer to the matching projects. No stock images, generated bitmaps, decorative emoji or placeholder artwork. |
 | Interaction, five checks | Twelve projects stay directly accessible. M1's longer repository list uses native disclosure groups. Content does not depend on scroll effects. Mobile controls have targets of at least 44px in both dimensions, including the checkbox's label. Repository lists are navigation, not competing promotional calls to action. |
 
-The physical rack, dark default and proportional unit heights follow the user's explicit brief. The work remains the main composition, with all twelve project links available. Native links, keyboard focus, reduced motion and the HTML fallback remain required.
+The physical rack, dark default and proportional unit heights follow the user's explicit brief. Six software units lead to all twelve original software project pages through the standalone units and Personal Projects bundle. Native links, keyboard focus, reduced motion and the HTML fallback remain required.
 
 Verification covers the actual local page at phone and desktop widths, disclosure keyboard operation, source-link retention and JavaScript syntax. Independent review checks the implementation against this record. Physical Safari device testing remains outstanding.
 

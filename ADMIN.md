@@ -20,7 +20,7 @@ Auth.js issues encrypted sessions in HttpOnly, SameSite=Lax cookies. HTTPS deplo
 2. Set these environment variables in the existing Vercel project's settings. Use the production origin and credentials for production. A preview deployment needs its own matching origin, OAuth App callback and isolated database before administration can work there.
 3. For local setup, copy `.env.example` to `.env.local`, fill in the values, then run `npm install` and `npm run db:setup`.
 
-`db:setup` creates the two tables in `db/001-portfolio.sql` and initializes the existing 21 portfolio records, including the M1 tools nested within their parent project, into three 24U racks. Re-running setup preserves existing content. Use a database account limited to this application's database. The application stores a draft, a public snapshot and the latest 100 complete revision snapshots. Export a JSON backup in the admin before substantial edits.
+`db:setup` creates the two tables in `db/001-portfolio.sql` and initializes 22 portfolio records across three 24U racks. Software has six placed units occupying 20U, with Personal Projects linking seven other published, unplaced records. The fifteen M1 tools and three Small Utilities repositories remain nested within their original records. Re-running setup preserves existing content. Use a database account limited to this application's database. The application stores a draft, a public snapshot and the latest 100 complete revision snapshots. Export a JSON backup in the admin before substantial edits.
 
 The database driver uses parameterized queries over HTTPS. Saving compares the revision supplied by the editor against the current database revision. A conflict returns HTTP 409 so an older tab cannot overwrite a newer save. History recording and the configuration update share one SQL statement. Public reads return only the last published snapshot and omit every unpublished project, including projects that still have a rack placement.
 
@@ -41,6 +41,8 @@ Free plans have usage and storage quotas. This implementation does not enable pa
 ## Data format and API
 
 `concept/rack/schema.js` validates every imported and saved configuration. `default-portfolio.js` creates the bundled seed. Configuration includes `schemaVersion: 1`, `settings`, `racks` and `projects`. Up to seven project racks fit in the main row, leaving ambient cabinets at both ends. Project identity and publication are independent of rack placement. A project owns one `rackUnit`, whose `placement` is either `null` or `{ rackId, startU }`. Rack positions count from U01 at the bottom. A unit of height 3 at U05 occupies U05 through U07. Overlap and rack overflow are rejected.
+
+A nested module may set `projectId` to link to another complete project record. The editor offers a Linked project page selector. Linked records retain their own page theme, sections, sources and optional equipment placement. Renaming a project updates its incoming bundle references; deleting it removes those bundle entries. Unpublishing a child hides its entry in public bundles without removing it from the private draft. References to missing projects and self-references are rejected. The source defaults do not migrate or reset an existing database.
 
 Pages contain a theme and typed `text`, `image`, `gallery`, `code` or `links` sections. The format accepts plain text, safe links, hex colors and predefined fonts/layouts; it has no arbitrary HTML, CSS or JavaScript field.
 

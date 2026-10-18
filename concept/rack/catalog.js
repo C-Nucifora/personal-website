@@ -1,4 +1,4 @@
-export const softwareUnits = [
+export const softwareProjectRecords = [
   {
     id: 'ci-runner-console',
     title: 'CI Runner Console',
@@ -203,4 +203,22 @@ export const softwareUnits = [
   },
 ];
 
+// Smaller records keep their own content and equipment, without filling the rack.
+export const personalProjectIds = ['ci-runner-console', 'artifact-platform', 'personal-website', 'reconcile-app', 'mountd', 'gphotos-album-downloader', 'small-utilities'];
+const personalProjects = {
+  id: 'personal-projects',
+  title: 'Personal Projects',
+  subtitle: 'Apps, infrastructure and utilities',
+  u: 4,
+  type: 'storage',
+  summary: 'Smaller apps, self-hosted tools and utilities in one enclosure.',
+  description: 'Reconcile, this website and the smaller infrastructure and utility projects share one rack unit. Open this server to browse each project record and source.',
+  stack: [],
+  facts: [{ label: 'Projects', value: '7 individual records' }],
+  modules: personalProjectIds.map(id => {
+    const project = softwareProjectRecords.find(item => item.id === id);
+    return { id, projectId: id, title: project.title, description: project.summary, sourceUrl: project.sourceUrl };
+  }),
+};
+export const softwareUnits = ['m1-toolchain', 'wavelength', 'islet', 'nvim-stm32', 'mozaproxy'].map(id => softwareProjectRecords.find(item => item.id === id)).concat(personalProjects);
 export const units = softwareUnits;

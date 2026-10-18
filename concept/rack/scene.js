@@ -1,16 +1,16 @@
 import * as THREE from './vendor/three.module.js';
-import { loadSurfaceFinishes } from './finishes.js?v=20261018-admin-materials-v1';
+import { loadSurfaceFinishes } from './finishes.js?v=20261018-curated-rack-v1';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-admin-materials-v1';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-curated-rack-v1';
 import { siteSettings, usesBundledPortfolio } from './site-data.js';
-import { collections } from './collections.js?v=20261018-admin-materials-v1';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-admin-materials-v1';
-import { stepSpring } from './motion.js?v=20261018-admin-materials-v1';
+import { collections } from './collections.js?v=20261018-curated-rack-v1';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-curated-rack-v1';
+import { stepSpring } from './motion.js?v=20261018-curated-rack-v1';
 
 const BACKGROUND = usesBundledPortfolio ? '#121212' : siteSettings.appearance.background;
 const MAX_DRAWING_PIXELS = 6500000;
 
-export async function createRackScene({ canvas, finish = 'simple', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export async function createRackScene({ canvas, finish = 'realistic', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
   let units = collection.units;
   const mode = 'rack';

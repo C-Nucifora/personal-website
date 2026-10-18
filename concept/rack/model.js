@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261018-admin-materials-v1';
+import { setFinishUVs } from './finishes.js?v=20261018-curated-rack-v1';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261018-admin-materials-v1';
+import { softwareUnits } from './catalog.js?v=20261018-curated-rack-v1';
 import { allUnits as bundledUnits } from './bundled-collections.js';
 import { hasModuleCarriers } from './rack-layout.js';
 
@@ -678,6 +678,29 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       faceLabel('PROJECT TOOLS', 1.03, -h / 2 + 0.061, 0.046, 'center');
       handle(parts, -1.88, -0.03, h - 0.36, 'darkSilver');
       handle(parts, 1.88, -0.03, h - 0.36, 'darkSilver');
+    } else if (unit.id === 'personal-projects') {
+      // A closed eight-bay storage chassis keeps the smaller projects together.
+      projectName('PERSONAL PROJECTS', -1.76, h / 2 - 0.18, 2.85, 0.205);
+      faceLabel(`${unit.modules.length} PROJECTS`, 1.75, h / 2 - 0.18, 0.062, 'right');
+      for (let drive = 0; drive < 8; drive++) {
+        const x = -1.38 + (drive % 4) * 0.92;
+        const py = 0.20 - Math.floor(drive / 4) * 0.54;
+        const module = unit.modules[drive];
+        cut(x, py, 0.865, 0.45, 0.018);
+        parts.rounded('black', [0.887, 0.472, 0.08], [x, py, FACE_Z - 0.03], 0.023, [0, 0, 0], 'plastic');
+        parts.rounded(module ? 'darkSilver' : 'frame', [0.827, 0.414, 0.052], [x, py, FACE_Z + 0.008], 0.019);
+        parts.rounded('black', [0.705, 0.065, 0.025], [x, py - 0.13, FACE_Z + 0.048], 0.018, [0, 0, 0], 'plastic');
+        parts.rounded('rubber', [0.6, 0.035, 0.06], [x, py - 0.13, FACE_Z + 0.08], 0.012, [0, 0, 0], 'plastic');
+        parts.rounded(module ? 'indicator' : 'black', [0.038, 0.07, 0.027], [x + 0.365, py - 0.13, FACE_Z + 0.065], 0.008, [0, 0, 0], 'plastic');
+        screw(parts, x - 0.365, py + 0.14, FACE_Z + 0.055, 0.018);
+        paintCommands.push(g => {
+          g.rect(x + 0.015, py + 0.04, 0.68, 0.115, module ? '#d2d2d0' : '#3b3c3e', 0.008);
+          g.text(module?.title ?? 'SPARE', x + 0.015, py + 0.04, 0.079, module ? '#17181b' : '#c7c7c3', 'center', 700, 0, 0.62, '"IBM Plex Sans", Arial, sans-serif');
+          g.text(String(drive + 1).padStart(2, '0'), x - 0.25, py + 0.143, 0.035, '#d2d2d0');
+        });
+      }
+      handle(parts, -1.94, 0, h - 0.29, 'darkSilver');
+      handle(parts, 1.94, 0, h - 0.29, 'darkSilver');
     } else if (unit.type === 'audio') {
       // Portico II's repeated control groups and stepped colour knobs, adapted to 3U.
       projectName('WAVELENGTH', -1.77, 0.46, 2.08, 0.205, '#243144');

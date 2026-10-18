@@ -1,5 +1,5 @@
 import { allUnits as bundledUnits } from './bundled-collections.js';
-import { collections, allUnits } from './collections.js?v=20261018-admin-materials-v1';
+import { collections, allUnits } from './collections.js?v=20261018-curated-rack-v1';
 import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js';
 
 export function element(tag, text = '', className = '') {
@@ -109,7 +109,7 @@ export function buildPublicIndex() {
       if (unit.modules.length) {
         const modules = element('section', '', 'bundle-modules');
         modules.setAttribute('aria-label', 'Included projects');
-        modules.append(element('h3', unit.id === 'm1-toolchain' ? 'Included tools' : 'Repositories'));
+        modules.append(element('h3', unit.id === 'm1-toolchain' ? 'Included tools' : unit.modules.some(tool => tool.projectId) ? 'Included projects' : 'Repositories'));
         const groups = unit.id === 'm1-toolchain' ? [...new Set(['Language tools', 'Editor integration', 'Project tools', ...unit.modules.map(tool => tool.group)])].filter(group => unit.modules.some(tool => tool.group === group)) : [null];
         for (const group of groups) {
           let target = modules;
@@ -121,8 +121,8 @@ export function buildPublicIndex() {
           }
           for (const tool of unit.modules.filter(tool => group === null || tool.group === group)) {
             const link = element('a', '', 'module-link');
-            link.href = tool.sourceUrl || `./project.html?project=${encodeURIComponent(unit.id)}&module=${encodeURIComponent(tool.id)}`;
-            if (tool.sourceUrl) { link.target = '_blank'; link.rel = 'noreferrer'; }
+            link.href = tool.projectId ? `./project.html?project=${encodeURIComponent(tool.projectId)}` : tool.sourceUrl || `./project.html?project=${encodeURIComponent(unit.id)}&module=${encodeURIComponent(tool.id)}`;
+            if (!tool.projectId && tool.sourceUrl) { link.target = '_blank'; link.rel = 'noreferrer'; }
             link.append(element('strong', tool.title), element('span', tool.description));
             target.append(link);
           }
@@ -137,7 +137,8 @@ export function buildPublicIndex() {
     detailRoot.querySelector('#next-project').before(details);
   });
   if (!inspector.isConnected) detailRoot.append(inspector);
-  const unplaced = allUnits.filter(unit => !unit.rackUnit.placement);
+  const bundledIds = new Set(allUnits.filter(unit => unit.rackUnit.placement).flatMap(unit => unit.modules.filter(module => module.projectId).map(module => module.projectId)));
+  const unplaced = allUnits.filter(unit => !unit.rackUnit.placement && !bundledIds.has(unit.id));
   if (unplaced.length) {
     const section = element('section', '', 'unplaced-projects');
     section.append(element('h3', 'More work'));

@@ -1,7 +1,7 @@
-import { collections, allUnits } from './collections.js?v=20261018-admin-materials-v1';
+import { collections, allUnits } from './collections.js?v=20261018-curated-rack-v1';
 import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js';
 import { applyIdentity } from './public-dom.js';
-import { projectArt } from './project-art.js?v=20261018-admin-materials-v1';
+import { projectArt } from './project-art.js?v=20261018-curated-rack-v1';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -14,7 +14,9 @@ function element(tag, text, className) {
 export function renderProject(root, projectId, moduleId = null) {
   applyIdentity(root);
   const unit = allUnits.find(item => item.id === projectId);
-  const collection = collections.find(item => item.units.includes(unit));
+  const bundle = allUnits.find(item => item.rackUnit.placement && item.modules.some(module => module.projectId === unit?.id));
+  const collection = collections.find(item => item.units.includes(unit)) ?? collections.find(item => item.units.includes(bundle));
+  const rackUnit = collection?.units.includes(unit) ? unit : bundle;
   const module = unit?.id === 'm1-toolchain' ? unit.modules?.find(item => item.id === moduleId) : null;
   const fallback = root.querySelector('#project-fallback');
 
@@ -35,7 +37,7 @@ export function renderProject(root, projectId, moduleId = null) {
     if (unit.sourceLabel) source.firstChild.textContent = `${unit.sourceLabel} `;
     if (!unit.sourceLabel && unit.sourceUrl && !unit.sourceUrl.startsWith('https://github.com/')) source.firstChild.textContent = 'Source ';
     for (const link of root.querySelectorAll('[data-rack-link]')) {
-      link.href = collection ? `./index.html?rack=${collection.id}#${encodeURIComponent(unit.id)}` : './index.html';
+      link.href = collection ? `./index.html?rack=${collection.id}#${encodeURIComponent(rackUnit?.id ?? unit.id)}` : './index.html';
       link.lastChild.textContent = module ? ' M1 Toolchain rack unit' : collection ? ` ${collection.label} rack` : ' Work directory';
     }
     root.querySelector('#project-placeholder').hidden = !unit.placeholder;
@@ -77,15 +79,16 @@ export function renderProject(root, projectId, moduleId = null) {
           const item = element('li');
           const link = element('a', '', 'document-module-link');
           const localModule = unit.id === 'm1-toolchain';
-          if (localModule) {
+          const child = module.projectId && allUnits.find(item => item.id === module.projectId);
+          if (localModule || child) {
             item.className = 'document-module-item';
-            link.href = `./project.html?project=m1-toolchain&module=${encodeURIComponent(module.id)}`;
+            link.href = child ? `./project.html?project=${encodeURIComponent(child.id)}` : `./project.html?project=m1-toolchain&module=${encodeURIComponent(module.id)}`;
           } else {
             link.href = module.sourceUrl;
             link.target = '_blank';
             link.rel = 'noreferrer';
           }
-          const arrow = element('span', localModule ? '→' : '↗', 'module-arrow');
+          const arrow = element('span', localModule || child ? '→' : '↗', 'module-arrow');
           arrow.setAttribute('aria-hidden', 'true');
           link.append(
             element('strong', module.title),
@@ -93,12 +96,14 @@ export function renderProject(root, projectId, moduleId = null) {
             arrow,
           );
           item.append(link);
-          if (localModule) {
-            const sourceLink = element('a', 'GitHub ↗', 'document-module-source');
-            sourceLink.href = module.sourceUrl;
+          if ((localModule || child) && (child?.sourceUrl || module.sourceUrl)) {
+            const sourceUrl = child?.sourceUrl || module.sourceUrl;
+            const github = new URL(sourceUrl).hostname === 'github.com';
+            const sourceLink = element('a', `${child?.sourceLabel || (github ? 'GitHub' : 'Source')} ↗`, 'document-module-source');
+            sourceLink.href = sourceUrl;
             sourceLink.target = '_blank';
             sourceLink.rel = 'noreferrer';
-            sourceLink.setAttribute('aria-label', `${module.title} source on GitHub`);
+            sourceLink.setAttribute('aria-label', `${module.title} source${github ? ' on GitHub' : ''}`);
             item.append(sourceLink);
           }
           list.append(item);
@@ -106,7 +111,7 @@ export function renderProject(root, projectId, moduleId = null) {
         section.append(list);
         root.querySelector('#module-groups').append(section);
       }
-      root.querySelector('#modules-title').textContent = unit.id === 'm1-toolchain' ? 'Included tools' : 'Repositories';
+      root.querySelector('#modules-title').textContent = unit.id === 'm1-toolchain' ? 'Included tools' : unit.modules.some(module => module.projectId) ? 'Included projects' : 'Repositories';
       root.querySelector('#project-modules').hidden = false;
     }
     renderSections(root, unit.page?.sections ?? []);

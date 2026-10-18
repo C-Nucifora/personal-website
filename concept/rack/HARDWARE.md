@@ -1,6 +1,6 @@
 # Hardware references
 
-The cabinet contains twelve software projects in 24U. Hardware gives each project a physical form. It does not claim the software runs on the referenced product. Project size still determines the unit height, including the single 6U M1 bundle.
+The software cabinet presents six units in 24U, occupying 20U above four blank panels. M1, Wavelength, Islet, nvim-stm32 and mozaproxy remain standalone; a 4U Personal Projects enclosure groups seven smaller records behind an eight-bay storage face. The individual project pages and equipment recipes remain available in the admin inventory. Hardware gives each project a physical form. It does not claim the software runs on the referenced product. Project size still determines the unit height, including the single 6U M1 bundle.
 
 Manufacturer photographs and drawings were inspected on 18 October 2026. Reference downloads remain outside the repository in `rack-hardware-2026-10-18/references`. The shipped models contain authored geometry, procedural finishes and project labels. They contain no manufacturer logos, product photography or imported meshes.
 

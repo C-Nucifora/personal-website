@@ -80,10 +80,13 @@ export function validatePortfolio(input) {
     if (unit.placement !== null && unit.placement !== undefined) { const place = keys(unit.placement, ['rackId', 'startU'], `${p}.rackUnit.placement`); placement = { rackId: id(place.rackId, `${p}.rackUnit.placement.rackId`), startU: integer(place.startU, `${p}.rackUnit.placement.startU`, 1, 48) }; }
     const page = keys(v.page ?? {}, ['theme', 'sections'], `${p}.page`); const theme = keys(page.theme ?? {}, Object.keys(DEFAULT_THEME), `${p}.page.theme`);
     const sections = array(page.sections ?? [], `${p}.page.sections`, 80).map((s, n) => section(s, `${p}.page.sections[${n}]`)); unique(sections, `${p}.page.sections`);
-    const modules = array(v.modules ?? [], `${p}.modules`, 100).map((item, n) => { const mp = `${p}.modules[${n}]`; const m = keys(item, ['id', 'group', 'title', 'description', 'sourceUrl'], mp); return { id: moduleId(m.id, `${mp}.id`), group: text(m.group, `${mp}.group`, 120), title: text(m.title, `${mp}.title`, 200, true), description: text(m.description, `${mp}.description`, 5000), sourceUrl: url(m.sourceUrl, `${mp}.sourceUrl`) }; }); unique(modules, `${p}.modules`);
+    const modules = array(v.modules ?? [], `${p}.modules`, 100).map((item, n) => { const mp = `${p}.modules[${n}]`; const m = keys(item, ['id', 'group', 'title', 'description', 'sourceUrl', 'projectId'], mp); return { ...(m.projectId !== undefined && m.projectId !== '' ? { projectId: id(m.projectId, `${mp}.projectId`) } : {}), id: moduleId(m.id, `${mp}.id`), group: text(m.group, `${mp}.group`, 120), title: text(m.title, `${mp}.title`, 200, true), description: text(m.description, `${mp}.description`, 5000), sourceUrl: url(m.sourceUrl, `${mp}.sourceUrl`) }; }); unique(modules, `${p}.modules`);
     return { id: id(v.id, `${p}.id`), title: text(v.title, `${p}.title`, 200, true), subtitle: text(v.subtitle, `${p}.subtitle`, 300), summary: text(v.summary, `${p}.summary`, 2000), description: text(v.description, `${p}.description`, 30000), sourceUrl: url(v.sourceUrl, `${p}.sourceUrl`), sourceLabel: text(v.sourceLabel, `${p}.sourceLabel`, 120), stack: array(v.stack ?? [], `${p}.stack`, 50).map((s, n) => text(s, `${p}.stack[${n}]`, 120, true)), facts: array(v.facts ?? [], `${p}.facts`, 50).map((f, n) => { const fp = `${p}.facts[${n}]`; const fact = keys(f, ['label', 'value'], fp); return { label: text(fact.label, `${fp}.label`, 120, true), value: text(fact.value, `${fp}.value`, 2000) }; }), modules, placeholder: boolean(v.placeholder, `${p}.placeholder`), published: boolean(v.published, `${p}.published`), rackUnit: { heightU: integer(unit.heightU, `${p}.rackUnit.heightU`, 1, 48), type: choice(unit.type, RACK_TYPES, `${p}.rackUnit.type`), faceTitle: text(unit.faceTitle, `${p}.rackUnit.faceTitle`, 120), placement }, page: { theme: { background: color(theme.background, `${p}.page.theme.background`, DEFAULT_THEME.background), text: color(theme.text, `${p}.page.theme.text`, DEFAULT_THEME.text), accent: color(theme.accent, `${p}.page.theme.accent`, DEFAULT_THEME.accent), font: choice(theme.font, ['sans', 'serif', 'mono'], `${p}.page.theme.font`, DEFAULT_THEME.font), layout: choice(theme.layout, ['standard', 'wide', 'editorial'], `${p}.page.theme.layout`, DEFAULT_THEME.layout) }, sections } };
   });
   unique(result.projects, 'projects');
+  for (const project of result.projects) for (const module of project.modules) {
+    if (module.projectId && (module.projectId === project.id || !result.projects.some(item => item.id === module.projectId))) fail(project.id, `module ${module.id} must link to another existing project`);
+  }
   const occupied = new Map();
   for (const project of result.projects) {
     const unit = project.rackUnit; if (!unit.placement) continue;
@@ -100,5 +103,7 @@ export function validatePortfolio(input) {
 export function publicPortfolio(config) {
   const result = validatePortfolio(config);
   result.projects = result.projects.filter(project => project.published);
+  const visibleIds = new Set(result.projects.map(project => project.id));
+  for (const project of result.projects) project.modules = project.modules.filter(module => !module.projectId || visibleIds.has(module.projectId));
   return result;
 }

@@ -1,11 +1,11 @@
-import { collections, allUnits } from "./collections.js?v=20261018-admin-materials-v1";
+import { collections, allUnits } from "./collections.js?v=20261018-curated-rack-v1";
 
 import { hasModuleCarriers } from './rack-layout.js';
 import { siteSettings, portfolio } from './site-data.js';
 import { buildPublicIndex } from './public-dom.js';
 buildPublicIndex();
 
-import { createProjectReader } from "./project-reader.js?v=20261018-admin-materials-v1";
+import { createProjectReader } from "./project-reader.js?v=20261018-curated-rack-v1";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -570,14 +570,14 @@ followRoute();
 try {
   if (!portfolio.racks.length) throw new Error('No racks are currently published');
   const [{ createRackScene }] = await Promise.all([
-    import("./scene.js?v=20261018-admin-materials-v1"),
+    import("./scene.js?v=20261018-curated-rack-v1"),
     Promise.allSettled([
       document.fonts.load('700 32px "IBM Plex Sans"'),
       document.fonts.load('700 32px "IBM Plex Mono"'),
     ]),
   ]);
   scene = await createRackScene({
-    finish: new URLSearchParams(location.search).get("finish") === "realistic" ? "realistic" : "simple",
+    finish: new URLSearchParams(location.search).get("finish") === "simple" ? "simple" : "realistic",
     canvas: document.querySelector("#rack-canvas"),
     collectionId: collection.id,
     mode,
