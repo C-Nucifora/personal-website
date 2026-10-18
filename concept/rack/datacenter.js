@@ -87,7 +87,9 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     const baseY = floorY + (z === 0 ? 0.22 : 0);
     const y = baseY + height / 2;
     const top = baseY + height;
-    rows.push({ x, z, height });
+    const archetype = ['compute', 'storage', 'network', 'power'][(index + Math.floor(index / 4)) % 4];
+    const layout = { x, z, height, archetype, bays: [] };
+    rows.push(layout);
     // Closed cases and overlapping front uprights leave only narrow assembly seams.
     box(cabinet, 4.92, height, 4.84, x, y, z);
     // An overlapping folded lid closes the top while retaining a service seam.
@@ -125,27 +127,77 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     box(silver, 1.08, 0.13, 0.12, x + 1.45, top - 0.42, z + 2.57);
     box(rubber, 0.18, 0.68, 0.08, x + 2.31, y + 0.15, z + 2.61);
     box(silver, 0.075, 0.5, 0.1, x + 2.31, y + 0.15, z + 2.68);
-    let cursor = baseY + 0.45;
-    let server = 0;
-    while (cursor < top - 0.9) {
-      const unitHeight = (server + index) % 4 === 0 ? 1.04 : 0.55;
-      if (cursor + unitHeight > top - 0.7) break;
-      const center = cursor + unitHeight / 2;
-      box(panel, 4.25, unitHeight - 0.055, 0.13, x, center, z + 2.53);
-      if ((server + index) % 3 === 0) {
-        for (let drive = 0; drive < 6; drive++) {
-          const driveX = x - 1.66 + drive * 0.66;
-          box(recess, 0.55, unitHeight * 0.65, 0.07, driveX, center, z + 2.62);
-          box(silver, 0.37, 0.07, 0.06, driveX, center - unitHeight * 0.2, z + 2.68);
+    const recipes = {
+      compute: [['server', 2], ['server', 1], ['server', 1], ['blank', 1], ['server', 2], ['server', 1]],
+      storage: [['storage', 3], ['storage', 2], ['storage', 3], ['blank', 1], ['storage', 2]],
+      network: [['blank', 2], ['manager', 1], ['patch', 1], ['switch', 1], ['manager', 1], ['patch', 1], ['switch', 1]],
+      power: [['ups', 4], ['battery', 3], ['blank', 2], ['power', 2], ['blank', 3], ['monitor', 1]],
+    };
+    const recipe = recipes[archetype];
+    const capacity = Math.floor((height - 1.15) / 0.52);
+    let used = 0;
+    let bay = 0;
+    while (used < capacity) {
+      const [type, requestedUnits] = archetype === 'power' && bay >= recipe.length
+        ? ['blank', capacity - used]
+        : recipe[bay % recipe.length];
+      const units = Math.min(requestedUnits, capacity - used);
+      const unitHeight = units * 0.52;
+      const bottom = baseY + 0.45 + used * 0.52;
+      const center = bottom + unitHeight / 2;
+      layout.bays.push({ type, units, bottom, top: bottom + unitHeight });
+      const face = type === 'ups' || type === 'battery' || type === 'manager' ? cabinet
+        : type === 'patch' || type === 'switch' ? silver : panel;
+      box(face, 4.25, unitHeight - 0.055, 0.13, x, center, z + 2.53);
+      if (type === 'storage') {
+        const driveRows = units >= 3 ? 2 : 1;
+        for (let row = 0; row < driveRows; row++) {
+          const driveY = center + (row - (driveRows - 1) / 2) * 0.62;
+          for (let drive = 0; drive < 6; drive++) {
+            const driveX = x - 1.66 + drive * 0.66;
+            box(recess, 0.56, 0.5, 0.07, driveX, driveY, z + 2.62);
+            box(silver, 0.39, 0.09, 0.065, driveX, driveY - 0.13, z + 2.68);
+          }
         }
-      } else {
-        box(recess, 2.82, unitHeight * 0.52, 0.08, x - 0.3, center, z + 2.63);
-        box(cabinet, 0.5, unitHeight * 0.68, 0.09, x + 1.45, center, z + 2.63);
-        for (const edge of [-1, 1]) box(silver, 0.09, unitHeight * 0.6, 0.12, x + edge * 1.95, center, z + 2.67);
+      } else if (type === 'server') {
+        for (let vent = 0; vent < 3; vent++) box(recess, 0.84, unitHeight * 0.54, 0.08, x - 1.22 + vent * 0.91, center, z + 2.63);
+        box(cabinet, 0.48, unitHeight * 0.66, 0.09, x + 1.45, center, z + 2.63);
+      } else if (type === 'patch' || type === 'switch') {
+        const ports = type === 'patch' ? 10 : 8;
+        for (let port = 0; port < ports; port++) box(recess, 0.22, 0.17, 0.075, x - 1.66 + port * 0.32, center, z + 2.64);
+        if (type === 'switch') box(cabinet, 0.52, 0.25, 0.08, x + 1.58, center, z + 2.64);
+        // Patch leads drop into the horizontal manager, then return to the side channel.
+        if (type === 'patch') {
+          for (let lead = 0; lead < 3; lead++) {
+            const portX = x - 1.66 + lead * 0.64;
+            const dropY = center - 0.34 - lead * 0.065;
+            pipe(cable, 0.032, [portX, center, z + 2.7], [portX, dropY, z + 2.87]);
+            pipe(cable, 0.032, [portX, dropY, z + 2.87], [x - 1.93, dropY, z + 2.87]);
+            pipe(cable, 0.032, [x - 1.93, dropY, z + 2.87], [x - 1.93, center - 0.58, z + 2.73]);
+          }
+        }
+      } else if (type === 'manager') {
+        box(recess, 3.72, 0.2, 0.09, x, center, z + 2.65);
+        for (const side of [-1, 1]) box(panel, 0.12, 0.32, 0.11, x + side * 1.92, center, z + 2.67);
+      } else if (type === 'ups' || type === 'battery') {
+        for (const side of [-1, 1]) {
+          box(recess, 1.55, unitHeight * 0.64, 0.08, x + side * 0.99, center - 0.08, z + 2.63);
+          box(silver, 0.09, unitHeight * 0.56, 0.11, x + side * 1.92, center, z + 2.67);
+        }
+        if (type === 'ups') {
+          box(panel, 0.62, 0.37, 0.085, x, center + unitHeight * 0.25, z + 2.65);
+          box(recess, 0.42, 0.18, 0.06, x, center + unitHeight * 0.25, z + 2.71);
+        }
+      } else if (type === 'power' || type === 'monitor') {
+        box(recess, 1.05, unitHeight * 0.48, 0.08, x - 0.93, center, z + 2.63);
+        for (let socket = 0; socket < 4; socket++) box(cabinet, 0.32, unitHeight * 0.48, 0.08, x + 0.25 + socket * 0.44, center, z + 2.63);
       }
-      if (server % 2 === 0) box(amber, 0.09, 0.05, 0.06, x + 1.5, center + 0.07, z + 2.69);
-      cursor += unitHeight;
-      server++;
+      if (type !== 'blank' && type !== 'manager' && type !== 'battery') box(amber, 0.09, 0.05, 0.06, x + 1.77, center + 0.07, z + 2.71);
+      if (type === 'server' || type === 'storage') {
+        for (const side of [-1, 1]) box(silver, 0.09, unitHeight * 0.6, 0.12, x + side * 1.95, center, z + 2.67);
+      }
+      used += units;
+      bay++;
     }
     box(recess, 0.22, height - 1.1, 0.24, x - 2.12, y, z + 2.58);
     for (let run = 0; run < 3; run++) pipe(cable, 0.035, [x - 2.02 + run * 0.065, floorY + 1.4, z + 2.72], [x - 2.02 + run * 0.065, trayY - 0.2, z + 2.72]);
@@ -156,7 +208,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     const height = z === 0 ? rackHeight : backgroundHeight;
     for (let index = 0; index < 9; index++) {
       const x = -24 + index * 6;
-      if (!reservedSlots.some(([slotX, slotZ]) => slotX === x && slotZ === z)) addCabinet(x, z, height, index + Math.abs(z));
+      if (!reservedSlots.some(([slotX, slotZ]) => slotX === x && slotZ === z)) addCabinet(x, z, height, index + Math.abs(z) / 12);
     }
     for (let join = 0; join < 8; join++) {
       const x = -21 + join * 6;
@@ -247,6 +299,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const bounds = new THREE.Box3().setFromObject(group);
   const stats = {
     cabinets: rows.length,
+    cabinetLayouts: rows,
     cableManagers: cableManagers.length,
     levelingFeet: feet.length,
     footContact: { minY: Math.min(...feet.map(foot => foot.bottom)), maxY: Math.max(...feet.map(foot => foot.bottom)), floorY },
