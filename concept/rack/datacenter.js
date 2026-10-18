@@ -1,11 +1,12 @@
 import * as THREE from './vendor/three.module.js';
+import { setFinishUVs } from './finishes.js?v=20261018-admin-materials-v1';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
 import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js';
 
 export const RACK_SLOTS = portfolio.racks.map((rack, index) => ({ id: rack.id, label: rack.label, position: [(index - Math.floor(portfolio.racks.length / 2)) * 6, 0, 0] }));
 
 // The content racks form the front equipment row. Repeated rows behind it supply depth.
-export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
+export function createDatacenter({ floorY = -5.42, rackHeight = 10.4, surfaces = null } = {}) {
   const group = new THREE.Group();
   group.name = 'Datacenter equipment rows';
   const parts = new Map();
@@ -23,29 +24,32 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const cableManagers = [];
   const feet = [];
 
-  function finish(name, color, roughness = 0.8, metalness = 0.1, basic = false) {
+  function finish(name, color, roughness = 0.8, metalness = 0.1, basic = false, surface = null) {
+    const settings = surface ? { ...surfaces?.settings(surface) } : {};
+    if (surface === 'metal') settings.metalness = THREE.MathUtils.clamp((settings.metalness ?? metalness) * siteSettings.appearance.materialMetalness, 0, 1);
     const material = basic
       ? new THREE.MeshBasicMaterial({ color })
-      : new THREE.MeshStandardMaterial({ color, roughness, metalness, envMapIntensity: 0.3 });
+      : new THREE.MeshPhysicalMaterial({ color, roughness, metalness, envMapIntensity: 0.3, ...settings });
     material.name = name;
     materials.push(material);
     parts.set(material, []);
     return material;
   }
-  const floor = finish('Raised floor', siteSettings.appearance.floorColor, 0.9, 0);
-  const wall = finish('Painted containment', '#95979b', 0.84, 0.05);
-  const ceiling = finish('Ceiling deck', '#282a2e', 0.92, 0.1);
-  const cabinet = finish('Powder-coated cabinet steel', '#24262a', 0.78, 0.12);
+  const floor = finish('Raised floor', siteSettings.appearance.floorColor, 0.9, 0, false, 'floor');
+  const wall = finish('Painted containment', '#95979b', 0.84, 0.05, false, 'painted');
+  const ceiling = finish('Ceiling deck', '#282a2e', 0.92, 0.1, false, 'painted');
+  const cabinet = finish('Powder-coated cabinet steel', '#24262a', 0.78, 0.12, false, 'painted');
   const recess = finish('Deep recess', '#090b0e', 0.94, 0);
-  const panel = finish('Painted server faceplates', '#41454b', 0.72, 0.18);
-  const silver = finish('Galvanised tray and rails', '#8e949c', 0.57, 0.82);
-  const rubber = finish('Leveling pads and gaskets', '#16171a', 0.98, 0);
-  const cable = finish('Blue cable bundles', '#39597a', 0.83, 0.05);
+  const panel = finish('Painted server faceplates', '#41454b', 0.72, 0.18, false, 'painted');
+  const silver = finish('Galvanised tray and rails', '#8e949c', 0.57, 0.82, false, 'metal');
+  const rubber = finish('Leveling pads and gaskets', '#16171a', 0.98, 0, false, 'plastic');
+  const cable = finish('Blue cable bundles', '#39597a', 0.83, 0.05, false, 'plastic');
   const lamp = finish('White fixture diffusers', '#f0f2f5', 1, 0, true);
   const amber = finish('Equipment indicators', usesBundledPortfolio ? '#bca77b' : siteSettings.appearance.accent, 1, 0, true);
 
   function box(material, width, height, depth, x, y, z) {
     const geometry = new THREE.BoxGeometry(width, height, depth);
+    setFinishUVs(geometry);
     geometry.translate(x, y, z);
     parts.get(material).push(geometry);
   }
@@ -54,6 +58,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     const b = new THREE.Vector3(...end);
     const delta = b.clone().sub(a);
     const geometry = new THREE.CylinderGeometry(radius, radius, delta.length(), 6, 1);
+    setFinishUVs(geometry);
     geometry.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize()));
     geometry.translate(...a.add(b).multiplyScalar(0.5).toArray());
     parts.get(material).push(geometry);

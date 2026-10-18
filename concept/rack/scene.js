@@ -1,15 +1,16 @@
 import * as THREE from './vendor/three.module.js';
+import { loadSurfaceFinishes } from './finishes.js?v=20261018-admin-materials-v1';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-screen-v1';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-admin-materials-v1';
 import { siteSettings, usesBundledPortfolio } from './site-data.js';
-import { collections } from './collections.js?v=20261018-screen-v1';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-screen-v1';
-import { stepSpring } from './motion.js?v=20261018-screen-v1';
+import { collections } from './collections.js?v=20261018-admin-materials-v1';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-admin-materials-v1';
+import { stepSpring } from './motion.js?v=20261018-admin-materials-v1';
 
 const BACKGROUND = usesBundledPortfolio ? '#121212' : siteSettings.appearance.background;
 const MAX_DRAWING_PIXELS = 6500000;
 
-export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export async function createRackScene({ canvas, finish = 'simple', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
   let units = collection.units;
   const mode = 'rack';
@@ -19,6 +20,13 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   } catch (error) {
     onError(error);
     return { select() {}, inspectModule() {}, setCollection() { return false; }, enterProject() { return false; }, zoom() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
+  }
+  let surfaces;
+  try {
+    surfaces = await loadSurfaceFinishes(renderer, finish === 'realistic' ? 'realistic' : 'simple', siteSettings.appearance.materialRoughness);
+  } catch (error) {
+    renderer.dispose();
+    throw error;
   }
   const gl = renderer.getContext();
   const samples = gl.getParameter(gl.SAMPLES);
@@ -78,7 +86,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   pmrem.dispose();
 
   const models = collections.map(item => {
-    const built = createRackModel(renderer, item.units, item.label, 1, { capacityU: item.capacityU, appearance: siteSettings.appearance, ownerName: siteSettings.intro.name });
+    const built = createRackModel(renderer, item.units, item.label, 1, { capacityU: item.capacityU, appearance: siteSettings.appearance, ownerName: siteSettings.intro.name, surfaces });
     built.rack.position.fromArray(RACK_SLOTS.find(slot => slot.id === item.id).position);
     scene.add(built.rack);
     return built;
@@ -93,7 +101,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   let { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], projectScreens = [], moduleAssemblies = [], slotY, heights } = model;
   scene.updateMatrixWorld(true);
   const floorY = -tallestHeight / 2 - 0.22;
-  const datacenter = createDatacenter({ floorY, rackHeight: tallestHeight });
+  const datacenter = createDatacenter({ floorY, rackHeight: tallestHeight, surfaces });
   scene.add(datacenter.group);
   scene.fog = new THREE.Fog(BACKGROUND, 42, 100);
   const rackTargetGeometries = [];
@@ -109,7 +117,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   });
   const worldPoint = point => rack.localToWorld(point);
   const worldDirection = direction => direction.applyQuaternion(rack.quaternion).normalize();
-  scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', 0.8));
+  scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', surfaces.finish === 'realistic' ? 0.65 : 0.8));
   const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
   key.position.set(1, 12, 7);
   key.target.position.set(0, 0, 0);
@@ -119,7 +127,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   key.shadow.bias = -0.00008;
   key.shadow.normalBias = 0.008;
   scene.add(key, key.target);
-  const fill = new THREE.DirectionalLight('#e9e9ee', 0.75);
+  const fill = new THREE.DirectionalLight('#e9e9ee', surfaces.finish === 'realistic' ? 0.55 : 0.75);
   fill.position.set(8, 2, 10);
   scene.add(fill);
   const rim = new THREE.DirectionalLight('#d4dce1', 1.6);
@@ -127,6 +135,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   scene.add(rim);
 
   let disposed = false;
+  let prepared = false;
   let contextLost = false;
   let selected = null;
   let phase = 'overview';
@@ -291,7 +300,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     return mechanicsSettled && (stage.follow || cameraSettled);
   }
   function requestRender() {
-    if (!frame && !disposed && !contextLost && !document.hidden) frame = requestAnimationFrame(render);
+    if (prepared && !frame && !disposed && !contextLost && !document.hidden) frame = requestAnimationFrame(render);
   }
   function drawScene() {
     try {
@@ -649,14 +658,47 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   controls.addEventListener('change', requestRender);
   resize();
   emit('overview');
+  function disposeScene() {
+    if (disposed) return;
+    disposed = true;
+    pendingEntry = null;
+    stages = [];
+    activeStage = null;
+    if (frame) cancelAnimationFrame(frame);
+    resizeObserver.disconnect();
+    pixelRatioQuery.removeEventListener('change', pixelRatioChange);
+    controls.removeEventListener('change', requestRender);
+    controls.dispose();
+    canvas.removeEventListener('pointermove', pointerMove);
+    canvas.removeEventListener('pointerdown', pointerStart);
+    canvas.removeEventListener('pointerup', pointerEnd);
+    canvas.removeEventListener('pointercancel', pointerCancel);
+    canvas.removeEventListener('pointerleave', clearHover);
+    canvas.removeEventListener('webglcontextlost', contextLoss);
+    document.removeEventListener('visibilitychange', visibilityChange);
+    models.forEach(item => item.dispose());
+    datacenter.dispose();
+    surfaces.dispose();
+    rackTargetGeometries.forEach(geometry => geometry.dispose());
+    rackTargetMaterial.dispose();
+    environment.dispose();
+    key.shadow.map?.dispose();
+    renderer.dispose();
+  }
   // Upload every resident rack's maps and compile its materials before navigation is enabled.
-  scene.traverse(object => {
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    materials.filter(Boolean).forEach(material => {
-      Object.values(material).forEach(value => { if (value?.isTexture) renderer.initTexture(value); });
+  try {
+    scene.traverse(object => {
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.filter(Boolean).forEach(material => {
+        Object.values(material).forEach(value => { if (value?.isTexture) renderer.initTexture(value); });
+      });
     });
-  });
-  renderer.compile(scene, camera);
+    await renderer.compileAsync(scene, camera);
+  } catch (error) {
+    disposeScene();
+    throw error;
+  }
+  prepared = true;
   requestRender();
   onReady();
 
@@ -726,32 +768,8 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { id: collections[index].id, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
       });
-      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, screenCenters, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
+      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, screenCenters, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { surfaces: surfaces.getState(), samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
     },
-    dispose() {
-      disposed = true;
-      pendingEntry = null;
-      stages = [];
-      activeStage = null;
-      if (frame) cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      pixelRatioQuery.removeEventListener('change', pixelRatioChange);
-      controls.removeEventListener('change', requestRender);
-      controls.dispose();
-      canvas.removeEventListener('pointermove', pointerMove);
-      canvas.removeEventListener('pointerdown', pointerStart);
-      canvas.removeEventListener('pointerup', pointerEnd);
-      canvas.removeEventListener('pointercancel', pointerCancel);
-      canvas.removeEventListener('pointerleave', clearHover);
-      canvas.removeEventListener('webglcontextlost', contextLoss);
-      document.removeEventListener('visibilitychange', visibilityChange);
-      models.forEach(item => item.dispose());
-      datacenter.dispose();
-      rackTargetGeometries.forEach(geometry => geometry.dispose());
-      rackTargetMaterial.dispose();
-      environment.dispose();
-      key.shadow.map?.dispose();
-      renderer.dispose();
-    },
+    dispose: disposeScene,
   };
 }

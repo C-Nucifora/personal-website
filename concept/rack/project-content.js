@@ -1,7 +1,7 @@
-import { collections, allUnits } from './collections.js?v=20261018-screen-v1';
+import { collections, allUnits } from './collections.js?v=20261018-admin-materials-v1';
 import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js';
 import { applyIdentity } from './public-dom.js';
-import { projectArt } from './project-art.js?v=20261018-screen-v1';
+import { projectArt } from './project-art.js?v=20261018-admin-materials-v1';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);

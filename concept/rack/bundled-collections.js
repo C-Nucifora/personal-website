@@ -1,4 +1,4 @@
-import { softwareUnits } from './catalog.js?v=20261018-screen-v1';
+import { softwareUnits } from './catalog.js?v=20261018-admin-materials-v1';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 

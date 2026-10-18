@@ -1,5 +1,5 @@
 import { allUnits as bundledUnits } from './bundled-collections.js';
-import { collections, allUnits } from './collections.js?v=20261018-screen-v1';
+import { collections, allUnits } from './collections.js?v=20261018-admin-materials-v1';
 import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js';
 
 export function element(tag, text = '', className = '') {

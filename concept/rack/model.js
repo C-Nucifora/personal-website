@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
+import { setFinishUVs } from './finishes.js?v=20261018-admin-materials-v1';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261018-screen-v1';
+import { softwareUnits } from './catalog.js?v=20261018-admin-materials-v1';
 import { allUnits as bundledUnits } from './bundled-collections.js';
 import { hasModuleCarriers } from './rack-layout.js';
 
@@ -40,10 +41,13 @@ function roundedBox(width, height, depth, radius = 0.025) {
   return geometry;
 }
 
-export function createRackModel(renderer, units = softwareUnits, label = 'Software', detailScale = 1, { capacityU, appearance = {}, ownerName = 'Christian Nucifora' } = {}) {
+export function createRackModel(renderer, units = softwareUnits, label = 'Software', detailScale = 1, { capacityU, appearance = {}, ownerName = 'Christian Nucifora', surfaces = null } = {}) {
   const palette = { ...COLORS, frame: appearance.rackColor ?? COLORS.frame };
-  const roughness = appearance.materialRoughness ?? 0.5;
-  const metalness = appearance.materialMetalness ?? 1;
+  const metalSettings = { metalness: 0.85, roughness: 0.54, ...surfaces?.settings('metal') };
+  metalSettings.roughness = metalSettings.roughnessMap ? 1 : appearance.materialRoughness ?? 0.5;
+  metalSettings.metalness = THREE.MathUtils.clamp(metalSettings.metalness * (appearance.materialMetalness ?? 1), 0, 1);
+  const paintedSettings = { metalness: 0.04, roughness: 0.7, ...surfaces?.settings('painted') };
+  const plasticSettings = { metalness: 0, roughness: 0.92, ...surfaces?.settings('plastic') };
   const geometries = new Set();
   const textures = [];
   const allMaterials = [];
@@ -54,48 +58,11 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     randomSeed ^= randomSeed << 5;
     return (randomSeed >>> 0) / 4294967296;
   };
-  const brushedCanvas = document.createElement('canvas');
-  brushedCanvas.width = 1024;
-  brushedCanvas.height = 256;
-  const brushedContext = brushedCanvas.getContext('2d');
-  brushedContext.fillStyle = '#f4f4f4';
-  brushedContext.fillRect(0, 0, 1024, 256);
-  for (let line = 0; line < 320; line++) {
-    const value = Math.round(225 + random() * 25);
-    brushedContext.strokeStyle = `rgba(${value},${value},${value},0.25)`;
-    brushedContext.lineWidth = 1 + random() * 2;
-    const y = random() * 256;
-    const x = random() * 1024;
-    brushedContext.beginPath();
-    brushedContext.moveTo(x, y);
-    brushedContext.lineTo(x + 90 + random() * 700, y + random() * 0.3);
-    brushedContext.stroke();
-  }
-  const brushed = new THREE.CanvasTexture(brushedCanvas);
-  brushed.wrapS = brushed.wrapT = THREE.RepeatWrapping;
-  brushed.repeat.set(1, 1);
-  brushed.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  textures.push(brushed);
-  const polymerCanvas = document.createElement('canvas');
-  polymerCanvas.width = polymerCanvas.height = 128;
-  const polymerContext = polymerCanvas.getContext('2d');
-  polymerContext.fillStyle = '#eeeeee';
-  polymerContext.fillRect(0, 0, 128, 128);
-  for (let grain = 0; grain < 5000; grain++) {
-    const value = Math.round(230 + random() * 25);
-    polymerContext.fillStyle = `rgba(${value},${value},${value},0.2)`;
-    polymerContext.fillRect(Math.floor(random() * 128), Math.floor(random() * 128), 1, 1);
-  }
-  const polymerGrain = new THREE.CanvasTexture(polymerCanvas);
-  polymerGrain.wrapS = polymerGrain.wrapT = THREE.RepeatWrapping;
-  polymerGrain.repeat.set(2, 2);
-  textures.push(polymerGrain);
   // Vertex colours let all the different metal finishes share a draw call per chassis.
   const materials = {
-    // Roughness grain survives minification; micro-bump on these tiny bevels caused specular shimmer.
-    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness, roughness, roughnessMap: brushed }),
-    painted: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0, roughness: 0.72, roughnessMap: polymerGrain }),
-    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain }),
+    metal: new THREE.MeshPhysicalMaterial({ color: '#ffffff', vertexColors: true, ...metalSettings }),
+    painted: new THREE.MeshPhysicalMaterial({ color: '#ffffff', vertexColors: true, ...paintedSettings }),
+    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, ...plasticSettings }),
     board: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.26, roughness: 0.62 }),
     light: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, emissive: '#ffffff', emissiveIntensity: 0.08, metalness: 0.2, roughness: 0.35 }),
   };
@@ -109,6 +76,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         geometry = geometry.toNonIndexed();
         indexed.dispose();
       }
+      setFinishUVs(geometry);
       const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1, 1, 1));
       geometry.applyMatrix4(matrix);
       if (finish === 'metal' && ['frame', 'graphite', 'black'].includes(color)) finish = 'painted';
@@ -343,15 +311,17 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
       textures.push(texture);
     }
-    // The colour and bump maps make a lit etch, rather than floating, unlit text.
-    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0025, metalness: painted ? 0 : metalness, roughness: painted ? 0.72 : roughness, roughnessMap: painted ? polymerGrain : brushed });
-    const rimMaterial = new THREE.MeshStandardMaterial({ color: palette[color], metalness: painted ? 0 : metalness, roughness: painted ? 0.72 : roughness, roughnessMap: painted ? polymerGrain : brushed });
+    // A normal map takes precedence over the engraved bump relief in Three.js.
+    const finishSettings = painted ? paintedSettings : metalSettings;
+    const material = new THREE.MeshPhysicalMaterial({ map, bumpMap, bumpScale: 0.0025, ...finishSettings, normalMap: null });
+    const rimMaterial = new THREE.MeshPhysicalMaterial({ color: palette[color], ...finishSettings });
     allMaterials.push(material, rimMaterial);
     // The etch belongs to the extrusion's top face, with no second sheet to shadow or fight it.
     const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 3 });
     const positions = geometry.attributes.position;
     const uv = geometry.attributes.uv;
     for (let vertex = 0; vertex < positions.count; vertex++) uv.setXY(vertex, (positions.getX(vertex) + width / 2) / width, (positions.getY(vertex) + depth / 2) / depth);
+    setFinishUVs(geometry);
     geometries.add(geometry);
     const cap = new THREE.Mesh(geometry, [material, rimMaterial]);
     cap.rotation.x = -Math.PI / 2;
