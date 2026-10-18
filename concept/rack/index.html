@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101211">
+  <meta name="theme-color" content="#121212">
   <meta name="description" content="Software projects by Christian Nucifora. Language tools, native apps, embedded development and small utilities.">
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-hardware-v3">
+  <link rel="stylesheet" href="./styles.css?v=20261018-neutral-v2">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -19,7 +19,7 @@
   </header>
   <main class="workspace" id="main">
     <section class="stage" aria-label="Interactive project rack">
-      <div class="stage-heading"><h1>Software projects</h1></div>
+      <div class="stage-heading"><h1>Software projects</h1><p>12 projects in a 24U rack</p></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
       <div class="scene-loading" id="scene-loading" role="status">Loading the rack…</div>
       <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still read every project in the list.</p></div>
@@ -33,7 +33,7 @@
     </section>
     <aside class="project-panel" aria-label="Projects">
       <div class="project-index" id="project-index" tabindex="-1">
-        <div class="panel-heading"><h2>Projects</h2><span aria-label="12 projects">12</span></div>
+        <div class="panel-heading"><h2>Project index</h2><span>Height</span></div>
         <nav aria-label="Select a project">
           <a class="project-row" href="#ci-runner-console" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>CI Runner Console</strong><span>Build infrastructure</span></span><span class="row-size">1U</span></a>
           <a class="project-row" href="#artifact-platform" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>Artifact Platform</strong><span>Self-hosted publishing</span></span><span class="row-size">1U</span></a>
@@ -176,6 +176,6 @@
     </aside>
   </main>
   <noscript><style>.scene-loading,.stage-controls,.phase-label,.stage-caption{display:none}.stage{height:200px!important;min-height:200px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
-  <script type="module" src="./app.js?v=20261018-hardware-v3"></script>
+  <script type="module" src="./app.js?v=20261018-neutral-v2"></script>
 </body>
 </html>

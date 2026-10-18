@@ -1,10 +1,10 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-hardware-v3';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-neutral-v2';
 import { units } from './catalog.js';
 
-const BACKGROUND = '#101211';
+const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
 const ease = (t) => t * t * (3 - 2 * t);
 
@@ -46,7 +46,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   const studio = new THREE.Scene();
   const studioGeometries = [];
   const studioMaterials = [];
-  const roomMaterial = new THREE.MeshBasicMaterial({ color: '#191d1e', side: THREE.BackSide });
+  const roomMaterial = new THREE.MeshBasicMaterial({ color: '#1d1d1f', side: THREE.BackSide });
   const roomGeometry = new THREE.BoxGeometry(40, 40, 40);
   studioMaterials.push(roomMaterial);
   studioGeometries.push(roomGeometry);
@@ -77,7 +77,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   scene.add(rack);
   const floorY = -model.height / 2 - 0.22;
   const floorGeometry = new THREE.PlaneGeometry(80, 80);
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: '#181b19', roughness: 0.96, envMapIntensity: 0.15 });
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: '#1c1c1d', roughness: 0.96, envMapIntensity: 0.15 });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = floorY;
@@ -98,11 +98,11 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     geometry.translate(...position);
     roomParts.get(material).push(geometry);
   }
-  const wall = roomFinish('#151817');
-  const joint = roomFinish('#0c100e');
-  const cabinet = roomFinish('#181e1b', 0.73, 0.15);
-  const door = roomFinish('#141916', 0.88, 0.08);
-  const trim = roomFinish('#29302b', 0.64, 0.28);
+  const wall = roomFinish('#181819');
+  const joint = roomFinish('#0e0e10');
+  const cabinet = roomFinish('#202022', 0.73, 0.15);
+  const door = roomFinish('#171719', 0.88, 0.08);
+  const trim = roomFinish('#303033', 0.64, 0.28);
   roomBox(wall, [80, 35, 0.3], [0, floorY + 17.5, -14]);
   roomBox(trim, [80, 0.28, 0.08], [0, floorY + 0.14, -13.8]);
   // Wide floor joints survive minification without a fine procedural grid.
@@ -160,7 +160,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     cabinetContact.position.set(x, floorY + 0.008, -6.4);
     scene.add(cabinetContact);
   }
-  scene.add(new THREE.HemisphereLight('#e4e7e7', '#262b28', 0.35));
+  scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', 0.35));
   const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
   key.position.set(-5, 11, 12);
   key.target.position.set(0, 0, 1);
@@ -170,7 +170,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   key.shadow.bias = -0.00008;
   key.shadow.normalBias = 0.008;
   scene.add(key, key.target);
-  const fill = new THREE.DirectionalLight('#e5e9e7', 0.4);
+  const fill = new THREE.DirectionalLight('#e9e9ee', 0.4);
   fill.position.set(8, 2, 10);
   scene.add(fill);
   const rim = new THREE.DirectionalLight('#d4dce1', 1.6);

@@ -6,9 +6,15 @@
 
 IBM Plex Sans replaces Space Grotesk for the interface and project pages. Its relationship to computing equipment makes it a useful companion to this cabinet. IBM's [Plex concept](https://www.ibm.com/plex/concept/) connects the family to System/360, research buildings and data centres. Its [typography guidance](https://www.ibm.com/design/language/typography/type-basics/) supports readable spacing rather than compressed tracking. These are references for an original layout, not a Carbon component clone.
 
-Headings use medium weight and normal tracking. The full project title now tops out at 44px instead of 78px. Narrative uses 18px text with 1.62 leading and a 62-character maximum measure. A narrow specification column separates project facts from explanation. The index has medium-weight project names and clearer secondary descriptions. Source links remain underlined. View, zoom and reset retain ordinary controls with 44px targets. Mono is limited to repository identifiers, bay numbers and equipment labels.
+Headings use medium weight and normal tracking. The full project title is capped at 52px and paired with its summary, replacing the earlier 78px heading. Narrative uses 18px text with 1.62 leading and a 62-character maximum measure. Aligned columns separate project facts from explanation. The index has medium-weight project names and clearer secondary descriptions. Source links remain underlined. View, zoom and reset retain ordinary controls with 44px targets. Mono is limited to repository identifiers, bay numbers and equipment labels.
 
 Two unchanged WOFF2 weights are self-hosted from [IBM's repository](https://github.com/IBM/plex/tree/71f558992315a12ca1f06a2215d57962a1992162/packages/plex-sans). Exact URLs are in `fonts/sources.json`; the complete SIL OFL 1.1 notice is `fonts/IBM-PLEX-SANS-OFL.txt`. No font service is contacted at runtime.
+
+## Palette and composition follow-up
+
+The user's supplied DEV Community article and explicit rejection of green guide the next pass. Neutral charcoal replaces olive in the interface and equipment room, including display artwork and reflected light. Copper identifies links, focus and physical selection. Navy, red and cream still describe the audio hardware. Dark mode remains the default.
+
+The index becomes a compact contents column instead of a contrasting application panel. Its spacing puts more projects in view and gives the actual M1 bundle useful hierarchy. Full project pages use an asymmetric title/summary opening before the narrative and specification columns. Existing catalog descriptions remain factual, including experimental qualifications. The article's recommendations are applied to this static HTML and Three.js implementation without importing its example theme or component system.
 
 ## Further studies
 
