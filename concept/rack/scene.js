@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-aa';
+import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-hardware-v3';
 import { units } from './catalog.js';
 
 const BACKGROUND = '#101211';
@@ -76,12 +77,66 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   scene.add(rack);
   const floorY = -model.height / 2 - 0.22;
   const floorGeometry = new THREE.PlaneGeometry(80, 80);
-  const floorMaterial = new THREE.ShadowMaterial({ color: '#000000', opacity: 0.23 });
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: '#181b19', roughness: 0.96, envMapIntensity: 0.15 });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = floorY;
   floor.receiveShadow = true;
   scene.add(floor);
+  const roomGeometries = [];
+  const roomMaterials = [];
+  const room = new THREE.Group();
+  const roomParts = new Map();
+  function roomFinish(color, roughness = 0.85, metalness = 0) {
+    const material = new THREE.MeshStandardMaterial({ color, roughness, metalness, envMapIntensity: 0.22 });
+    roomMaterials.push(material);
+    roomParts.set(material, []);
+    return material;
+  }
+  function roomBox(material, size, position) {
+    const geometry = new THREE.BoxGeometry(...size);
+    geometry.translate(...position);
+    roomParts.get(material).push(geometry);
+  }
+  const wall = roomFinish('#151817');
+  const joint = roomFinish('#0c100e');
+  const cabinet = roomFinish('#181e1b', 0.73, 0.15);
+  const door = roomFinish('#141916', 0.88, 0.08);
+  const trim = roomFinish('#29302b', 0.64, 0.28);
+  roomBox(wall, [80, 35, 0.3], [0, floorY + 17.5, -14]);
+  roomBox(trim, [80, 0.28, 0.08], [0, floorY + 0.14, -13.8]);
+  // Wide floor joints survive minification without a fine procedural grid.
+  for (let x = -24; x <= 24; x += 4) roomBox(joint, [0.025, 0.012, 48], [x + 1.8, floorY + 0.002, 0]);
+  for (let z = -20; z <= 20; z += 4) roomBox(joint, [56, 0.012, 0.025], [0, floorY + 0.002, z + 0.4]);
+  // The neighboring cabinets borrow the 600 × 1199 × 1070 mm proportions of a 24U NetShelter SX.
+  for (const x of [-7.6, 7.6]) {
+    const height = model.height;
+    const width = height * 600 / 1199;
+    const depth = height * 1070 / 1199;
+    const centerY = floorY + height / 2 + 0.1;
+    const front = -2.7;
+    roomBox(cabinet, [width, height, depth], [x, centerY, front - depth / 2]);
+    roomBox(joint, [width - 0.28, height - 0.38, 0.06], [x, centerY, front + 0.035]);
+    roomBox(door, [width - 0.55, height - 0.65, 0.07], [x, centerY, front + 0.08]);
+    for (const side of [-1, 1]) roomBox(trim, [0.1, height - 0.42, 0.12], [x + side * (width / 2 - 0.12), centerY, front + 0.06]);
+    for (const sign of [-1, 1]) roomBox(trim, [width - 0.18, 0.13, 0.12], [x, centerY + sign * (height / 2 - 0.14), front + 0.06]);
+    // Broad recessed ventilation strips suggest a perforated door without subpixel hole patterns.
+    for (let row = 0; row < 15; row++) roomBox(joint, [width - 0.94, 0.16, 0.03], [x, centerY - height * 0.38 + row * height * 0.054, front + 0.125]);
+    roomBox(trim, [0.085, 0.68, 0.14], [x + width / 2 - 0.42, centerY - 0.25, front + 0.19]);
+    for (const side of [-1, 1]) roomBox(joint, [0.32, 0.14, 0.45], [x + side * (width / 2 - 0.45), floorY + 0.07, front - 0.65]);
+  }
+  const trayY = floorY + model.height + 1.5;
+  roomBox(trim, [25, 0.1, 0.85], [0, trayY, -13]);
+  roomBox(cabinet, [25, 0.25, 0.08], [0, trayY + 0.12, -12.6]);
+  for (const x of [-10, 0, 10]) roomBox(trim, [0.08, 1.3, 0.08], [x, trayY + 0.65, -13]);
+  roomParts.forEach((parts, material) => {
+    const geometry = mergeGeometries(parts, false);
+    parts.forEach(part => part.dispose());
+    roomGeometries.push(geometry);
+    const mesh = new THREE.Mesh(geometry, material);
+    room.add(mesh);
+  });
+  scene.add(room);
   const contactCanvas = document.createElement('canvas');
   contactCanvas.width = contactCanvas.height = 256;
   const context = contactCanvas.getContext('2d');
@@ -98,6 +153,13 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   contact.rotation.x = -Math.PI / 2;
   contact.position.set(0, floorY + 0.008, 0.15);
   scene.add(contact);
+  for (const x of [-7.6, 7.6]) {
+    const cabinetContact = new THREE.Mesh(contactGeometry, contactMaterial);
+    cabinetContact.rotation.x = -Math.PI / 2;
+    cabinetContact.scale.set(1.05, 1.55, 1);
+    cabinetContact.position.set(x, floorY + 0.008, -6.4);
+    scene.add(cabinetContact);
+  }
   scene.add(new THREE.HemisphereLight('#e4e7e7', '#262b28', 0.35));
   const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
   key.position.set(-5, 11, 12);
@@ -456,6 +518,8 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
       model.dispose();
       floorGeometry.dispose();
       floorMaterial.dispose();
+      roomGeometries.forEach(geometry => geometry.dispose());
+      roomMaterials.forEach(material => material.dispose());
       contactGeometry.dispose();
       contactMaterial.dispose();
       contactTexture.dispose();

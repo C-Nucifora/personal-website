@@ -164,7 +164,7 @@ motionPreference.addEventListener("change", applyMotionPreference);
 applyMotionPreference();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-aa");
+  const { createRackScene } = await import("./scene.js?v=20261018-hardware-v3");
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     onSelect: index => openProject(index),

@@ -8,7 +8,7 @@ export const EXTRACTION = 4.42;
 const COLORS = {
   frame: '#353b3c', edge: '#60696b', silver: '#b8c2c8', bright: '#dce3e5',
   darkSilver: '#7d898e', graphite: '#51514c', black: '#101719', rubber: '#242a2b',
-  pcb: '#315b50', trace: '#9e9a68', copper: '#ad7952', orange: '#dd8451', green: '#a5c9a6',
+  navy: '#344559', red: '#843f3d', cream: '#d9dbcc', pcb: '#315b50', trace: '#9e9a68', copper: '#ad7952', orange: '#dd8451', green: '#a5c9a6',
 };
 
 function roundedPath(path, x, y, width, height, radius) {
@@ -143,12 +143,16 @@ export function createRackModel(renderer) {
     const sx = surface.width / width;
     const sy = surface.height / height;
     const graphic = {
-      text(text, x, y, size = 0.075, color = '#d1d9d6', align = 'left', weight = 500) {
+      text(text, x, y, size = 0.075, color = '#d1d9d6', align = 'left', weight = 500, angle = 0) {
         ctx.font = `${weight} ${size * sy}px monospace`;
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.textBaseline = 'middle';
-        ctx.fillText(text, (x + width / 2) * sx, (height / 2 - y) * sy);
+        ctx.save();
+        ctx.translate((x + width / 2) * sx, (height / 2 - y) * sy);
+        ctx.rotate(angle);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
       },
       rect(x, y, w, h, color, radius = 0) {
         ctx.fillStyle = color;
@@ -192,8 +196,8 @@ export function createRackModel(renderer) {
     parts.cylinder('black', radius * 1.12, 0.035, [x, y, FACE_Z + 0.055], [Math.PI / 2, 0, 0], 28, 'plastic');
     parts.cylinder(color, radius, 0.15, [x, y, FACE_Z + 0.14], [Math.PI / 2, 0, 0], 32);
     parts.cylinder('darkSilver', radius * 0.84, 0.008, [x, y, FACE_Z + 0.22], [Math.PI / 2, 0, 0], 32);
-    for (let tooth = 0; tooth < 28; tooth++) {
-      const angle = tooth * Math.PI * 2 / 28;
+    for (let tooth = 0; tooth < 16; tooth++) {
+      const angle = tooth * Math.PI * 2 / 16;
       parts.box('darkSilver', [0.008, 0.025, 0.12], [x + Math.sin(angle) * radius, y + Math.cos(angle) * radius, FACE_Z + 0.14], [0, 0, -angle]);
     }
     parts.box('bright', [0.014, radius * 0.45, 0.006], [x, y + radius * 0.5, FACE_Z + 0.225]);
@@ -401,7 +405,7 @@ export function createRackModel(renderer) {
         parts.box('darkSilver', [0.012, ph - 0.008, 0.055], [x + side * (w / 2 - 0.009), py, FACE_Z - 0.005]);
         parts.box('darkSilver', [w - 0.012, 0.012, 0.055], [x, py + side * (ph / 2 - 0.008), FACE_Z - 0.005]);
       }
-      for (let pin = 0; pin < 6; pin++) parts.box('trace', [0.008, 0.026, 0.04], [x - w * 0.3 + pin * w * 0.12, py + ph * 0.19, FACE_Z - 0.01]);
+      for (let pin = 0; pin < 8; pin++) parts.box('trace', [0.006, 0.026, 0.04], [x - w * 0.33 + pin * w * 0.094, py + ph * 0.19, FACE_Z - 0.01]);
       parts.box('rubber', [w * 0.38, ph * 0.19, 0.015], [x, py - ph * 0.39, FACE_Z - 0.016], [0, 0, 0], 'plastic');
     };
     const sfp = (x, py) => {
@@ -433,179 +437,225 @@ export function createRackModel(renderer) {
       parts.rounded('black', [w + 0.024, ph + 0.024, 0.03], [x, py, FACE_Z + 0.042], 0.022, [0, 0, 0], 'plastic');
       parts.rounded(color, [w, ph, 0.045], [x, py, FACE_Z + 0.07], 0.018, [0, 0, 0], color === 'green' || color === 'orange' ? 'light' : 'plastic');
     };
-    const lightFace = ['network', 'router', 'instrument', 'audio', 'appliance', 'storage', 'utility'].includes(unit.type);
-    const faceColor = unit.type === 'compute' ? 'graphite' : lightFace ? 'silver' : 'frame';
-    const ink = lightFace ? '#333e43' : '#c3ccc7';
+    const lightFace = ['network', 'router', 'instrument', 'appliance'].includes(unit.type);
+    const faceColor = unit.type === 'audio' ? 'navy' : unit.type === 'compute' ? 'silver' : lightFace ? 'silver' : 'frame';
+    const ink = lightFace || unit.type === 'compute' ? '#333e43' : '#c3ccc7';
     const faceLabel = (text, x, py, size = 0.07, align = 'left') => paintCommands.push(g => g.text(text, x, py, size, ink, align));
+    const usb = (x, py) => {
+      cut(x, py, 0.14, 0.065, 0.007);
+      parts.box('black', [0.148, 0.074, 0.07], [x, py, FACE_Z - 0.04], [0, 0, 0], 'plastic');
+      parts.box('navy', [0.105, 0.021, 0.035], [x, py - 0.008, FACE_Z - 0.003], [0, 0, 0], 'plastic');
+    };
+    const jack = (x, py) => {
+      cut(x, py, 0.068, 0.068, 0.034);
+      parts.cylinder('black', 0.034, 0.035, [x, py, FACE_Z - 0.02], [Math.PI / 2, 0, 0], 16, 'plastic');
+      parts.torus('silver', 0.033, 0.009, [x, py, FACE_Z + 0.035]);
+    };
 
     if (unit.type === 'network') {
-      display(-1.57, 0, 0.42, 0.225, (g, x, py) => {
-        g.text('CI', x, py + 0.042, 0.07, '#d3e8df', 'center');
-        g.text('RUNNERS', x, py - 0.052, 0.036, '#92b8a7', 'center');
+      // USW-Pro-24: an empty left half, two rows of twelve, then stacked uplinks.
+      display(-1.76, 0, 0.24, 0.245, (g, x, py) => {
+        g.text('CI', x, py + 0.035, 0.072, '#d3e8df', 'center');
+        g.text('RUNNERS', x, py - 0.064, 0.025, '#92b8a7', 'center');
       });
-      for (let col = 0; col < 24; col++) rj45(-1.2 + col * 0.12, -0.044, 0.102, 0.095);
-      for (let col = 0; col < 24; col++) faceLabel(String(col + 1), -1.2 + col * 0.12, -0.126, 0.025, 'center');
-      sfp(1.81, -0.038);
-      faceLabel('CI RUNNER', -1.19, 0.106, 0.05);
-      led(-1.92, 0.09);
-      led(-1.92, -0.02, 'orange');
-    } else if (unit.type === 'router') {
-      for (let col = 0; col < 4; col++) sfp(-1.64 + col * 0.32, -0.023);
-      display(0.06, 0, 0.96, 0.23, (g, x, py) => {
-        g.text('ARTIFACTS', x - 0.41, py + 0.05, 0.058, '#d4e8dc');
-        g.text('SELF-HOSTED PUBLISHING', x - 0.41, py - 0.054, 0.037, '#9bada3');
-      });
-      vents(1.18, 0, 0.94, 0.21, 12, 2);
-      led(1.89, 0.06);
-      parts.cylinder('rubber', 0.049, 0.04, [1.89, -0.063, FACE_Z + 0.067], [Math.PI / 2, 0, 0], 20, 'plastic');
-    } else if (unit.type === 'instrument') {
-      faceLabel('NVIM / STM32', -1.8, h / 2 - 0.09, 0.075);
-      display(-0.97, -0.02, 1.44, 0.39, (g, x, py, w) => {
-        g.text('FIRMWARE TOOLS', x - w / 2 + 0.07, py + 0.127, 0.057, '#c4d2c8');
-        g.line([[x - 0.64, py + 0.045], [x + 0.64, py + 0.045]], '#384942', 0.006);
-        g.text('BUILD / FLASH', x - w / 2 + 0.07, py - 0.025, 0.06, '#b0c5b8');
-        g.text('ST-LINK / UART', x - w / 2 + 0.07, py - 0.134, 0.043, '#8caaa1');
-      });
-      for (let port = 0; port < 3; port++) bnc(0.14 + port * 0.3, -0.17);
-      knob(parts, 1.36, 0.018, 0.17);
-      for (let b = 0; b < 3; b++) button(0.12 + b * 0.28, 0.14, 0.15, 0.105, b === 0 ? 'green' : 'rubber');
-      faceLabel('BUILD / FLASH', 1.36, -0.24, 0.052, 'center');
-      led(1.83, 0.22);
-    } else if (unit.type === 'control') {
-      display(-1.19, 0.02, 1.05, 0.39, (g, x, py, w) => {
-        g.text('MOZAPROXY', x - w / 2 + 0.07, py + 0.105, 0.055, '#c8dcd3');
-        g.text('WHEEL SETTINGS', x - w / 2 + 0.07, py - 0.009, 0.045, '#80a7a2');
-        g.text('INPUT MONITOR', x - w / 2 + 0.07, py - 0.114, 0.043, '#d5b693');
-      });
-      for (let row = 0; row < 2; row++) for (let col = 0; col < 6; col++) button(-0.22 + col * 0.235, 0.13 - row * 0.265, 0.15, 0.17, row === 1 && col === 3 ? 'orange' : col === 0 ? 'green' : 'rubber');
-      knob(parts, 1.59, 0, 0.165, 'darkSilver');
-      faceLabel('MOZAPROXY', -1.76, h / 2 - 0.085, 0.068);
-      faceLabel('WHEEL CONTROL', 1.18, -h / 2 + 0.075, 0.044, 'center');
-    } else if (unit.type === 'compute') {
-      faceLabel('M1 / LANGUAGE TOOLCHAIN', -1.68, h / 2 - 0.155, 0.096);
-      display(-0.95, h / 2 - 0.49, 1.42, 0.29, (g, x, py) => {
-        g.text('M1 TOOLCHAIN', x - 0.63, py + 0.065, 0.056, '#d0d9cd');
-        g.text('15 MODULES / RUST / LUA', x - 0.63, py - 0.064, 0.043, '#8eb3a2');
-      });
-      for (let i = 0; i < 3; i++) rj45(0.43 + i * 0.36, h / 2 - 0.5, 0.23, 0.15);
-      led(1.6, h / 2 - 0.45, 'orange');
-      led(1.6, h / 2 - 0.58);
-      // Fifteen shallow cartridges make the language ecosystem one substantial 6U assembly.
-      for (let row = 0; row < 5; row++) {
-        for (let column = 0; column < 3; column++) {
-          const x = -1.16 + column * 1.16;
-          const cy = 0.28 - row * 0.313;
-          const moduleIndex = row * 3 + column;
-          parts.rounded('black', [1.095, 0.291, 0.07], [x, cy, FACE_Z + 0.053], 0.025, [0, 0, 0], 'plastic');
-          parts.rounded(column === 1 ? 'edge' : 'graphite', [1.067, 0.269, 0.065], [x, cy, FACE_Z + 0.092], 0.018);
-          for (let slit = 0; slit < 7; slit++) parts.rounded('black', [0.083, 0.041, 0.008], [x - 0.392 + slit * 0.127, cy + 0.053, FACE_Z + 0.13], 0.015, [0, 0, 0], 'plastic');
-          parts.rounded('darkSilver', [0.72, 0.037, 0.068], [x - 0.036, cy - 0.023, FACE_Z + 0.171], 0.014);
-          parts.rounded('orange', [0.101, 0.049, 0.042], [x + 0.421, cy - 0.02, FACE_Z + 0.178], 0.013);
-          led(x - 0.463, cy - 0.029, moduleIndex % 4 === 0 ? 'orange' : 'green');
-          raisedPaintCommands.push(g => g.text(unit.modules?.[moduleIndex]?.id || `MODULE ${String(moduleIndex + 1).padStart(2, '0')}`, x, cy - 0.093, 0.034, '#c8ccc0', 'center'));
-        }
+      faceLabel('CI RUNNER', -1.39, -0.085, 0.075);
+      for (let col = 0; col < 12; col++) for (let row = 0; row < 2; row++) {
+        const x = -0.67 + col * 0.198;
+        const py = 0.077 - row * 0.154;
+        rj45(x, py, 0.174, 0.119);
       }
+      for (let row = 0; row < 2; row++) sfp(1.79, 0.076 - row * 0.153);
+      parts.box('black', [3.2, 0.012, 0.008], [0.12, 0.167, FACE_Z + 0.035], [0, 0, 0], 'plastic');
+    } else if (unit.type === 'router') {
+      // UDM Pro: removable drive drawer separates the LCM from a compact 2x4 switch.
+      display(-1.77, 0, 0.23, 0.24, (g, x, py) => {
+        g.text('A', x, py + 0.024, 0.092, '#d4e8dc', 'center');
+        g.text('ARTIFACTS', x, py - 0.072, 0.022, '#9bada3', 'center');
+      });
+      cut(-0.53, -0.007, 1.48, 0.26, 0.012);
+      parts.rounded('black', [1.49, 0.27, 0.07], [-0.53, -0.007, FACE_Z - 0.04], 0.012, [0, 0, 0], 'plastic');
+      parts.rounded('silver', [1.44, 0.234, 0.045], [-0.53, -0.007, FACE_Z + 0.006], 0.01);
+      parts.cylinder('black', 0.011, 0.008, [0.09, -0.007, FACE_Z + 0.034], [Math.PI / 2, 0, 0], 12, 'plastic');
+      for (let col = 0; col < 4; col++) for (let row = 0; row < 2; row++) rj45(0.53 + col * 0.202, 0.075 - row * 0.152, 0.174, 0.116);
+      rj45(1.42, -0.073, 0.18, 0.117);
+      sfp(1.77, 0.075); sfp(1.77, -0.077);
+      faceLabel('ARTIFACT', -1.42, 0.052, 0.061);
+      faceLabel('PUBLISHING', -1.42, -0.054, 0.039);
+    } else if (unit.type === 'instrument') {
+      // Bench instrument function groups adapted into a 2U rack adapter.
+      parts.rounded('rubber', [3.64, h - 0.09, 0.045], [0, 0, FACE_Z + 0.016], 0.045, [0, 0, 0], 'plastic');
+      display(-0.99, 0.025, 1.5, 0.425, (g, x, py, w) => {
+        g.text('NVIM / STM32', x - w / 2 + 0.065, py + 0.137, 0.058, '#d2d8ca');
+        g.text('BUILD', x - 0.64, py + 0.012, 0.06, '#ddc88f');
+        g.text('FLASH', x - 0.64, py - 0.101, 0.06, '#afc9b4');
+        g.line([[x - 0.15, py - 0.09], [x - 0.15, py + 0.055], [x + 0.12, py + 0.055], [x + 0.12, py - 0.06], [x + 0.38, py - 0.06]], '#87a89b', 0.012);
+        g.text('ST-LINK / UART', x - 0.11, py + 0.137, 0.038, '#9bb4ac');
+      });
+      for (let i = 0; i < 5; i++) button(-1.6 + i * 0.3, -0.253, 0.18, 0.062);
+      for (let i = 0; i < 3; i++) button(-0.08, 0.17 - i * 0.14, 0.115, 0.072);
+      for (const x of [0.28, 0.78]) {
+        knob(parts, x, 0.173, 0.066, 'darkSilver');
+        knob(parts, x, -0.035, 0.09, 'darkSilver');
+      }
+      for (let i = 0; i < 3; i++) button(1.12 + i * 0.21, 0.2, 0.145, 0.085, i === 0 ? 'green' : 'cream');
+      for (let i = 0; i < 3; i++) button(1.12 + i * 0.21, 0.055, 0.145, 0.072);
+      for (let i = 0; i < 3; i++) {
+        const x = 0.37 + i * 0.54;
+        parts.rounded(['orange', 'green', 'navy'][i], [0.21, 0.127, 0.013], [x, -0.237, FACE_Z + 0.044], 0.018, [0, 0, 0], 'plastic');
+        bnc(x, -0.237);
+      }
+      usb(-1.78, -0.26);
+      faceLabel('FIRMWARE WORKBENCH', -1.68, h / 2 - 0.046, 0.041);
+    } else if (unit.type === 'control') {
+      // Videohub anatomy: dense labelled key matrix, four routing keys, LCD, jog dial.
+      faceLabel('MOZAPROXY', -1.8, 0.253, 0.088);
+      faceLabel('WHEEL CONTROL', -1.8, 0.117, 0.045);
+      const keyLabels = ['FFB', 'DAMP', 'FRIC', 'INRT', 'SPR', 'GAIN', 'ROT', 'BRAKE', 'THROT', 'CLUTCH', 'AXIS', 'INPUT'];
+      for (let row = 0; row < 2; row++) for (let col = 0; col < 6; col++) {
+        const x = -0.65 + col * 0.221; const py = 0.125 - row * 0.255;
+        button(x, py, 0.184, 0.211, row === 0 && col === 0 ? 'orange' : 'cream');
+        raisedPaintCommands.push(g => g.text(keyLabels[row * 6 + col], x, py, 0.034, '#29312e', 'center'));
+      }
+      for (let row = 0; row < 2; row++) for (let col = 0; col < 2; col++) button(0.85 + col * 0.22, 0.125 - row * 0.255, 0.17, 0.205, row === 1 && col === 1 ? 'orange' : 'cream');
+      display(1.39, 0.043, 0.37, 0.34, (g, x, py) => {
+        g.text('WHEEL', x, py + 0.082, 0.038, '#cad8ca', 'center');
+        g.line([[x - 0.13, py - 0.055], [x + 0.13, py - 0.055]], '#839f92', 0.016);
+      });
+      knob(parts, 1.79, 0.02, 0.135, 'darkSilver');
+      for (let i = 0; i < 3; i++) button(1.79, 0.27 - i * 0.253, 0.083, 0.058);
+    } else if (unit.type === 'compute') {
+      // A 6U Eurocard subrack, not disk drawers. Each repository has a tall plug-in panel.
+      faceLabel('M1 / LANGUAGE TOOLCHAIN', -1.68, h / 2 - 0.095, 0.075);
+      cut(0, -0.015, 3.5, h - 0.42, 0.008);
+      parts.box('black', [3.57, h - 0.35, 0.08], [0, -0.015, FACE_Z - 0.045], [0, 0, 0], 'plastic');
+      for (const py of [-h / 2 + 0.15, h / 2 - 0.15]) {
+        parts.box('darkSilver', [3.55, 0.075, 0.12], [0, py, FACE_Z + 0.035]);
+        parts.box('black', [3.5, 0.014, 0.006], [0, py, FACE_Z + 0.1], [0, 0, 0], 'plastic');
+      }
+      const modules = ['Language tools', 'Editor integration', 'Project tools'].flatMap(group => unit.modules.filter(module => module.group === group));
+      modules.forEach((module, moduleIndex) => {
+        const x = -1.6 + moduleIndex * (3.2 / 14);
+        const tint = moduleIndex < 7 ? 'silver' : moduleIndex < 9 ? 'darkSilver' : 'bright';
+        const bladeH = h - 0.53;
+        parts.box(tint, [0.213, bladeH, 0.065], [x, -0.015, FACE_Z + 0.068]);
+        for (const py of [-bladeH / 2 + 0.075, bladeH / 2 - 0.075]) screw(parts, x, py - 0.015, FACE_Z + 0.115, 0.018);
+        parts.rounded('black', [0.13, 0.23, 0.055], [x, -bladeH / 2 + 0.24, FACE_Z + 0.115], 0.017, [0, 0, 0], 'plastic');
+        parts.rounded(moduleIndex < 7 ? 'navy' : moduleIndex < 9 ? 'orange' : 'graphite', [0.075, 0.135, 0.09], [x, -bladeH / 2 + 0.205, FACE_Z + 0.157], 0.014, [0.1, 0, 0], 'plastic');
+        raisedPaintCommands.push(g => g.text(module.id, x, 0.13, 0.046, moduleIndex < 7 ? '#27343a' : moduleIndex < 9 ? '#edf0e5' : '#334044', 'center', 500, -Math.PI / 2));
+        if (moduleIndex === 0 || moduleIndex === 7 || moduleIndex === 9) parts.box(moduleIndex === 7 ? 'orange' : 'navy', [0.14, 0.035, 0.008], [x, bladeH / 2 - 0.16, FACE_Z + 0.108], [0, 0, 0], 'plastic');
+      });
+      faceLabel('LANGUAGE', -0.915, -h / 2 + 0.061, 0.049, 'center');
+      faceLabel('EDITOR', 0.115, -h / 2 + 0.061, 0.042, 'center');
+      faceLabel('PROJECT TOOLS', 1.03, -h / 2 + 0.061, 0.046, 'center');
       handle(parts, -1.88, -0.03, h - 0.36, 'darkSilver');
       handle(parts, 1.88, -0.03, h - 0.36, 'darkSilver');
     } else if (unit.type === 'audio') {
-      faceLabel('WAVELENGTH', -1.78, h / 2 - 0.095, 0.09);
-      for (let col = 0; col < 4; col++) for (let row = 0; row < 2; row++) {
-        const x = -1.5 + col * 0.49;
-        const py = 0.2 - row * 0.42;
-        knob(parts, x, py, 0.102, col === 0 && row === 1 ? 'orange' : 'silver');
-        faceLabel(['GENRE', 'ARTIST', 'ALBUM', 'PLAYLIST'][col], x, py - 0.155, 0.042, 'center');
-      }
-      display(1.15, 0.035, 1.05, 0.65, (g, x, py) => {
-        g.text('PLAYLISTS', x - 0.43, py + 0.235, 0.06, '#c6d2c7');
-        const trackWidths = [0.53, 0.41, 0.58];
-        for (let row = 0; row < 3; row++) {
-          const rowY = py + 0.1 - row * 0.13;
-          g.rect(x - 0.375, rowY, 0.1, 0.1, ['#9caa92', '#b39a7d', '#829b92'][row], 0.012);
-          g.rect(x - 0.255 + trackWidths[row] / 2, rowY + 0.019, trackWidths[row], 0.021, '#9aafa2', 0.007);
-          g.rect(x - 0.255 + 0.145, rowY - 0.022, 0.29, 0.013, '#496354', 0.005);
+      // Portico II's repeated control groups and stepped colour knobs, adapted to 3U.
+      faceLabel('WAVELENGTH', -1.77, 0.46, 0.09);
+      const controls = ['GENRE', 'ARTIST', 'ALBUM', 'PLAYLIST'];
+      for (let group = 0; group < 2; group++) {
+        const cx = -1.16 + group * 1.29;
+        paintCommands.push(g => g.line([[cx - 0.59, 0.34], [cx + 0.59, 0.34], [cx + 0.59, -0.43], [cx - 0.59, -0.43], [cx - 0.59, 0.34]], '#8caaa9', 0.008));
+        for (let row = 0; row < 3; row++) for (let col = 0; col < 2; col++) {
+          const x = cx - 0.32 + col * 0.62; const py = 0.205 - row * 0.252;
+          knob(parts, x, py, row === 1 ? 0.078 : 0.092, row === 0 ? 'navy' : row === 1 ? 'cream' : 'red');
+          faceLabel(controls[(group * 2 + col) % 4], x, py - 0.135, 0.033, 'center');
+          paintCommands.push(g => {
+            const points = Array.from({ length: 15 }, (_, i) => { const a = (-0.75 + i / 14 * 1.5) * Math.PI; return [x + Math.sin(a) * 0.125, py + Math.cos(a) * 0.125]; });
+            g.line(points, '#8fa9aa', 0.007);
+          });
         }
-        g.text('GENRES / ARTISTS', x - 0.43, py - 0.25, 0.041, '#8da397');
+        for (let row = 0; row < 2; row++) led(cx, 0.17 - row * 0.5, row ? 'orange' : 'green');
+      }
+      for (let row = 0; row < 2; row++) for (let col = 0; col < 2; col++) knob(parts, 1.05 + col * 0.47, 0.2 - row * 0.47, 0.1, 'navy');
+      faceLabel('SELECTION', 1.29, 0.42, 0.043, 'center');
+      faceLabel('APPLE MUSIC', 1.29, -0.47, 0.043, 'center');
+      display(1.79, -0.015, 0.2, 0.64, (g, x, py) => {
+        for (let column = 0; column < 4; column++) for (let segment = 0; segment < 15; segment++) g.rect(x - 0.067 + column * 0.045, py - 0.25 + segment * 0.036, 0.025, 0.022, '#3f5346', 0.003);
       });
-      led(1.83, 0.36);
-      bnc(1.8, -0.28);
+      for (let row = 0; row < 2; row++) button(1.05 + row * 0.47, -0.035, 0.09, 0.07, row ? 'orange' : 'cream');
     } else if (unit.type === 'display') {
-      display(-0.32, 0.055, 2.69, 0.79, (g, x, py, w, ph) => {
-        g.text('ISLET', x - w / 2 + 0.12, py + ph / 2 - 0.12, 0.075, '#d5e0d7');
-        // Static top-edge activity sketch for the Islet screen.
-        g.line([[x - 1.2, py + 0.19], [x + 1.2, py + 0.19]], '#394d44', 0.006);
-        g.rect(x, py + 0.19, 0.63, 0.17, '#020607', 0.053);
-        g.rect(x + 0.225, py + 0.2, 0.027, 0.027, '#30403b', 0.012);
-        const activities = ['TIMER', 'MEDIA', 'FILES'];
-        activities.forEach((title, i) => {
-          const cx = x - 0.79 + i * 0.79;
-          g.rect(cx, py - 0.065, 0.66, 0.245, '#1e2c27', 0.035);
-          g.text(title, cx, py - 0.05, 0.057, '#bac8ba', 'center');
-          g.line([[cx - 0.2, py - 0.121], [cx + 0.2, py - 0.121]], '#617b68', 0.01);
-        });
-        g.text('MACOS / TOP EDGE', x + 1.16, py - 0.29, 0.043, '#91a699', 'right');
+      // SmartView Duo is a pair of 3U monitor windows with almost no front controls.
+      for (let screen = 0; screen < 2; screen++) display(-0.88 + screen * 1.76, 0.015, 1.61, 0.87, (g, x, py, w, ph) => {
+        g.rect(x, py, w - 0.015, ph - 0.015, '#15201e', 0.005);
+        if (!screen) {
+          g.text('ISLET', x - 0.68, py + 0.312, 0.068, '#d5e0d7');
+          g.line([[x - 0.7, py + 0.195], [x + 0.7, py + 0.195]], '#53655d', 0.009);
+          g.rect(x, py + 0.191, 0.57, 0.16, '#020607', 0.05);
+          g.rect(x + 0.203, py + 0.2, 0.023, 0.023, '#35413c', 0.01);
+          g.text('MACOS / TOP EDGE', x, py - 0.29, 0.041, '#93a99a', 'center');
+          g.rect(x, py - 0.055, 1.22, 0.24, '#263a31', 0.05);
+          g.text('TIMERS  /  MEDIA', x, py - 0.05, 0.061, '#c6d1bf', 'center');
+        } else {
+          g.text('FILES', x - 0.67, py + 0.31, 0.056, '#d1dacc');
+          for (let row = 0; row < 3; row++) {
+            const ry = py + 0.13 - row * 0.18;
+            g.rect(x - 0.54, ry, 0.16, 0.12, '#879a87', 0.014);
+            g.rect(x + 0.035, ry + 0.024, 0.76 - row * 0.13, 0.023, '#b1c1ae', 0.004);
+            g.rect(x - 0.125, ry - 0.03, 0.44, 0.014, '#5c7565', 0.004);
+          }
+          g.text('DRAG / DROP', x + 0.67, py - 0.32, 0.041, '#93a99a', 'right');
+        }
       });
-      knob(parts, 1.48, 0.11, 0.17, 'darkSilver');
-      for (let i = 0; i < 3; i++) button(1.12 + i * 0.28, -0.31, 0.15, 0.1, i === 0 ? 'green' : 'rubber');
-      led(1.84, 0.4);
-      faceLabel('ISLET', -1.83, -0.47, 0.065);
+      faceLabel('ISLET / MACOS', -1.71, -0.49, 0.049);
+      parts.rounded('black', [0.23, 0.026, 0.012], [0, 0.516, FACE_Z + 0.041], 0.008, [0, 0, 0], 'plastic');
     } else if (unit.type === 'console') {
-      display(-0.13, 0.02, 2.91, 0.49, (g, x, py) => {
-        g.text('cn.', x - 1.29, py + 0.07, 0.15, '#cfd9d1');
-        g.text('CHRISTIAN NUCIFORA', x - 0.79, py + 0.105, 0.063, '#bdcabe');
-        g.text('Software / hardware / systems', x - 0.79, py - 0.025, 0.049, '#829c91');
-        g.line([[x - 0.78, py - 0.125], [x + 1.25, py - 0.125]], '#354943', 0.007);
-      });
-      knob(parts, 1.66, 0, 0.114, 'darkSilver');
-      led(-1.87, 0.075);
-      button(-1.87, -0.13, 0.09, 0.085);
-      faceLabel('PERSONAL WEBSITE', -1.56, -h / 2 + 0.058, 0.05);
+      // Closed KVM drawer: a broad pull bar and latch replace the implausible front LCD.
+      cut(0, 0.025, 3.49, h - 0.23, 0.025);
+      parts.rounded('black', [3.53, h - 0.19, 0.08], [0, 0.025, FACE_Z - 0.02], 0.03, [0, 0, 0], 'plastic');
+      parts.rounded('graphite', [3.43, h - 0.27, 0.055], [0, 0.025, FACE_Z + 0.018], 0.02);
+      parts.rounded('black', [1.35, 0.17, 0.02], [0, -0.044, FACE_Z + 0.06], 0.055, [0, 0, 0], 'plastic');
+      parts.rounded('darkSilver', [1.21, 0.065, 0.12], [0, -0.044, FACE_Z + 0.13], 0.025);
+      parts.rounded('orange', [0.16, 0.08, 0.025], [1.49, -0.045, FACE_Z + 0.065], 0.014, [0, 0, 0], 'plastic');
+      raisedPaintCommands.push(g => g.text('CHRISTIAN NUCIFORA / PERSONAL WEBSITE', -1.45, 0.164, 0.058, '#c3ccc7'));
+      faceLabel('CONSOLE DRAWER', -1.64, -0.293, 0.043);
+      usb(-1.64, -0.25);
     } else if (unit.type === 'appliance') {
-      for (let i = 0; i < 4; i++) rj45(-1.63 + i * 0.31, -0.005);
-      display(0.48, 0, 1.27, 0.22, (g, x, py) => {
-        g.text('RECONCILE', x - 0.55, py + 0.045, 0.057, '#bbd2c7');
-        g.text('SHARED EXPENSES', x - 0.55, py - 0.052, 0.042, '#95ad9e');
-        g.text('=', x + 0.45, py + 0.025, 0.13, '#b8ae8d', 'center');
-      });
-      vents(1.49, 0, 0.49, 0.22, 6, 2);
-      led(-1.92, 0.05);
+      // Netgate-style shallow firewall: vented blank left, grouped I/O at right.
+      faceLabel('RECONCILE', -1.73, 0.062, 0.075);
+      faceLabel('SHARED EXPENSES', -1.73, -0.065, 0.043);
+      vents(-0.47, 0.005, 0.8, 0.23, 8, 2);
+      usb(0.15, 0.065); usb(0.15, -0.065);
+      rj45(0.5, 0.015, 0.2, 0.15); rj45(0.78, 0.015, 0.2, 0.15);
+      sfp(1.12, 0.015); sfp(1.44, 0.015);
+      led(1.79, 0.075); led(1.79, -0.065, 'orange');
     } else if (unit.type === 'storage') {
+      // RS422+ has a thin control rail above four full-width lockable tray fronts.
+      faceLabel('mountd / NFS + SMB', -1.64, 0.13, 0.047);
+      for (let i = 0; i < 5; i++) led(0.31 + i * 0.19, 0.13);
       for (let drive = 0; drive < 4; drive++) {
-        const x = -1.35 + drive * 0.83;
-        parts.rounded('black', [0.76, 0.29, 0.06], [x, 0, FACE_Z + 0.05], 0.027, [0, 0, 0], 'plastic');
-        parts.rounded('darkSilver', [0.7, 0.245, 0.055], [x, 0, FACE_Z + 0.088], 0.02);
-        parts.rounded('silver', [0.53, 0.045, 0.06], [x, -0.065, FACE_Z + 0.14], 0.017);
-        for (let slit = 0; slit < 6; slit++) parts.rounded('black', [0.052, 0.034, 0.008], [x - 0.25 + slit * 0.101, 0.04, FACE_Z + 0.121], 0.012, [0, 0, 0], 'plastic');
-        led(x + 0.29, -0.01);
+        const x = -1.33 + drive * 0.89;
+        cut(x, -0.055, 0.854, 0.208, 0.012);
+        parts.rounded('black', [0.86, 0.216, 0.07], [x, -0.055, FACE_Z - 0.02], 0.016, [0, 0, 0], 'plastic');
+        parts.rounded('graphite', [0.818, 0.176, 0.047], [x, -0.057, FACE_Z + 0.025], 0.013);
+        parts.rounded('black', [0.19, 0.126, 0.012], [x - 0.274, -0.057, FACE_Z + 0.055], 0.01, [0, 0, 0], 'plastic');
+        parts.rounded('rubber', [0.608, 0.15, 0.024], [x + 0.07, -0.057, FACE_Z + 0.063], 0.012, [0, 0, 0], 'plastic');
+        parts.torus('darkSilver', 0.027, 0.009, [x - 0.01, -0.057, FACE_Z + 0.079]);
+        parts.box('black', [0.009, 0.035, 0.005], [x - 0.01, -0.057, FACE_Z + 0.09], [0, 0, 0], 'plastic');
       }
-      display(1.64, 0, 0.38, 0.2, (g, x, py) => {
-        g.text('mountd', x, py + 0.035, 0.051, '#bacfc1', 'center');
-        g.text('NFS/SMB', x, py - 0.043, 0.038, '#91b7a4', 'center');
-      });
+      for (const x of [-1.45, 1.45]) for (let row = 0; row < 2; row++) parts.box('black', [0.5, 0.018, 0.012], [x, 0.143 - row * 0.037, FACE_Z + 0.037], [0, 0, 0], 'plastic');
     } else if (unit.type === 'archive') {
-      for (let drive = 0; drive < 2; drive++) {
-        const x = -1.04 + drive * 1.47;
-        cut(x, 0, 1.27, 0.22, 0.02);
-        parts.rounded('black', [1.28, 0.23, 0.08], [x, 0, FACE_Z - 0.028], 0.02, [0, 0, 0], 'plastic');
-        parts.rounded('edge', [1.17, 0.16, 0.025], [x, -0.012, FACE_Z + 0.01], 0.017);
-        parts.box('black', [0.91, 0.023, 0.006], [x, 0.008, FACE_Z + 0.028], [0, 0, 0], 'plastic');
-        parts.rounded('orange', [0.14, 0.027, 0.05], [x + 0.45, -0.035, FACE_Z + 0.057], 0.009);
+      // HyperDeck: two thin media slots, transport keys, status display and jog wheel.
+      faceLabel('PHOTO ARCHIVE', -1.76, 0.12, 0.053);
+      for (let slot = 0; slot < 2; slot++) {
+        const x = -1.14 + slot * 1.04;
+        cut(x, -0.035, 0.92, 0.1, 0.012);
+        parts.box('black', [0.94, 0.116, 0.07], [x, -0.035, FACE_Z - 0.02], [0, 0, 0], 'plastic');
+        parts.rounded('darkSilver', [0.84, 0.036, 0.03], [x, -0.032, FACE_Z + 0.012], 0.008);
+        parts.box('black', [0.77, 0.015, 0.006], [x, -0.018, FACE_Z + 0.031], [0, 0, 0], 'plastic');
+        parts.rounded('orange', [0.064, 0.026, 0.025], [x + 0.36, -0.061, FACE_Z + 0.04], 0.006);
       }
-      display(1.55, 0, 0.51, 0.22, (g, x, py) => {
-        g.text('ARCHIVE', x, py + 0.044, 0.045, '#bed5ca', 'center');
-        g.text('ALBUMS', x, py - 0.05, 0.039, '#c9ac83', 'center');
-      });
-      led(-1.88, 0.05, 'orange');
+      for (let row = 0; row < 2; row++) for (let col = 0; col < 3; col++) button(0.61 + col * 0.176, 0.071 - row * 0.142, 0.12, 0.095, row === 1 && col === 2 ? 'green' : 'cream');
+      display(1.31, 0, 0.34, 0.235, (g, x, py) => { g.text('ALBUMS', x, py + 0.047, 0.042, '#cad8ca', 'center'); g.text('DOWNLOAD', x, py - 0.05, 0.03, '#91aa9c', 'center'); });
+      knob(parts, 1.78, 0, 0.116, 'darkSilver');
     } else {
-      display(-0.97, 0, 1.43, 0.23, (g, x, py) => {
-        g.text('> SMALL UTILITIES', x - 0.63, py + 0.04, 0.054, '#b8cebe');
-        g.text('SCRIPTS / SHORTCUTS', x - 0.63, py - 0.056, 0.04, '#86a797');
-      });
-      for (let i = 0; i < 3; i++) {
-        cut(0.18 + i * 0.37, 0, 0.21, 0.092, 0.028);
-        parts.rounded('black', [0.22, 0.105, 0.06], [0.18 + i * 0.37, 0, FACE_Z - 0.03], 0.03, [0, 0, 0], 'plastic');
-        parts.rounded('darkSilver', [0.145, 0.028, 0.03], [0.18 + i * 0.37, 0, FACE_Z + 0.005], 0.012);
+      // Neutrik patch panel: repeated circular sockets and removable label strips.
+      for (let group = 0; group < 3; group++) {
+        const x = -1.15 + group * 1.15;
+        parts.box('darkSilver', [1.06, 0.066, 0.018], [x, 0.12, FACE_Z + 0.044]);
+        raisedPaintCommands.push(g => g.text(['SHORTCUTS', 'SCRIPTS', 'EXERCISES'][group], x, 0.12, 0.041, '#e0e2d9', 'center'));
+        for (let col = 0; col < 6; col++) for (let row = 0; row < 2; row++) jack(x - 0.455 + col * 0.182, 0.015 - row * 0.115);
       }
-      for (let i = 0; i < 3; i++) button(1.34 + i * 0.2, 0, 0.09, 0.09, i === 0 ? 'orange' : 'rubber');
     }
 
     // True apertures in the beveled faceplate leave the sockets and displays recessed.
@@ -622,7 +672,7 @@ export function createRackModel(renderer) {
       if (unit.u === 1) screw(parts, x, 0, FACE_Z + 0.04, 0.027);
       else for (const py of [-h / 2 + 0.11, h / 2 - 0.11]) screw(parts, x, py, FACE_Z + 0.04, 0.031);
     }
-    if (unit.type !== 'compute' && unit.u >= 3) {
+    if (unit.type === 'audio') {
       handle(parts, -1.93, 0, h - 0.27, 'darkSilver');
       handle(parts, 1.93, 0, h - 0.27, 'darkSilver');
     }
