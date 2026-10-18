@@ -210,8 +210,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     mesh.castShadow = material === cabinet || material === rubber;
     group.add(mesh);
   });
-  // World-space wayfinding stays above the floor and below an extracted chassis.
-  // Depth testing lets equipment hide a label naturally during close inspection.
+  // Fixed floor planes clear the raised seams and fit between cabinet fronts and grilles.
   RACK_SLOTS.forEach(({ id, position: [x, , z] }, index) => {
     const canvas = document.createElement('canvas');
     canvas.width = 1280;
@@ -233,12 +232,14 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     texture.generateMipmaps = true;
     texture.anisotropy = 4;
     textures.push(texture);
-    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false, toneMapped: false });
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false, toneMapped: false });
     materials.push(material);
-    const label = new THREE.Sprite(material);
+    const geometry = new THREE.PlaneGeometry(5, 0.9375);
+    geometries.push(geometry);
+    const label = new THREE.Mesh(geometry, material);
     label.name = `${id} floor wayfinding`;
-    label.position.set(x, floorY + 0.95, z + 3.4);
-    label.scale.set(5, 0.9375, 1);
+    label.rotation.x = -Math.PI / 2;
+    label.position.set(x, floorY + 0.018, z + 3.4);
     group.add(label);
     floorLabels.push({ id, position: label.position.toArray(), size: [5, 0.9375] });
   });
@@ -252,7 +253,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     frontRoofY: floorY + 0.22 + rackHeight,
     floorLabels,
     drawCalls: group.children.length,
-    triangles: geometries.reduce((sum, geometry) => sum + geometry.index.count / 3, floorLabels.length * 2),
+    triangles: geometries.reduce((sum, geometry) => sum + geometry.index.count / 3, 0),
     bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
     cabinetHeight: rackHeight,
     backgroundHeight,
@@ -263,8 +264,6 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     stats,
     dispose() {
       geometries.forEach(geometry => geometry.dispose());
-      const sprite = group.children.find(child => child.isSprite);
-      sprite?.geometry.dispose();
       materials.forEach(material => material.dispose());
       textures.forEach(texture => texture.dispose());
       group.clear();

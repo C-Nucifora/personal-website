@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261018-mechanics-v2';
+import { softwareUnits } from './catalog.js?v=20261018-floor-v1';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;

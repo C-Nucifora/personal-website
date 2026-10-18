@@ -1,4 +1,4 @@
-import { collections, allUnits } from "./collections.js?v=20261018-mechanics-v2";
+import { collections, allUnits } from "./collections.js?v=20261018-floor-v1";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -444,7 +444,7 @@ applyMotionPreference();
 followRoute();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-mechanics-v2");
+  const { createRackScene } = await import("./scene.js?v=20261018-floor-v1");
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     collectionId: collection.id,

@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-mechanics-v2';
-import { collections } from './collections.js?v=20261018-mechanics-v2';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-mechanics-v2';
-import { stepSpring } from './motion.js?v=20261018-mechanics-v2';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-floor-v1';
+import { collections } from './collections.js?v=20261018-floor-v1';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-floor-v1';
+import { stepSpring } from './motion.js?v=20261018-floor-v1';
 
 const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
