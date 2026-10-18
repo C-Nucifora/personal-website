@@ -82,7 +82,8 @@ export function createRackModel(renderer) {
   textures.push(polymerGrain);
   // Vertex colours let all the different metal finishes share a draw call per chassis.
   const materials = {
-    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.84, roughness: 0.38, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.004 }),
+    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 1, roughness: 0.5, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.002 }),
+    painted: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0, roughness: 0.72, roughnessMap: polymerGrain, bumpMap: polymerGrain, bumpScale: 0.0015 }),
     plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain, bumpMap: polymerGrain, bumpScale: 0.002 }),
     board: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.26, roughness: 0.62 }),
     light: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, emissive: '#ffffff', emissiveIntensity: 0.08, metalness: 0.2, roughness: 0.35 }),
@@ -99,6 +100,7 @@ export function createRackModel(renderer) {
       }
       const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1, 1, 1));
       geometry.applyMatrix4(matrix);
+      if (finish === 'metal' && ['frame', 'graphite', 'black'].includes(color)) finish = 'painted';
       const rgb = new THREE.Color(COLORS[color] || color);
       if (finish === 'metal') rgb.multiplyScalar(0.985 + random() * 0.03);
       const attribute = new Float32Array(geometry.attributes.position.count * 3);
@@ -125,7 +127,7 @@ export function createRackModel(renderer) {
           if (!geometry) throw new Error('Rack geometry could not be assembled');
           geometries.add(geometry);
           const mesh = new THREE.Mesh(geometry, materials[finish]);
-          mesh.castShadow = castsShadow && (finish === 'metal' || finish === 'plastic');
+          mesh.castShadow = castsShadow && finish !== 'light' && finish !== 'board';
           mesh.receiveShadow = true;
           parent.add(mesh);
         }
@@ -203,6 +205,105 @@ export function createRackModel(renderer) {
     parts.rounded('rubber', [0.096, height * 0.5, 0.096], [x, y, z + 0.102], 0.03, [0, 0, 0], 'plastic');
   }
 
+  function createCover(parent, unit, index, h) {
+    const width = 4.12;
+    const depth = 4.15;
+    const y = h / 2 - 0.05;
+    const z = 0.075;
+    const shape = new THREE.Shape();
+    roundedPath(shape, -width / 2, -depth / 2, width, depth, 0.035);
+    const details = batch(parent);
+    const painted = ['compute', 'control', 'display', 'console'].includes(unit.type);
+    const color = painted ? (unit.type === 'compute' ? 'graphite' : 'frame') : 'darkSilver';
+    const hole = (x, py, w, ph, radius) => {
+      const path = new THREE.Path();
+      roundedPath(path, x - w / 2, py - ph / 2, w, ph, radius);
+      shape.holes.push(path);
+    };
+    const screwRows = unit.u === 6 ? [-1.82, 0, 1.82] : [-1.82, 1.82];
+    for (const x of [-1.87, 1.87]) for (const py of screwRows) {
+      hole(x, py, 0.105, 0.105, 0.0525);
+      const pz = z - py;
+      details.cylinder('black', 0.049, 0.012, [x, y + 0.009, pz], [0, 0, 0], 16, 'plastic');
+      details.cylinder('silver', 0.034, 0.008, [x, y + 0.016, pz], [0, 0, 0], 16);
+      details.box('black', [0.042, 0.003, 0.008], [x, y + 0.021, pz], [0, 0, 0], 'plastic');
+      details.box('black', [0.008, 0.003, 0.042], [x, y + 0.021, pz], [0, 0, 0], 'plastic');
+    }
+    // Rear slots are actual apertures; the dark inset closes the view into an unmodelled chassis.
+    const ventRows = unit.type === 'compute' ? 3 : unit.type === 'audio' || unit.type === 'instrument' ? 1 : 2;
+    const ventColumns = unit.type === 'compute' ? 14 : 10;
+    const ventPitch = unit.type === 'compute' ? 0.235 : 0.31;
+    for (let row = 0; row < ventRows; row++) for (let column = 0; column < ventColumns; column++) {
+      const x = (column - (ventColumns - 1) / 2) * ventPitch;
+      const py = 0.58 + row * 0.39;
+      hole(x, py, 0.073, ventRows === 1 ? 0.75 : 0.28, 0.028);
+    }
+    details.rounded('black', [3.65, 0.018, 1.62], [0, y - 0.052, -0.93], 0.02, [0, 0, 0], 'plastic');
+    const lid = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 3 });
+    details.geometry(lid, color, [0, y, z], [-Math.PI / 2, 0, 0]);
+    // Folded side flanges and a narrow rear seam make the cover read as a removable sheet.
+    for (const x of [-2.045, 2.045]) details.box(color, [0.022, 0.066, 4.07], [x, y - 0.027, z]);
+    details.box('black', [3.48, 0.004, 0.013], [0, y + 0.025, -1.565], [0, 0, 0], 'plastic');
+    details.finish();
+
+    const surface = document.createElement('canvas');
+    surface.width = surface.height = 1024;
+    const relief = document.createElement('canvas');
+    relief.width = relief.height = 1024;
+    const colorContext = surface.getContext('2d');
+    const bumpContext = relief.getContext('2d');
+    colorContext.fillStyle = COLORS[color];
+    colorContext.fillRect(0, 0, 1024, 1024);
+    bumpContext.fillStyle = '#ffffff';
+    bumpContext.fillRect(0, 0, 1024, 1024);
+    const sx = 1024 / width;
+    const sy = 1024 / depth;
+    const text = (value, x, py, size, weight = 500) => {
+      for (const [ctx, ink] of [[colorContext, painted ? '#bfc5c1' : '#283234'], [bumpContext, '#050505']]) {
+        ctx.font = `${weight} ${size * sy}px monospace`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = ink;
+        ctx.fillText(value, (x + width / 2) * sx, (depth / 2 - py) * sy);
+      }
+    };
+    text(`${String(index + 1).padStart(2, '0')} / ${unit.u}U`, -1.62, -0.34, 0.084);
+    text(unit.title, -1.62, -0.71, unit.title.length > 18 ? 0.17 : 0.21, 600);
+    text(unit.subtitle, -1.62, -1.0, 0.083);
+    text('Open project ↗', -1.62, -1.49, 0.135, 600);
+    const map = new THREE.CanvasTexture(surface);
+    map.colorSpace = THREE.SRGBColorSpace;
+    const bumpMap = new THREE.CanvasTexture(relief);
+    for (const texture of [map, bumpMap]) {
+      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      textures.push(texture);
+    }
+    // The colour and bump maps make a lit etch, rather than floating, unlit text.
+    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.008, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
+    allMaterials.push(material);
+    const geometry = new THREE.ShapeGeometry(shape, 3);
+    const positions = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+    for (let vertex = 0; vertex < positions.count; vertex++) uv.setXY(vertex, (positions.getX(vertex) + width / 2) / width, (positions.getY(vertex) + depth / 2) / depth);
+    geometries.add(geometry);
+    const cap = new THREE.Mesh(geometry, material);
+    cap.rotation.x = -Math.PI / 2;
+    cap.position.set(0, y + 0.025, z);
+    cap.receiveShadow = true;
+    parent.add(cap);
+
+    const linkGeometry = new THREE.PlaneGeometry(3.48, 1.5);
+    geometries.add(linkGeometry);
+    const linkMaterial = new THREE.MeshBasicMaterial({ visible: false });
+    allMaterials.push(linkMaterial);
+    const link = new THREE.Mesh(linkGeometry, linkMaterial);
+    link.rotation.x = -Math.PI / 2;
+    link.position.set(0, y + 0.029, z + 0.96);
+    link.userData = { index, projectId: unit.id, kind: 'project-link', href: `project.html?project=${encodeURIComponent(unit.id)}` };
+    parent.add(link);
+    projectLinkTargets.push(link);
+  }
+
   const totalU = units.reduce((sum, unit) => sum + unit.u, 0);
   const stackHeight = totalU * U;
   const height = stackHeight + 0.8;
@@ -250,6 +351,8 @@ export function createRackModel(renderer) {
   const bays = [];
   const interiors = [];
   const hitTargets = [];
+  // Separate targets let the scene enable project links only after extraction and focus finish.
+  const projectLinkTargets = [];
   const highlights = [];
   const slotY = [];
   const heights = [];
@@ -270,7 +373,6 @@ export function createRackModel(renderer) {
     inside.visible = false;
     bay.add(inside);
     interiors.push(inside);
-    const electronics = batch(inside, false);
     const bottom = -h / 2 + 0.045;
     const caseHeight = Math.min(h, Math.max(0.2, h - 0.05));
     parts.rounded('darkSilver', [4.19, 0.048, 4.25], [0, bottom, 0.075], 0.025);
@@ -528,149 +630,10 @@ export function createRackModel(renderer) {
       parts.box('edge', [0.021, 0.028, 3.3], [x * 1.01, bottom + 0.08, 0.08]);
     }
 
-    const boardY = bottom + 0.095;
-    if (unit.type === 'compute') {
-      // Each front cartridge continues into a populated horizontal board inside the enclosure.
-      for (let row = 0; row < 5; row++) {
-        const layerY = 0.28 - row * 0.313 - 0.065;
-        for (let column = 0; column < 3; column++) {
-          const bx = -1.16 + column * 1.16;
-          electronics.rounded('pcb', [1.055, 0.035, 2.87], [bx, layerY, -0.095], 0.018, [0, 0, 0], 'board');
-          for (const side of [-1, 1]) {
-            electronics.box('darkSilver', [0.025, 0.052, 2.94], [bx + side * 0.54, layerY - 0.005, -0.095]);
-            electronics.cylinder('trace', 0.022, 0.016, [bx + side * 0.47, layerY + 0.027, 1.2], [0, 0, 0], 10);
-          }
-          // Low-profile copper cooling fits within the cartridge pitch.
-          electronics.rounded('black', [0.68, 0.035, 0.77], [bx - 0.04, layerY + 0.043, -0.28], 0.015, [0, 0, 0], 'plastic');
-          electronics.box('copper', [0.62, 0.032, 0.71], [bx - 0.04, layerY + 0.075, -0.28]);
-          for (let fin = 0; fin < 13; fin++) electronics.box('copper', [0.021, 0.16, 0.7], [bx - 0.328 + fin * 0.048, layerY + 0.17, -0.28]);
-          for (let memory = 0; memory < 2; memory++) {
-            const mx = bx - 0.35 + memory * 0.7;
-            electronics.box('rubber', [0.075, 0.035, 0.73], [mx, layerY + 0.04, 0.65], [0, 0, 0], 'plastic');
-            electronics.box('pcb', [0.025, 0.145, 0.65], [mx, layerY + 0.115, 0.65], [0, 0, 0], 'board');
-            for (let chip = 0; chip < 3; chip++) electronics.box('black', [0.035, 0.09, 0.14], [mx + 0.026, layerY + 0.12, 0.45 + chip * 0.2], [0, 0, 0], 'plastic');
-          }
-          for (let chip = 0; chip < 3; chip++) {
-            electronics.rounded('black', [0.16, 0.04, 0.18], [bx - 0.31 + chip * 0.31, layerY + 0.043, -1.13], 0.01, [0, 0, 0], 'plastic');
-            electronics.box('trace', [0.2, 0.005, 0.008], [bx - 0.28 + chip * 0.28, layerY + 0.023, -0.79], [0, 0, 0], 'board');
-            electronics.box('trace', [0.009, 0.005, 0.18], [bx - 0.22 + chip * 0.28, layerY + 0.023, -0.88], [0, 0, 0], 'board');
-          }
-          // Gold card-edge contacts meet a common upright backplane.
-          electronics.box('black', [0.81, 0.095, 0.095], [bx, layerY + 0.035, -1.59], [0, 0, 0], 'plastic');
-          for (let contact = 0; contact < 10; contact++) electronics.box('trace', [0.034, 0.061, 0.015], [bx - 0.34 + contact * 0.075, layerY + 0.047, -1.532]);
-        }
-      }
-      // Open riser posts expose the upper boards instead of hiding them behind full-height partitions.
-      for (const x of [-1.72, -0.58, 0.58, 1.72]) {
-        for (const z of [-1.48, 0.96]) {
-          electronics.rounded('darkSilver', [0.045, 1.61, 0.07], [x, -0.37, z], 0.012);
-          for (let row = 0; row < 5; row++) electronics.box('black', [0.07, 0.025, 0.09], [x, 0.2 - row * 0.313, z], [0, 0, 0], 'plastic');
-        }
-      }
-      electronics.rounded('pcb', [3.8, 1.69, 0.055], [0, -0.32, -1.68], 0.025, [0, 0, 0], 'board');
-      for (let chip = 0; chip < 10; chip++) electronics.rounded('black', [0.19, 0.15, 0.04], [-1.57 + (chip % 5) * 0.78, -0.7 + Math.floor(chip / 5) * 0.7, -1.641], 0.012, [0, 0, 0], 'plastic');
-      // A supported rear power shelf carries two redundant supplies and the management board.
-      electronics.rounded('darkSilver', [3.95, 0.052, 0.79], [0, 0.64, -1.55], 0.018);
-      for (const x of [-1.81, 1.81]) electronics.rounded('edge', [0.045, 1.79, 0.07], [x, -0.23, -1.63], 0.012);
-      for (const x of [-1.38, 1.38]) {
-        electronics.rounded('silver', [0.75, 0.43, 0.76], [x, 0.881, -1.55], 0.025);
-        for (let slit = 0; slit < 9; slit++) electronics.rounded('black', [0.59, 0.009, 0.023], [x, 1.101, -1.83 + slit * 0.07], 0.007, [0, 0, 0], 'plastic');
-        electronics.rounded('black', [0.42, 0.2, 0.019], [x, 0.88, -1.158], 0.025, [0, 0, 0], 'plastic');
-      }
-      electronics.rounded('pcb', [1.69, 0.035, 0.66], [0, 0.681, -1.55], 0.018, [0, 0, 0], 'board');
-      for (let chip = 0; chip < 7; chip++) electronics.rounded('black', [0.16, 0.045, 0.16], [-0.65 + chip * 0.21, 0.72, -1.57], 0.008, [0, 0, 0], 'plastic');
-      electronics.rounded('copper', [0.35, 0.04, 0.34], [0, 0.77, -1.39], 0.01);
-      for (let fin = 0; fin < 8; fin++) electronics.box('copper', [0.018, 0.13, 0.32], [-0.145 + fin * 0.041, 0.85, -1.39]);
-      // Insulated cable looms remain wholly attached to the sliding assembly.
-      for (const side of [-1, 1]) {
-        for (let cable = 0; cable < 5; cable++) {
-          const x = side * (1.79 + cable * 0.028);
-          const curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(x, 0.86, -1.12), new THREE.Vector3(x, 0.74, -0.88),
-            new THREE.Vector3(x, 0.31, -0.62), new THREE.Vector3(x, -0.23, 0.1),
-            new THREE.Vector3(x, -0.43, 0.94),
-          ]);
-          electronics.geometry(new THREE.TubeGeometry(curve, 18, 0.014, 5, false), cable % 2 === 0 ? 'rubber' : 'orange', [0, 0, 0], [0, 0, 0], 'plastic');
-        }
-        for (const z of [-0.76, 0.21]) electronics.rounded('black', [0.2, 0.07, 0.08], [side * 1.85, z < 0 ? 0.58 : -0.29, z], 0.014, [0, 0, 0], 'plastic');
-      }
-      // Two rows of replaceable fans pull air through all15 cartridges.
-      for (let row = 0; row < 2; row++) {
-        for (let column = 0; column < 3; column++) {
-          const x = -1.15 + column * 1.15;
-          const fy = 0.68 - row * 0.88;
-          electronics.rounded('rubber', [0.82, 0.77, 0.18], [x, fy, 1.59], 0.035, [0, 0, 0], 'plastic');
-          electronics.cylinder('edge', 0.32, 0.026, [x, fy, 1.7], [Math.PI / 2, 0, 0], 24);
-          electronics.cylinder('black', 0.277, 0.031, [x, fy, 1.72], [Math.PI / 2, 0, 0], 24, 'plastic');
-          for (let blade = 0; blade < 7; blade++) {
-            const angle = blade * Math.PI * 2 / 7;
-            electronics.rounded('edge', [0.09, 0.21, 0.018], [x + Math.sin(angle) * 0.17, fy + Math.cos(angle) * 0.17, 1.741], 0.025, [0, 0, -angle + 0.42]);
-          }
-          electronics.cylinder('silver', 0.08, 0.035, [x, fy, 1.75]);
-          for (const dx of [-0.34, 0.34]) for (const dy of [-0.31, 0.31]) electronics.cylinder('bright', 0.018, 0.016, [x + dx, fy + dy, 1.7], [Math.PI / 2, 0, 0], 10);
-        }
-      }
-    } else {
-    const boardDepth = unit.u === 1 ? 2.9 : 3.3;
-    const boardWidth = 3.58;
-    const moduleCount = 1;
-    for (let module = 0; module < moduleCount; module++) {
-      const bx = moduleCount === 1 ? -0.12 : -1.18 + module * 1.18;
-      electronics.rounded('pcb', [boardWidth, 0.052, boardDepth], [bx, boardY, -0.05], 0.025, [0, 0, 0], 'board');
-      const cpuX = moduleCount === 1 ? -0.5 : bx;
-      const cpuZ = -0.36;
-      const coolerW = moduleCount === 1 ? 0.75 : 0.72;
-      const coolerH = Math.min(0.4, h * 0.34);
-      electronics.rounded('rubber', [coolerW + 0.12, 0.065, 0.84], [cpuX, boardY + 0.045, cpuZ], 0.018, [0, 0, 0], 'plastic');
-      electronics.box('copper', [coolerW, 0.04, 0.77], [cpuX, boardY + 0.085, cpuZ]);
-      for (let fin = 0; fin < 15; fin++) electronics.box('copper', [0.023, coolerH, 0.75], [cpuX - coolerW / 2 + 0.027 + fin * (coolerW - 0.05) / 14, boardY + coolerH / 2 + 0.105, cpuZ]);
-      const memoryCount = moduleCount === 1 ? 3 : 2;
-      for (let memory = 0; memory < memoryCount; memory++) {
-        const mx = moduleCount === 1 ? 0.25 + memory * 0.22 : bx - 0.34 + memory * 0.68;
-        const mz = moduleCount === 1 ? -0.45 : -1.2;
-        const mh = Math.min(0.27, h * 0.42);
-        electronics.box('rubber', [0.09, 0.06, 1.0], [mx, boardY + 0.06, mz], [0, 0, 0], 'plastic');
-        electronics.box('pcb', [0.035, mh, 0.92], [mx, boardY + mh / 2 + 0.08, mz], [0, 0, 0], 'board');
-        for (let chip = 0; chip < 4; chip++) electronics.box('black', [0.045, mh * 0.65, 0.14], [mx + 0.026, boardY + mh / 2 + 0.1, mz - 0.32 + chip * 0.21], [0, 0, 0], 'plastic');
-      }
-      for (let trace = 0; trace < 8; trace++) {
-        const tx = moduleCount === 1 ? -1.48 : bx - 0.43;
-        const tz = -1.12 + trace * 0.28;
-        electronics.box('trace', [moduleCount === 1 ? 0.47 : 0.19, 0.005, 0.008], [tx, boardY + 0.03, tz], [0, 0, 0], 'board');
-        electronics.box('trace', [0.008, 0.005, 0.12], [tx + 0.18, boardY + 0.03, tz + 0.06], [0, 0, 0], 'board');
-      }
-      const fans = moduleCount === 1 ? 4 : 2;
-      const fanHeight = Math.min(0.52, h - 0.1);
-      const fanSize = Math.min(moduleCount === 1 ? 0.62 : 0.41, fanHeight * 0.94);
-      for (let fan = 0; fan < fans; fan++) {
-        const fx = moduleCount === 1 ? -1.41 + fan * 0.86 : bx - 0.25 + fan * 0.5;
-        const fy = bottom + 0.03 + fanHeight / 2;
-        electronics.rounded('rubber', [fanSize, fanHeight, 0.19], [fx, fy, 1.27], 0.025, [0, 0, 0], 'plastic');
-        electronics.cylinder('edge', fanSize * 0.41, 0.02, [fx, fy, 1.38], [Math.PI / 2, 0, 0], 20);
-        electronics.cylinder('black', fanSize * 0.34, 0.024, [fx, fy, 1.4], [Math.PI / 2, 0, 0], 20, 'plastic');
-        electronics.cylinder('silver', fanSize * 0.1, 0.03, [fx, fy, 1.42]);
-        for (let blade = 0; blade < 5; blade++) {
-          const angle = blade * Math.PI * 2 / 5;
-          electronics.box('edge', [fanSize * 0.12, fanSize * 0.24, 0.015], [fx + Math.sin(angle) * fanSize * 0.21, fy + Math.cos(angle) * fanSize * 0.21, 1.418], [0, 0, -angle + 0.35]);
-        }
-      }
-    }
-      electronics.rounded('silver', [0.5, Math.min(0.52, h - 0.11), 1.69], [1.58, bottom + Math.min(0.27, h / 2), -0.81], 0.025);
-      for (let slit = 0; slit < 10; slit++) electronics.box('black', [0.37, 0.009, 0.018], [1.58, bottom + Math.min(0.53, h - 0.11), -1.46 + slit * 0.13], [0, 0, 0], 'plastic');
-    }
-    if (unit.type === 'storage' || unit.type === 'archive') {
-      for (let drive = 0; drive < 4; drive++) {
-        electronics.rounded('darkSilver', [0.7, 0.14, 1.13], [-1.34 + drive * 0.82, boardY + 0.16, 0.29], 0.018);
-        electronics.rounded('black', [0.45, 0.007, 0.63], [-1.34 + drive * 0.82, boardY + 0.235, 0.29], 0.008, [0, 0, 0], 'plastic');
-      }
-    }
-    electronics.finish();
+    createCover(inside, unit, index, h);
     parts.finish();
     texturePlane(bay, 4.2, h, [0, 0, FACE_Z + 0.041], g => paintCommands.forEach(paint => paint(g)));
     if (raisedPaintCommands.length) texturePlane(bay, 4.2, h, [0, 0, FACE_Z + 0.139], g => raisedPaintCommands.forEach(paint => paint(g)));
-    texturePlane(inside, 1.3, 0.14, [-0.92, boardY + 0.032, -1.46], g => {
-      g.text(`${String(index + 1).padStart(2, '0')} / ${unit.id.toUpperCase()}`, -0.6, 0, 0.043, '#c8c9ad');
-    }, [-Math.PI / 2, 0, 0], 512);
     const hitGeometry = new THREE.BoxGeometry(4.25, h, 0.18);
     geometries.add(hitGeometry);
     const hitMaterial = new THREE.MeshBasicMaterial({ visible: false });
@@ -691,7 +654,7 @@ export function createRackModel(renderer) {
     highlights.push(highlight);
   }
   return {
-    rack, bays, interiors, hitTargets, highlights, slotY, heights, totalU, height,
+    rack, bays, interiors, hitTargets, projectLinkTargets, highlights, slotY, heights, totalU, height,
     dispose() {
       geometries.forEach(geometry => geometry.dispose());
       textures.forEach(texture => texture.dispose());

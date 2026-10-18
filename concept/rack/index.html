@@ -8,7 +8,7 @@
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/space-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261018">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -26,9 +26,10 @@
       <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
       <div class="stage-controls" role="group" aria-label="3D view controls">
         <div class="view-switch"><button type="button" data-view="perspective" aria-pressed="true">Perspective</button><button type="button" data-view="front" aria-pressed="false">Front</button></div>
+        <div class="zoom-controls" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div>
         <div class="view-utilities"><button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">Reset view</button><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div>
       </div>
-      <div class="stage-caption"><p id="scene-hint">Click a unit to open a project.</p><p class="orbit-hint">Drag to turn the rack.</p></div>
+      <div class="stage-caption"><p id="scene-hint">Click a unit to open a project.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
     </section>
     <aside class="project-panel" aria-label="Projects">
       <div class="project-index" id="project-index" tabindex="-1">
@@ -54,7 +55,7 @@
           <p class="project-category">Build infrastructure</p>
           <h2 tabindex="-1">CI Runner Console</h2>
           <p class="project-summary">A web console for self-hosted GitHub Actions runners.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/ci-runner-console" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=ci-runner-console">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/ci-runner-console" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A console for runner instances on a dedicated CI virtual machine. It reconciles GitHub registrations with local services, manages their lifecycle over restricted SSH, and authenticates users through Authentik.</p>
           <div class="project-stack"><span>TypeScript</span><span>Node.js</span><span>GitHub Actions</span><span>OIDC</span></div>
           <dl><div><dt>Interface</dt><dd>Web console</dd></div><div><dt>Control</dt><dd>GitHub API + SSH</dd></div></dl>
@@ -64,7 +65,7 @@
           <p class="project-category">Self-hosted publishing</p>
           <h2 tabindex="-1">Artifact Platform</h2>
           <p class="project-summary">Small web tools, hosted across a Tailscale network.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/artifact-platform" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=artifact-platform">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/artifact-platform" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">Each device hosts its own static artifacts and discovers other nodes on the tailnet. A combined catalog links tools, dashboards and documents, with Tailscale Funnel publishing and optional OIDC administration.</p>
           <div class="project-stack"><span>Python</span><span>Caddy</span><span>Tailscale</span><span>Docker</span></div>
           <dl><div><dt>Content</dt><dd>Static web artifacts</dd></div><div><dt>Discovery</dt><dd>Tailscale SSH</dd></div></dl>
@@ -74,7 +75,7 @@
           <p class="project-category">Embedded development</p>
           <h2 tabindex="-1">nvim-stm32</h2>
           <p class="project-summary">STM32 builds, flashing and serial monitoring in Neovim.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/nvim-stm32" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=nvim-stm32">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/nvim-stm32" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">The plugin finds the firmware project for the current buffer, tracks build artifacts and reports memory use. It selects ST-LINK probes, programs the target through supported backends, and opens a UART monitor in the editor.</p>
           <div class="project-stack"><span>Lua</span><span>Neovim</span><span>STM32</span><span>CMake / Make</span></div>
           <dl><div><dt>Platform</dt><dd>macOS + Linux</dd></div><div><dt>Target</dt><dd>STM32 firmware</dd></div></dl>
@@ -84,7 +85,7 @@
           <p class="project-category">Wheel control</p>
           <h2 tabindex="-1">mozaproxy</h2>
           <p class="project-summary">MOZA wheel settings and live input monitoring on Linux.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/mozaproxy" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=mozaproxy">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/mozaproxy" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A native Qt interface for reading and applying wheel settings, saving local profiles and viewing live controls. An optional uinput relay exposes a virtual wheel and forwards force-feedback effects. Hardware and game compatibility validation is ongoing.</p>
           <div class="project-stack"><span>Python</span><span>Qt 6</span><span>Linux</span><span>uinput</span></div>
           <dl><div><dt>Interface</dt><dd>Native Qt desktop</dd></div><div><dt>Hardware</dt><dd>MOZA wheel systems</dd></div></dl>
@@ -94,7 +95,7 @@
           <p class="project-category">Language tools</p>
           <h2 tabindex="-1">M1 Toolchain</h2>
           <p class="project-summary">Editor and command-line tools for MoTeC M1 Script.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer">Toolchain on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=m1-toolchain">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer">Toolchain on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">One bundle for the language server, syntax grammar, formatter, linter and project-aware type checker. Related tools generate documentation, inspect CAN databases, visualise project relationships and evaluate scripts offline. Neovim integration and reusable CI workflows connect the tools to everyday development.</p>
           <div class="project-stack"><span>Rust</span><span>Lua</span><span>Tree-sitter</span><span>LSP</span></div>
           <dl><div><dt>Language</dt><dd>MoTeC M1 Script</dd></div><div><dt>Bundle</dt><dd>15 public repositories</dd></div></dl>
@@ -104,7 +105,7 @@
           <p class="project-category">Music discovery</p>
           <h2 tabindex="-1">Wavelength</h2>
           <p class="project-summary">A macOS app for building Apple Music playlists.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/wavelength" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=wavelength">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/wavelength" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">An experimental native macOS app with a SwiftUI interface and a bundled local Bun engine. It builds playlists through the user's Apple Music web session and generates covers through Music Automation. It requires an Apple Music subscription.</p>
           <div class="project-stack"><span>SwiftUI</span><span>Bun</span><span>Apple Music</span></div>
           <dl><div><dt>Platform</dt><dd>macOS</dd></div><div><dt>Interface</dt><dd>Native SwiftUI app</dd></div></dl>
@@ -114,7 +115,7 @@
           <p class="project-category">Desktop utility</p>
           <h2 tabindex="-1">Islet</h2>
           <p class="project-summary">Timers, media controls and files at the MacBook notch.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/islet" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=islet">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/islet" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A macOS utility that opens at the top edge of the display. Its configurable activities include Now Playing, clipboard history, system metrics and a temporary file shelf, alongside contextual events, reminders and alerts.</p>
           <div class="project-stack"><span>Swift</span><span>macOS</span><span>XcodeGen</span></div>
           <dl><div><dt>Platform</dt><dd>macOS 26+</dd></div><div><dt>Interaction</dt><dd>Top-edge reveal</dd></div></dl>
@@ -124,7 +125,7 @@
           <p class="project-category">Interface experiments</p>
           <h2 tabindex="-1">Personal Website</h2>
           <p class="project-summary">A portfolio built around interactive interfaces.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/personal-website" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=personal-website">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/personal-website" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">The original terminal portfolio combines a virtual filesystem, a read-only source viewer and shared typed, clicked and keyboard interactions. This rack is the next local interface experiment, opening project bays into their own detail views.</p>
           <div class="project-stack"><span>TypeScript</span><span>Next.js</span><span>Three.js</span></div>
           <dl><div><dt>Content</dt><dd>Projects + source</dd></div><div><dt>Format</dt><dd>Static website</dd></div></dl>
@@ -134,7 +135,7 @@
           <p class="project-category">Shared expenses</p>
           <h2 tabindex="-1">Reconcile</h2>
           <p class="project-summary">A browser app for splitting shared expenses.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/reconcile-app" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=reconcile-app">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/reconcile-app" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A browser app for shared costs with equal, exact, percentage and share-based splits. It calculates net balances and a settlement plan using integer cents, keeps records locally, and exports PDF reports without requiring an account.</p>
           <div class="project-stack"><span>React</span><span>TypeScript</span><span>Vite</span></div>
           <dl><div><dt>Storage</dt><dd>Browser local storage</dd></div><div><dt>Export</dt><dd>PDF reports</dd></div></dl>
@@ -144,7 +145,7 @@
           <p class="project-category">Network storage</p>
           <h2 tabindex="-1">mountd</h2>
           <p class="project-summary">An NFS and SMB mount manager for macOS.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/mountd" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=mountd">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/mountd" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A per-user macOS mount manager for NFS and SMB shares. It checks network conditions and dependencies, probes the file service before mounting, and tries ordered endpoints such as LAN, Tailscale and MagicDNS.</p>
           <div class="project-stack"><span>Rust</span><span>macOS</span><span>NFS / SMB</span></div>
           <dl><div><dt>Platform</dt><dd>macOS LaunchAgent</dd></div><div><dt>Protocols</dt><dd>NFS + SMB</dd></div></dl>
@@ -154,7 +155,7 @@
           <p class="project-category">Media archive</p>
           <h2 tabindex="-1">Photos Downloader</h2>
           <p class="project-summary">A resumable downloader for shared Google Photos albums.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora/gphotos-album-downloader" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=gphotos-album-downloader">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora/gphotos-album-downloader" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A resumable Python downloader with an internal web-API backend and a Playwright fallback. It handles shared-album enumeration and original downloads, including the temporary library-save steps required for media owned by someone else.</p>
           <div class="project-stack"><span>Python</span><span>Playwright</span><span>gpwc</span></div>
           <dl><div><dt>Interface</dt><dd>Command line</dd></div><div><dt>Source</dt><dd>Shared Google Photos albums</dd></div></dl>
@@ -164,7 +165,7 @@
           <p class="project-category">Scripts + shortcuts</p>
           <h2 tabindex="-1">Small Utilities</h2>
           <p class="project-summary">Shortcuts, one-off scripts and programming exercises.</p>
-          <a class="source-link" href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub profile <span aria-hidden="true">↗</span></a>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=small-utilities">Open project page →</a><a class="source-link" href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub profile <span aria-hidden="true">↗</span></a></div>
           <p class="project-description">A compact collection of smaller repositories. Version-controlled iOS Shortcuts sit alongside a Python Instagram unlike script and LeetCode solutions, with each source linked separately.</p>
           <div class="project-stack"><span>Python</span><span>Apple Shortcuts</span></div>
           <dl><div><dt>Bundle</dt><dd>3 repositories</dd></div><div><dt>Format</dt><dd>Scripts + shortcuts</dd></div></dl>

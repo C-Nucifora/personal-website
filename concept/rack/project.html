@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101211">
+  <meta name="description" content="Software projects by Christian Nucifora. Read project details and browse their source repositories.">
+  <title>Project / Christian Nucifora</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="./fonts/space-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="./styles.css?v=20261018">
+  <link rel="stylesheet" href="./project.css">
+</head>
+<body class="project-page">
+  <a class="skip-link" href="#project-content">Skip to project</a>
+  <header class="site-header">
+    <a class="identity" href="./index.html">Christian Nucifora</a>
+    <nav class="header-links" aria-label="Main navigation">
+      <a href="./index.html" data-rack-link>Back to rack <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="project-document" id="project-content">
+    <div id="project-fallback">
+      <h1>Project details</h1>
+      <p class="document-summary">The rack includes descriptions and source links for every project.</p>
+      <p class="document-copy">If this page doesn't load, you can read the project in the rack's text view.</p>
+      <a class="document-source" href="./index.html">Return to the rack <span aria-hidden="true">↗</span></a>
+    </div>
+    <article id="project-article" hidden>
+      <header class="document-heading">
+        <p class="document-category" id="project-category"></p>
+        <h1 id="project-title"></h1>
+        <p class="document-summary" id="project-summary"></p>
+        <a class="document-source" id="project-source" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
+      </header>
+      <div class="document-body">
+        <section class="document-overview" aria-labelledby="overview-title">
+          <h2 id="overview-title">Overview</h2>
+          <p class="document-copy" id="project-description"></p>
+        </section>
+        <aside class="document-specification" aria-label="Project details">
+          <h2>Built with</h2>
+          <ul class="document-stack" id="project-stack"></ul>
+          <dl class="document-facts" id="project-facts"></dl>
+        </aside>
+      </div>
+      <section class="document-modules" id="project-modules" aria-labelledby="modules-title" hidden>
+        <h2 id="modules-title">Included tools</h2>
+        <div id="module-groups"></div>
+      </section>
+      <footer class="document-footer">
+        <a href="./index.html" data-rack-link><span aria-hidden="true">←</span> Back to rack</a>
+      </footer>
+    </article>
+  </main>
+  <script type="module" src="./project.js"></script>
+</body>
+</html>

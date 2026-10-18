@@ -47,7 +47,7 @@ function showPhase(nextPhase, index) {
     overview: "Click a unit to open a project.",
     extracting: "",
     focusing: "",
-    project: "Use All projects to return.",
+    project: "Click the engraved title to open the project page.",
     returning: "",
   };
   hint.textContent = hints[nextPhase];
@@ -61,6 +61,9 @@ function showPhase(nextPhase, index) {
   }
   document.querySelectorAll("[data-view]").forEach(button => {
     button.disabled = nextPhase !== "overview";
+  });
+  document.querySelectorAll("[data-zoom]").forEach(button => {
+    button.disabled = nextPhase !== "overview" && nextPhase !== "project";
   });
 }
 
@@ -143,6 +146,9 @@ document.querySelectorAll("[data-view]").forEach(button => {
     document.querySelectorAll("[data-view]").forEach(other => other.setAttribute("aria-pressed", String(other === button)));
   });
 });
+document.querySelectorAll("[data-zoom]").forEach(button => {
+  button.addEventListener("click", () => scene?.zoom(button.dataset.zoom));
+});
 
 function applyMotionPreference() {
   const reduced = userMotionChoice ?? motionPreference.matches;
@@ -162,6 +168,7 @@ try {
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     onSelect: index => openProject(index),
+    onProjectOpen: index => { location.href = `./project.html?project=${encodeURIComponent(units[index].id)}`; },
     onHover: index => {
       rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
       if (phase === "overview") hint.textContent = index === null ? "Click a unit to open a project." : `${units[index].title} · ${units[index].u}U`;

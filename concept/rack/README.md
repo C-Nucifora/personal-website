@@ -1,6 +1,6 @@
 # The project cabinet
 
-Local 3D portfolio prototype for Christian Nucifora. A dark 24U cabinet holds twelve project units. Selecting a unit slides it out, then moves the camera into its chassis and opens its project details. Back, Escape and Reset return it to the cabinet.
+Local 3D portfolio prototype for Christian Nucifora. A dark 24U cabinet holds twelve project units. Selecting a unit slides it out, then moves the camera above its metal cover and opens its project summary. Its engraved title and the ordinary Open project page link lead to a full local project page. Back, Escape and Reset return the unit to the cabinet.
 
 Run from the repository root:
 
@@ -21,6 +21,8 @@ Space Grotesk carries navigation, headings and descriptions. IBM Plex Mono is re
 The [checklist review](CHECKLIST.md) records how all thirty points in the user's AIToolPick reference apply here. M1 groups use native disclosures to keep the longer list manageable; the language tools start open. The opening title states the subject, and mobile links and controls have at least 44px targets in both dimensions.
 
 The HTML index and actual model share the same project order, unit sizes and selection. A row hover or keyboard focus marks the matching physical unit with a small amber tab. Rack screens describe the software: playlists for Wavelength, notch utilities for Islet and development tools for M1. They do not show simulated operational telemetry. Extraction takes 600ms, followed by a 700ms camera move; reduced motion reaches the same final state immediately.
+
+The [rendering spike](RENDERING.md) records the 18 October research and matched tone-mapping comparison. Closed metal covers replace the repeated illustrative electronics. Bare aluminium and painted panels use separate finishes. The covers have real vent apertures, recessed fasteners and lit bump-map engraving. The renderer uses Neutral tone mapping, filtered studio reflections and one shadow-casting key light.
 
 ## Project allocation
 
@@ -60,9 +62,11 @@ The models and textures are original. These primary references supplied proporti
 
 ## Interaction and access
 
-The extraction finishes before the camera starts its close-up. Switching units reverses the current view before extracting the next. Geometry and camera endpoints adapt to each unit's height and the viewport. Rendering runs on demand, pauses when the document is hidden and supports reduced motion without losing the final state.
+The extraction finishes before the camera starts its close-up. Switching units reverses the current view before extracting the next. Geometry and camera endpoints adapt to each unit's height and the viewport. Wheel, pinch and explicit zoom buttons inspect both steady views, with bounded panning and camera distance. Rendering runs on demand, pauses when the document is hidden and supports reduced motion without losing the final state.
 
 The ordinary HTML index, project summaries and source links remain available without WebGL or JavaScript. Native links preserve modified clicks and hash history. Old individual M1 project hashes open the grouped M1 unit. Keyboard focus, Escape, touch scrolling and a normal mobile project list provide access alongside the spatial scene. Failed WebGL contexts expose the HTML fallback.
+
+`project.html?project=<catalog-id>` provides a full page for each of the twelve units. It reads the same catalog and retains source links, facts and grouped repositories. Invalid IDs show the project list; a failed module load or disabled JavaScript leaves a visible route back to the rack's static descriptions.
 
 ## Context and dependencies
 
@@ -78,9 +82,10 @@ Space Grotesk by the Space Grotesk Project Authors and IBM Plex Mono by IBM are 
 - T3's local browser rendered the polished model at 1280 × 800, 980 × 800 and 390 × 844 with no horizontal overflow. A 320px layout check also passed. All runtime asset requests stayed on the local origin and succeeded, including self-hosted fonts. The canvas preserves vertical touch scrolling. CSS and navigation use the same 900px stacking breakpoint.
 - Real model clicks selected the large M1 assembly and the top 1U network appliance. The normal-motion phase trace confirms extraction completes before camera focus begins. Selected M1 content exposes all fifteen source links.
 - Project navigation through 1U, 2U, 3U and 6U examples, browser Back, front view, reset, reduced motion and mobile project views were checked live. Independent app self-checks also cover early selection during module loading, scene-import failure, all eighteen old module hash aliases and mobile scroll behavior.
-- Independent model checks rebuild the actual geometry, check finite vertices and verify every unit selection across two overview views and five viewport proportions. All 120 selection checks and every extracted-unit camera bound pass. The M1 internals remain inside the chassis and attached to its moving assembly.
+- The original framing checks covered all 120 combinations of unit, overview view and viewport proportion. The cover update rechecks finite vertices, all twelve lid bounds, all twelve engraved-link raycasts and resource disposal. Covers and link targets stay attached to each moving assembly.
 - Interface text tokens meet 4.5:1 against the base, panel and hover backgrounds. Keyboard alternatives and unenhanced HTML keep the project content accessible alongside the model. The M1 source action is visible without scrolling at 1280 × 800; all fifteen grouped repository links remain available on mobile.
 - Idle rendering scheduled zero animation frames over a 1.2 second live observation. Removing enhancement leaves all twelve descriptions visible. Simulated WebGL context loss displays the fallback and still allows opening a bundle and its source links.
 - The design-language repository validation and its five existing tests pass.
+- The rendering update passes independent checks for all twelve full project pages, invalid links, M1's fifteen repositories, gesture click suppression and bounded zoom. Live inspection covers the painted 6U and aluminium 1U lids, a real engraved-link click, 320px controls and the idle render loop. See the rendering spike for comparison conditions and limits.
 
 The previous prototype and its screenshots remain preserved in Git history and the earlier output folder. Physical-device Safari performance and touch gestures still require device testing.

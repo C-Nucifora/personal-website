@@ -6,18 +6,18 @@ import { units } from './catalog.js';
 const BACKGROUND = '#101211';
 const ease = (t) => t * t * (3 - 2 * t);
 
-export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
   } catch (error) {
     onError(error);
-    return { select() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
+    return { select() {}, zoom() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.13;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
@@ -25,16 +25,18 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   const camera = new THREE.PerspectiveCamera(33, 1, 0.1, 120);
   const controls = new OrbitControls(camera, canvas);
   canvas.style.touchAction = 'pan-y';
-  controls.enablePan = false;
-  controls.enableZoom = false;
+  controls.enablePan = true;
+  controls.enableZoom = true;
   controls.enableDamping = false;
   controls.minPolarAngle = 0.9;
   controls.maxPolarAngle = 1.49;
   controls.minAzimuthAngle = -0.45;
   controls.maxAzimuthAngle = 0.72;
   controls.rotateSpeed = 0.4;
-  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: null, RIGHT: null };
-  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: null };
+  controls.zoomSpeed = 0.7;
+  controls.panSpeed = 0.55;
+  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
   // Large photographic strip cards produce controlled highlights on each beveled metal edge.
   const studio = new THREE.Scene();
@@ -55,10 +57,10 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
     panel.lookAt(0, 0, 0);
     studio.add(panel);
   }
-  softbox(4, 17, [-8, 4, 7], 4.5, [1, 0.98, 0.94]);
-  softbox(2.5, 15, [8, 3, 1], 3.7, [0.87, 0.95, 1]);
-  softbox(11, 6, [0, 11, 2], 3.4);
-  softbox(9, 7, [0, 2, 12], 1.7);
+  softbox(4, 17, [-8, 4, 7], 3.2, [1, 0.98, 0.94]);
+  softbox(2.5, 15, [8, 3, 1], 2.4, [0.94, 0.97, 1]);
+  softbox(14, 9, [-3, 10, -6], 3);
+  softbox(9, 7, [0, 2, 12], 0.7);
   const pmrem = new THREE.PMREMGenerator(renderer);
   const environment = pmrem.fromScene(studio, 0.04);
   scene.environment = environment.texture;
@@ -67,7 +69,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   pmrem.dispose();
 
   const model = createRackModel(renderer);
-  const { rack, bays, interiors, highlights, hitTargets, slotY, heights } = model;
+  const { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], slotY, heights } = model;
   scene.add(rack);
   const floorY = -model.height / 2 - 0.22;
   const floorGeometry = new THREE.PlaneGeometry(80, 80);
@@ -93,21 +95,20 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   contact.rotation.x = -Math.PI / 2;
   contact.position.set(0, floorY + 0.008, 0.15);
   scene.add(contact);
-  scene.add(new THREE.HemisphereLight('#d4dfdf', '#343b35', 0.8));
-  const key = new THREE.DirectionalLight('#f8f6ef', 3.0);
+  scene.add(new THREE.HemisphereLight('#e4e7e7', '#262b28', 0.35));
+  const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
   key.position.set(-5, 11, 12);
   key.target.position.set(0, 0, 1);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  Object.assign(key.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 40 });
-  key.shadow.bias = -0.0002;
-  key.shadow.normalBias = 0.025;
-  key.shadow.radius = 4;
+  Object.assign(key.shadow.camera, { left: -7.5, right: 7.5, top: 8, bottom: -8, near: 1, far: 32 });
+  key.shadow.bias = -0.00008;
+  key.shadow.normalBias = 0.008;
   scene.add(key, key.target);
-  const fill = new THREE.DirectionalLight('#e5e9e7', 0.75);
+  const fill = new THREE.DirectionalLight('#e5e9e7', 0.4);
   fill.position.set(8, 2, 10);
   scene.add(fill);
-  const rim = new THREE.DirectionalLight('#b9cbd8', 2.7);
+  const rim = new THREE.DirectionalLight('#d4dce1', 1.6);
   rim.position.set(5, 8, -7);
   scene.add(rim);
 
@@ -124,6 +125,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   let lastHeight = 0;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let pointerDown = null;
+  const activePointers = new Set();
   let hiddenAt = null;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -156,10 +158,23 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
     const target = new THREE.Vector3(0, slotY[index] - 0.03, EXTRACTION + 0.18);
     return fitPose(target, direction, cornersOf([-2.2, slotY[index] - heights[index] / 2 - 0.04, EXTRACTION - 2.1], [2.2, slotY[index] + heights[index] / 2 + 0.08, EXTRACTION + 2.67]), 1.18, 7.6);
   }
+  function updateControls() {
+    controls.enabled = phase === 'overview' || phase === 'project';
+    if (controls.enabled) {
+      const pose = phase === 'project' ? projectPose(selected) : overviewPose();
+      const distance = pose.position.distanceTo(pose.target);
+      controls.minDistance = phase === 'project' ? Math.max(3.8, distance * 0.5) : Math.max(6, distance * 0.35);
+      controls.maxDistance = distance * 1.8;
+      controls.minPolarAngle = phase === 'project' ? 0.5 : 0.9;
+      controls.cursor.copy(pose.target);
+      controls.maxTargetRadius = phase === 'project' ? 1.5 : model.height * 0.65;
+      controls.update();
+    }
+    canvas.style.cursor = controls.enabled ? 'grab' : 'default';
+  }
   function emit(nextPhase, index = selected) {
     phase = nextPhase;
-    controls.enabled = phase === 'overview';
-    canvas.style.cursor = phase === 'overview' ? 'grab' : 'default';
+    updateControls();
     onPhase({ phase, index });
   }
   function capture() {
@@ -223,7 +238,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   }
   function clearHover() {
     setHover(null, true);
-    canvas.style.cursor = phase === 'overview' ? 'grab' : 'default';
+    canvas.style.cursor = controls.enabled ? 'grab' : 'default';
   }
   function select(index) {
     const next = Number.isInteger(index) && index >= 0 && index < bays.length ? index : null;
@@ -265,7 +280,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
       camera.position.copy(pose.position);
       controls.target.copy(pose.target);
       camera.lookAt(pose.target);
-      if (selected === null) controls.update();
+      updateControls();
     } else {
       const now = performance.now();
       if (activeStage) {
@@ -287,33 +302,46 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
-  function hitAt(event) {
+  function hitAt(event, targets = hitTargets) {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    return raycaster.intersectObjects(hitTargets, false)[0]?.object.userData.index ?? null;
+    return raycaster.intersectObjects(targets, false)[0]?.object.userData.index ?? null;
   }
   function pointerMove(event) {
-    if (phase !== 'overview' || event.pointerType === 'touch' || pointerDown) return;
+    if (pointerDown && Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y) >= 7) pointerDown.dragged = true;
+    if (event.pointerType === 'touch' || pointerDown) return;
+    if (phase === 'project') {
+      const link = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
+      canvas.style.cursor = link === selected ? 'pointer' : 'grab';
+      return;
+    }
+    if (phase !== 'overview') return;
     const index = hitAt(event);
     if (hovered !== index) setHover(index, true);
     canvas.style.cursor = index === null ? 'grab' : 'pointer';
   }
   function pointerStart(event) {
     if (event.button !== 0) return;
-    pointerDown = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    activePointers.add(event.pointerId);
+    pointerDown = activePointers.size === 1 ? { x: event.clientX, y: event.clientY, pointerId: event.pointerId } : null;
   }
   function pointerEnd(event) {
+    activePointers.delete(event.pointerId);
     if (!pointerDown || event.pointerId !== pointerDown.pointerId) return;
     const distance = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+    const dragged = pointerDown.dragged;
     pointerDown = null;
-    if (phase === 'overview' && distance < 7) {
+    if (phase === 'overview' && distance < 7 && !dragged) {
       const index = hitAt(event);
       if (index !== null) onSelect(index);
+    } else if (phase === 'project' && distance < 7 && !dragged) {
+      const index = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
+      if (index === selected) onProjectOpen(index);
     }
   }
-  function pointerCancel() { pointerDown = null; clearHover(); }
+  function pointerCancel(event) { activePointers.delete(event.pointerId); pointerDown = null; clearHover(); }
   function visibilityChange() {
     if (document.hidden) {
       hiddenAt = performance.now();
@@ -360,6 +388,14 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
 
   return {
     select,
+    zoom(direction) {
+      if (!controls.enabled) return;
+      const offset = camera.position.clone().sub(controls.target);
+      const distance = THREE.MathUtils.clamp(offset.length() * (direction === 'in' ? 0.8 : 1.25), controls.minDistance, controls.maxDistance);
+      camera.position.copy(controls.target).add(offset.setLength(distance));
+      controls.update();
+      requestRender();
+    },
     reset() { changeView('perspective'); },
     setReducedMotion(value) {
       reducedMotion = Boolean(value);
@@ -379,7 +415,11 @@ export function createRackScene({ canvas, onSelect = () => {}, onHover = () => {
         const y = (1 - point.y) * 0.5 * lastHeight;
         return { index, id: unit.id, u: unit.u, x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), pageX: Number((rect.left + x).toFixed(1)), pageY: Number((rect.top + y).toFixed(1)), visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
       });
-      return { phase, selected, hovered, view, reducedMotion, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], contextLost };
+      const projectLinks = projectLinkTargets.map(target => {
+        const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
+        return { index: target.userData.index, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2 };
+      });
+      return { phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], contextLost };
     },
     dispose() {
       disposed = true;
