@@ -1,0 +1,9 @@
+Texture source: ambientCG.
+Assets: Metal032, Metal029, Concrete048.
+All downloaded asset files and source material preview renders are provided under Creative Commons CC0 1.0 Universal.
+https://docs.ambientcg.com/license/
+https://creativecommons.org/publicdomain/zero/1.0/
+Attribution is optional under CC0. This provenance notice is kept for review and maintenance.
+Selected runtime JPEG maps are extracted unchanged from the official 1K-JPG archives.
+The source URLs, upstream archive hashes, exact runtime file hashes and dimensions are recorded in manifest.json.
+Source archives and research previews are not shipped. CC0-1.0.txt contains the license text.

@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const source = path.join(root, "concept/rack");
 const output = path.join(root, "dist");
-const extensions = new Set([".html", ".css", ".js", ".svg", ".woff2", ".ttf", ".txt"]);
-const assetDirectories = new Set(["fonts", "vendor"]);
+const extensions = new Set([".html", ".css", ".js", ".svg", ".woff2", ".ttf", ".txt", ".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"]);
+const assetDirectories = new Set(["fonts", "vendor", "textures", "images"]);
 
 // Collect first so a missing source cannot erase the previous build.
 await Promise.all(["index.html", "project.html"].map(async (name) => {
@@ -21,7 +21,7 @@ async function collect(directory = "") {
     const relative = path.join(directory, entry.name);
     if (entry.isDirectory() && (directory || assetDirectories.has(entry.name))) {
       await collect(relative);
-    } else if (entry.isFile() && (extensions.has(path.extname(entry.name)) || relative === path.join("fonts", "sources.json"))) {
+    } else if (entry.isFile() && (extensions.has(path.extname(entry.name).toLowerCase()) || [path.join("fonts", "sources.json"), path.join("textures", "manifest.json")].includes(relative))) {
       files.push(relative);
     }
   }
