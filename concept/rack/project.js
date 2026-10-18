@@ -1,4 +1,4 @@
-import { collections, allUnits } from './collections.js?v=20261018-datacenter-v6';
+import { collections, allUnits } from './collections.js?v=20261018-front-row-v2';
 
 const projectId = new URLSearchParams(window.location.search).get('project');
 const unit = allUnits.find((item) => item.id === projectId);

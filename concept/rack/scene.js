@@ -1,17 +1,17 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-datacenter-v6';
-import { collections } from './collections.js?v=20261018-datacenter-v6';
-import { createDatacenter } from './datacenter.js?v=20261018-datacenter-v6';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-front-row-v2';
+import { collections } from './collections.js?v=20261018-front-row-v2';
+import { createDatacenter } from './datacenter.js?v=20261018-front-row-v2';
 
 const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
 const ease = (t) => t * t * (3 - 2 * t);
 
-export function createRackScene({ canvas, collectionId = 'software', mode: initialMode = 'hall', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   const collection = collections.find(item => item.id === collectionId) || collections[0];
   const units = collection.units;
-  let mode = initialMode;
+  const mode = 'rack';
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -76,9 +76,8 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
   pmrem.dispose();
 
   const models = collections.map((item, index) => {
-    const built = createRackModel(renderer, item.units, item.label, item.id === collection.id && initialMode !== 'hall' ? 1 : 0.35);
-    built.rack.position.set(-8, 0, -index * 6);
-    built.rack.rotation.y = Math.PI / 2;
+    const built = createRackModel(renderer, item.units, item.label, item.id === collection.id ? 1 : 0.35);
+    built.rack.position.set((index - 1) * 6, 0, 0);
     scene.add(built.rack);
     return built;
   });
@@ -103,10 +102,10 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
   scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', 0.8));
   const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
   key.position.set(1, 12, 7);
-  key.target.position.set(-8, 0, -6);
+  key.target.position.set(0, 0, 0);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  Object.assign(key.shadow.camera, { left: -12, right: 12, top: 11, bottom: -11, near: 1, far: 50 });
+  Object.assign(key.shadow.camera, { left: -16, right: 16, top: 11, bottom: -11, near: 1, far: 50 });
   key.shadow.bias = -0.00008;
   key.shadow.normalBias = 0.008;
   scene.add(key, key.target);
@@ -156,17 +155,13 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
     for (const x of [minimum[0], maximum[0]]) for (const y of [minimum[1], maximum[1]]) for (const z of [minimum[2], maximum[2]]) corners.push(new THREE.Vector3(x, y, z));
     return corners;
   }
-  function hallPose() {
-    const entrance = lastWidth / Math.max(lastHeight, 1) < 0.85 ? 25 : 18;
-    return { position: new THREE.Vector3(0.4, 2.6, entrance), target: new THREE.Vector3(0, 0.8, -18) };
-  }
   function rackPose() {
     const direction = worldDirection(view === 'front' ? new THREE.Vector3(0.002, 0.085, 1) : new THREE.Vector3(0.22, 0.15, 1));
     const target = worldPoint(new THREE.Vector3(0, -0.02, 0.38));
     const corners = cornersOf([-2.5, -model.height / 2 - 0.25, -2.45], [2.5, model.height / 2 + 0.02, 2.65]).map(worldPoint);
     return fitPose(target, direction, corners, 1.04);
   }
-  function overviewPose() { return mode === 'hall' ? hallPose() : rackPose(); }
+  function overviewPose() { return rackPose(); }
   function projectPose(index) {
     const direction = worldDirection(new THREE.Vector3(0.4, 0.66, 1));
     const target = worldPoint(new THREE.Vector3(0, slotY[index] - 0.03, EXTRACTION + 0.18));
@@ -180,7 +175,6 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
     const shift = worldDirection(new THREE.Vector3(0, 0, 1)).multiplyScalar(0.45);
     pose.position.add(shift);
     pose.target.add(shift).add(worldDirection(new THREE.Vector3(1, 0, 0)).multiplyScalar(assembly.group.position.x * 0.18));
-    pose.position.x = Math.min(pose.position.x, 3.8);
     return pose;
   }
   function inspectionPose() { return selectedModule === null ? projectPose(selected) : modulePose(selectedModule); }
@@ -193,15 +187,13 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
     if (controls.enabled) {
       const pose = phase === 'project' ? inspectionPose() : overviewPose();
       const distance = pose.position.distanceTo(pose.target);
-      controls.minDistance = phase === 'project' ? Math.max(3.8, distance * 0.5) : mode === 'hall' ? distance * 0.65 : Math.max(6, distance * 0.55);
-      const direction = pose.position.clone().sub(pose.target).normalize();
-      const aisleLimit = (3.8 - pose.target.x) / Math.max(direction.x, 0.01);
-      controls.maxDistance = mode === 'hall' ? distance * 1.3 : Math.max(distance, Math.min(distance * 1.25, aisleLimit));
-      controls.minAzimuthAngle = mode === 'hall' ? -0.28 : Math.PI / 2 - 0.5;
-      controls.maxAzimuthAngle = mode === 'hall' ? 0.28 : Math.PI / 2 + 0.6;
+      controls.minDistance = phase === 'project' ? Math.max(3.8, distance * 0.5) : Math.max(6, distance * 0.55);
+      controls.maxDistance = distance * 1.2;
+      controls.minAzimuthAngle = -0.5;
+      controls.maxAzimuthAngle = 0.6;
       controls.minPolarAngle = phase === 'project' ? 0.5 : 0.9;
       controls.cursor.copy(pose.target);
-      controls.maxTargetRadius = phase === 'project' ? 1.5 : mode === 'hall' ? 8 : 2;
+      controls.maxTargetRadius = phase === 'project' ? 1.5 : 2;
       controls.update();
     }
     canvas.style.cursor = controls.enabled ? 'grab' : 'default';
@@ -320,7 +312,6 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
     }
     const previous = selected;
     selectedModule = null;
-    if (next !== null) mode = 'rack';
     selected = next;
     stages = [];
     activeStage = null;
@@ -417,13 +408,10 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
       return;
     }
     if (phase !== 'overview') return;
-    if (mode === 'hall') {
-      canvas.style.cursor = hitData(event, rackTargets) ? 'pointer' : 'grab';
-      return;
-    }
     const index = hitAt(event);
     if (hovered !== index) setHover(index, true);
-    canvas.style.cursor = index === null ? 'grab' : 'pointer';
+    const neighbor = index === null ? hitData(event, rackTargets.filter(target => target.userData.collectionId !== collection.id)) : null;
+    canvas.style.cursor = index !== null || neighbor ? 'pointer' : 'grab';
   }
   function pointerStart(event) {
     if (event.button !== 0 || !controls.enabled) return;
@@ -437,13 +425,12 @@ export function createRackScene({ canvas, collectionId = 'software', mode: initi
     const dragged = pointerDown.dragged;
     pointerDown = null;
     if (phase === 'overview' && distance < 7 && !dragged) {
-      if (mode === 'hall') {
-        const item = hitData(event, rackTargets);
-        if (item) onCollectionSelect(item.collectionId);
-        return;
-      }
       const index = hitAt(event);
       if (index !== null) onSelect(index);
+      else {
+        const neighbor = hitData(event, rackTargets.filter(target => target.userData.collectionId !== collection.id));
+        if (neighbor) onCollectionSelect(neighbor.collectionId);
+      }
     } else if (phase === 'project' && modulePhase !== 'extracting' && modulePhase !== 'returning' && distance < 7 && !dragged) {
       const index = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
       if (index === selected) { onProjectOpen(index); return; }

@@ -8,7 +8,7 @@
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-datacenter-v6">
+  <link rel="stylesheet" href="./styles.css?v=20261018-front-row-v2">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -19,9 +19,9 @@
   </header>
   <main class="workspace" id="main">
     <section class="stage" aria-label="Interactive datacenter and project racks">
-      <div class="stage-heading"><h1 id="collection-title">Datacenter</h1><p id="collection-subtitle">Software, hardware and experience</p></div>
+      <div class="stage-heading"><h1 id="collection-title">Software projects</h1><p id="collection-subtitle">12 projects in a 24U rack</p></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
-      <div class="scene-loading" id="scene-loading" role="status">Loading the datacenter…</div>
+      <div class="scene-loading" id="scene-loading" role="status">Loading the rack…</div>
       <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still read every project in the list.</p></div>
       <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
       <div class="stage-controls" role="group" aria-label="3D view controls">
@@ -29,7 +29,7 @@
         <div class="zoom-controls" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div>
         <div class="view-utilities"><button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">Reset view</button><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div>
       </div>
-      <div class="stage-caption"><p id="scene-hint">Choose a rack to explore the work.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
+      <div class="stage-caption"><p id="scene-hint">Click a unit to open its record.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
     </section>
     <aside class="project-panel" aria-label="Work index and details">
       <section class="collection-directory" id="collection-directory" tabindex="-1" aria-labelledby="directory-title">
@@ -86,7 +86,7 @@
           </nav>
         </section>
       </div>
-      <section class="project-details" id="project-details" aria-label="Record details">
+      <section class="project-details" id="project-details" tabindex="-1" aria-label="Record details">
         <div class="details-toolbar"><a href="#" id="back-to-rack">← All projects</a><span id="detail-bay">01 / 1U</span></div>
         <section data-collection-detail="software" aria-label="Software details">
         <article id="ci-runner-console" data-detail="0">
@@ -316,6 +316,6 @@
     </aside>
   </main>
   <noscript><style>.scene-loading,.stage-controls,.phase-label,.stage-caption{display:none}.stage{height:200px!important;min-height:200px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
-  <script type="module" src="./app.js?v=20261018-datacenter-v6"></script>
+  <script type="module" src="./app.js?v=20261018-front-row-v2"></script>
 </body>
 </html>

@@ -1,19 +1,21 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
 
-// Authored geometry informed by Google's New Albany aisle photographs. The three
-// front-left positions belong to the interactive portfolio models in scene.js.
+// The content racks form the front equipment row. Repeated rows behind it supply depth.
 export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const group = new THREE.Group();
-  group.name = 'Datacenter cold aisle';
+  group.name = 'Datacenter equipment rows';
   const parts = new Map();
   const geometries = [];
   const materials = [];
-  const cabinetHeight = Math.max(12.8, rackHeight + 2.4);
-  const roofY = floorY + cabinetHeight;
+  const backgroundHeight = Math.max(12.8, rackHeight + 2.4);
+  const roofY = floorY + backgroundHeight;
   const ceilingY = roofY + 4;
   const trayY = roofY + 1.25;
-  const endZ = -53.2;
+  const endZ = -43.2;
+  const reservedSlots = [[-6, 0], [0, 0], [6, 0]];
+  const rows = [];
+  const cableManagers = [];
 
   function finish(name, color, roughness = 0.8, metalness = 0.1, basic = false) {
     const material = basic
@@ -50,130 +52,102 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     parts.get(material).push(geometry);
   }
 
-  box(floor, 48, 0.24, 84, 0, floorY - 0.12, -18);
-  // Tile seams are actual, broad geometry. Fine hatch textures shimmer at the far end.
-  for (let x = -20; x <= 20; x += 3) box(recess, 0.027, 0.008, 81, x, floorY + 0.004, -18);
-  for (let z = -57; z <= 21; z += 3) box(recess, 42, 0.008, 0.027, 0, floorY + 0.004, z);
-  for (const side of [-1, 1]) {
-    // The supply vents sit at the rack fronts, outside the clear walking route.
-    for (let z = 0; z >= -48; z -= 6) {
-      const x = side * 3.7;
-      box(panel, 1.7, 0.015, 2.3, x, floorY + 0.012, z);
-      for (let slat = 0; slat < 7; slat++) box(recess, 1.38, 0.012, 0.12, x, floorY + 0.025, z - 0.84 + slat * 0.28);
+  box(floor, 60, 0.24, 78, 0, floorY - 0.12, -9);
+  for (let x = -27; x <= 27; x += 3) box(recess, 0.027, 0.008, 75, x, floorY + 0.004, -9);
+  for (let z = -45; z <= 27; z += 3) box(recess, 57, 0.008, 0.027, 0, floorY + 0.004, z);
+  // Supply grilles run across each service aisle, clear of the extracted chassis.
+  for (const z of [5.2, -6.8, -18.8, -30.8]) {
+    for (let x = -24; x <= 24; x += 6) {
+      box(panel, 2.3, 0.015, 1.7, x, floorY + 0.012, z);
+      for (let slat = 0; slat < 7; slat++) box(recess, 0.12, 0.012, 1.38, x - 0.84 + slat * 0.28, floorY + 0.025, z);
     }
-    box(silver, 0.07, 0.012, 55, side * 4.85, floorY + 0.014, -24);
   }
 
-  // The room continues behind the rows, rather than ending at each cabinet's roof.
-  box(wall, 0.35, ceilingY - floorY, 79, -18, (ceilingY + floorY) / 2, -18);
-  box(wall, 0.35, ceilingY - floorY, 79, 18, (ceilingY + floorY) / 2, -18);
-  box(ceiling, 36, 0.2, 79, 0, ceilingY, -18);
-  box(wall, 36, ceilingY - floorY, 0.32, 0, (ceilingY + floorY) / 2, endZ - 0.5);
+  box(wall, 0.35, ceilingY - floorY, 74, -29, (ceilingY + floorY) / 2, -9);
+  box(wall, 0.35, ceilingY - floorY, 74, 29, (ceilingY + floorY) / 2, -9);
+  box(ceiling, 58, 0.2, 74, 0, ceilingY, -9);
+  box(wall, 58, ceilingY - floorY, 0.32, 0, (ceilingY + floorY) / 2, endZ - 0.5);
 
-  const rows = [];
-  for (const side of [-1, 1]) {
+  function addCabinet(x, z, height, index) {
+    const baseY = floorY + (z === 0 ? 0.22 : 0);
+    const y = baseY + height / 2;
+    const top = baseY + height;
+    rows.push({ x, z, height });
+    // Closed cases and overlapping front uprights leave only narrow assembly seams.
+    box(cabinet, 4.92, height, 4.84, x, y, z);
+    for (const side of [-1, 1]) {
+      box(panel, 0.055, height - 0.4, 4.54, x + side * 2.48, y, z);
+      box(cabinet, 0.2, height, 0.22, x + side * 2.36, y, z + 2.42);
+      box(silver, 0.1, height - 0.28, 0.12, x + side * 2.24, y, z + 2.48);
+      box(recess, 0.4, 0.22, 0.7, x + side * 1.85, floorY + 0.11, z - 1.75);
+    }
+    box(recess, 4.46, height - 0.65, 0.13, x, y, z + 2.43);
+    for (const edge of [-1, 1]) box(panel, 4.7, 0.22, 0.18, x, y + edge * (height / 2 - 0.14), z + 2.49);
+    box(silver, 1.08, 0.13, 0.12, x + 1.45, top - 0.42, z + 2.57);
+    let cursor = baseY + 0.45;
+    let server = 0;
+    while (cursor < top - 0.9) {
+      const unitHeight = (server + index) % 4 === 0 ? 1.04 : 0.55;
+      if (cursor + unitHeight > top - 0.7) break;
+      const center = cursor + unitHeight / 2;
+      box(panel, 4.25, unitHeight - 0.055, 0.13, x, center, z + 2.53);
+      if ((server + index) % 3 === 0) {
+        for (let drive = 0; drive < 6; drive++) {
+          const driveX = x - 1.66 + drive * 0.66;
+          box(recess, 0.55, unitHeight * 0.65, 0.07, driveX, center, z + 2.62);
+          box(silver, 0.37, 0.07, 0.06, driveX, center - unitHeight * 0.2, z + 2.68);
+        }
+      } else {
+        box(recess, 2.82, unitHeight * 0.52, 0.08, x - 0.3, center, z + 2.63);
+        box(cabinet, 0.5, unitHeight * 0.68, 0.09, x + 1.45, center, z + 2.63);
+        for (const edge of [-1, 1]) box(silver, 0.09, unitHeight * 0.6, 0.12, x + edge * 1.95, center, z + 2.67);
+      }
+      if (server % 2 === 0) box(amber, 0.09, 0.05, 0.06, x + 1.5, center + 0.07, z + 2.69);
+      cursor += unitHeight;
+      server++;
+    }
+    box(recess, 0.22, height - 1.1, 0.24, x - 2.12, y, z + 2.58);
+    for (let run = 0; run < 3; run++) pipe(cable, 0.035, [x - 2.02 + run * 0.065, floorY + 1.4, z + 2.72], [x - 2.02 + run * 0.065, trayY - 0.2, z + 2.72]);
+  }
+
+  // The content cabinets sit inside this row, with ordinary equipment on both sides.
+  for (const z of [0, -12, -24, -36]) {
+    const height = z === 0 ? rackHeight : backgroundHeight;
     for (let index = 0; index < 9; index++) {
-      if (side === -1 && index < 3) continue;
-      const x = side * 8;
-      const z = -index * 6;
-      const frontX = side * 4.98;
-      const y = floorY + cabinetHeight / 2;
-      rows.push({ side, index, x, z });
-      box(cabinet, 6, cabinetHeight, 4.92, x, y, z);
-      // Removable end panels are visible at the aisle entrance and row gaps.
-      for (const end of [-1, 1]) {
-        box(panel, 5.64, cabinetHeight - 0.42, 0.055, x, y, z + end * 2.49);
-        box(recess, 0.045, cabinetHeight - 0.55, 0.02, x, y, z + end * 2.526);
-        for (const half of [-1, 1]) {
-          box(recess, 0.09, 0.44, 0.03, x + half * 0.27, y + 0.2, z + end * 2.54);
-          box(silver, 0.055, 0.28, 0.045, x + half * 0.27, y + 0.2, z + end * 2.56);
-        }
-      }
-      // Dark inset equipment aperture, bounded by substantial mounting uprights.
-      box(recess, 0.12, cabinetHeight - 0.68, 4.48, frontX, y, z);
-      for (const edge of [-1, 1]) {
-        box(silver, 0.14, cabinetHeight - 0.26, 0.1, frontX - side * 0.11, y, z + edge * 2.27);
-        box(cabinet, 0.23, cabinetHeight, 0.18, frontX - side * 0.03, y, z + edge * 2.4);
-        box(recess, 0.7, 0.16, 0.4, x - side * 1.8, floorY + 0.08, z + edge * 1.85);
-      }
-      for (const edge of [-1, 1]) box(panel, 0.18, 0.22, 4.7, frontX - side * 0.12, y + edge * (cabinetHeight / 2 - 0.16), z);
-      box(silver, 0.12, 0.18, 1.08, frontX - side * 0.15, roofY - 0.42, z + 1.5);
-      // A mixture of 1U/2U server fronts and dense storage trays, with broad,
-      // resolvable recesses in place of an aliased perforation pattern.
-      let cursor = floorY + 0.46;
-      let server = 0;
-      while (cursor < roofY - 0.95) {
-        const height = (server + index) % 4 === 0 ? 1.04 : 0.55;
-        if (cursor + height > roofY - 0.75) break;
-        const center = cursor + height / 2;
-        box(panel, 0.13, height - 0.055, 4.25, frontX - side * 0.17, center, z);
-        if ((server + index) % 3 === 0) {
-          for (let drive = 0; drive < 6; drive++) {
-            const driveZ = z - 1.66 + drive * 0.66;
-            box(recess, 0.07, height * 0.65, 0.55, frontX - side * 0.25, center, driveZ);
-            box(silver, 0.06, 0.07, 0.37, frontX - side * 0.3, center - height * 0.2, driveZ);
-          }
-        } else {
-          box(recess, 0.08, height * 0.52, 2.82, frontX - side * 0.25, center, z - 0.3);
-          box(cabinet, 0.09, height * 0.68, 0.5, frontX - side * 0.25, center, z + 1.45);
-          for (const end of [-1, 1]) box(silver, 0.12, height * 0.6, 0.09, frontX - side * 0.29, center, z + end * 1.95);
-        }
-        if (server % 2 === 0) box(amber, 0.06, 0.05, 0.09, frontX - side * 0.31, center + 0.07, z + 1.5);
-        cursor += height;
-        server++;
-      }
-      // Vertical cable managers sit at the edge of the mounted equipment.
-      box(recess, 0.24, cabinetHeight - 1.1, 0.22, frontX - side * 0.19, y, z - 2.12);
-      for (let run = 0; run < 3; run++) pipe(cable, 0.035, [frontX - side * 0.36, floorY + 1.4, z - 2.02 + run * 0.065], [frontX - side * 0.36, trayY - 0.2, z - 2.02 + run * 0.065]);
+      const x = -24 + index * 6;
+      if (z !== 0 || Math.abs(x) > 6) addCabinet(x, z, height, index + Math.abs(z));
     }
-  }
-
-  // Cable-manager columns close the cabinet pitch into continuous rows. The
-  // first left columns match the shallower interactive cases without crossing them.
-  const cableManagers = [];
-  for (const side of [-1, 1]) {
     for (let join = 0; join < 8; join++) {
-      const besidePortfolio = side === -1 && join < 3;
-      const depth = besidePortfolio ? 4.78 : 6;
-      const height = besidePortfolio ? rackHeight : cabinetHeight;
-      const x = side * 8;
-      const z = -3 - join * 6;
-      const centerY = floorY + height / 2;
-      const frontX = x - side * (depth / 2 + 0.035);
-      cableManagers.push({ side, z, depth, height });
-      box(cabinet, depth, height, 1.04, x, centerY, z);
-      box(panel, 0.08, height - 0.24, 0.86, frontX, centerY, z);
-      for (const edge of [-1, 1]) box(recess, 0.035, height - 0.25, 0.035, frontX - side * 0.055, centerY, z + edge * 0.45);
-      box(recess, 0.045, 0.35, 0.07, frontX - side * 0.06, centerY + 0.1, z + 0.25);
-      box(silver, 0.055, 0.22, 0.045, frontX - side * 0.09, centerY + 0.1, z + 0.25);
-      box(panel, depth - 0.12, 0.08, 0.92, x, floorY + height + 0.02, z);
+      const x = -21 + join * 6;
+      const columnHeight = height + (z === 0 ? 0.22 : 0);
+      const y = floorY + columnHeight / 2;
+      cableManagers.push({ x, z, height });
+      box(cabinet, 1.04, columnHeight, 4.78, x, y, z);
+      box(panel, 0.86, columnHeight - 0.24, 0.08, x, y, z + 2.43);
+      for (const edge of [-1, 1]) box(recess, 0.035, columnHeight - 0.25, 0.035, x + edge * 0.45, y, z + 2.49);
+      box(recess, 0.07, 0.35, 0.045, x + 0.25, y + 0.1, z + 2.5);
+      box(silver, 0.045, 0.22, 0.055, x + 0.25, y + 0.1, z + 2.54);
+      box(panel, 0.92, 0.08, 4.66, x, floorY + columnHeight - 0.02, z);
     }
   }
 
-  // Long suspended ladder trays run parallel to the rows. Crossmembers and
-  // drops make their repeated supports legible from the entrance camera.
-  for (const side of [-1, 1]) {
-    const x = side * 6.2;
-    for (const edge of [-1, 1]) box(silver, 0.1, 0.31, 56, x + edge * 0.91, trayY, -24);
-    for (let z = 3; z >= -51; z -= 1.8) box(silver, 1.92, 0.07, 0.085, x, trayY - 0.12, z);
-    for (let bundle = 0; bundle < 6; bundle++) pipe(cable, 0.075, [x - 0.65 + bundle * 0.25, trayY + 0.03, 3.5], [x - 0.65 + bundle * 0.25, trayY + 0.03, -51.5]);
-    for (let z = 0; z >= -48; z -= 6) {
-      box(silver, 0.08, ceilingY - trayY, 0.08, x, (ceilingY + trayY) / 2, z);
-      box(cabinet, 2.3, 0.13, 0.17, x, trayY - 0.22, z);
-    }
+  // Ladder trays and service lights repeat across the room, above the cabinet rows.
+  for (const z of [0, -12, -24, -36]) {
+    for (const edge of [-1, 1]) box(silver, 54, 0.31, 0.1, 0, trayY, z + edge * 0.91);
+    for (let x = -27; x <= 27; x += 1.8) box(silver, 0.085, 0.07, 1.92, x, trayY - 0.12, z);
+    for (let bundle = 0; bundle < 6; bundle++) pipe(cable, 0.075, [-27, trayY + 0.03, z - 0.65 + bundle * 0.25], [27, trayY + 0.03, z - 0.65 + bundle * 0.25]);
+    for (let x = -24; x <= 24; x += 6) box(silver, 0.08, ceilingY - trayY, 0.08, x, (ceilingY + trayY) / 2, z);
   }
-  for (let z = 4; z >= -50; z -= 6) {
-    box(silver, 33, 0.3, 0.22, 0, ceilingY - 0.65, z);
-    // Two long fixtures above the aisle keep a usable white industrial light rhythm.
-    for (const x of [-2.5, 2.5]) {
-      box(cabinet, 0.5, 0.16, 4.5, x, roofY + 2.2, z - 2);
-      box(lamp, 0.34, 0.055, 4.25, x, roofY + 2.1, z - 2);
-      box(silver, 0.05, 1.05, 0.05, x, roofY + 2.8, z - 2);
+  for (const z of [6, -6, -18, -30]) {
+    box(silver, 57, 0.3, 0.22, 0, ceilingY - 0.65, z);
+    for (const x of [-21, -9, 3, 15]) {
+      box(cabinet, 8.5, 0.16, 0.5, x, roofY + 2.2, z);
+      box(lamp, 8.25, 0.055, 0.34, x, roofY + 2.1, z);
+      for (const edge of [-1, 1]) box(silver, 0.05, 1.05, 0.05, x + edge * 3.7, roofY + 2.8, z);
     }
   }
 
-  // An end containment portal closes the vanishing point. Inset dark panels
-  // suggest glazing without transparent sorting or high-cost transmission.
+  // The far wall has an opaque containment door, avoiding transparent sorting.
   const portalY = floorY + 6.4;
   for (const x of [-5.1, 0, 5.1]) box(silver, 0.2, 12.8, 0.22, x, portalY, endZ);
   for (const y of [floorY + 0.12, floorY + 11.1, floorY + 12.7]) box(silver, 10.4, 0.22, 0.22, 0, y, endZ);
@@ -202,8 +176,9 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     drawCalls: group.children.length,
     triangles: geometries.reduce((sum, geometry) => sum + geometry.index.count / 3, 0),
     bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
-    cabinetHeight,
-    reservedSlots: [[-8, 0], [-8, -6], [-8, -12]],
+    cabinetHeight: rackHeight,
+    backgroundHeight,
+    reservedSlots,
   };
   return {
     group,

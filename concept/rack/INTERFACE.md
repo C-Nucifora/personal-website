@@ -34,6 +34,6 @@ The active design context is `personal` / `personal-website`, with no resolver w
 
 ## Datacenter and nested tools
 
-The entrance now presents software, hardware and experience as three ordinary navigation destinations and three physical cabinets in an aisle. A short factual introduction connects the approved study and UQ Racing history to the software work. Each rack has its own index and full record pages; missing material is explicitly marked as a placeholder.
+Software, hardware and experience occupy three physical cabinets in the main foreground row, with equipment on either side. Home opens close to the software rack, retaining the short factual introduction alongside it. There is no separate distant entrance view. Each rack has ordinary navigation, its own index and full record pages; missing material is explicitly marked as a placeholder. The other rows provide background depth.
 
 M1 has a second level of selection. The nested inspector shows the selected tool's real group, description, source and page while its carrier is extracted. Pull out and Return buttons provide a keyboard equivalent to the physical faces. Escape and the back action return one level before closing the parent enclosure. Utility text has opaque neutral backing where it would otherwise sit on a bright floor or wall. Mobile headings and captions occupy normal grid rows, so wrapped headings cannot collide with instructions.

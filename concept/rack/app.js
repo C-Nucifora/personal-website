@@ -1,4 +1,4 @@
-import { collections, allUnits } from "./collections.js?v=20261018-datacenter-v6";
+import { collections, allUnits } from "./collections.js?v=20261018-front-row-v2";
 
 const requestedRack = new URLSearchParams(location.search).get("rack");
 const hashUnit = allUnits.find(unit => unit.id === location.hash.slice(1) || unit.modules?.some(module => module.id === location.hash.slice(1)));
@@ -6,23 +6,22 @@ const collection = collections.find(item => item.id === requestedRack)
   ?? collections.find(item => item.units.includes(hashUnit))
   ?? collections[0];
 const units = collection.units;
-const mode = requestedRack !== null || hashUnit ? "rack" : "hall";
-document.querySelector(".skip-link").href = mode === "hall" ? "#collection-directory" : "#project-index";
+const isHome = requestedRack === null && !hashUnit;
+const mode = "rack";
+document.querySelector(".skip-link").href = isHome ? "#collection-directory" : "#project-index";
 document.querySelectorAll("[data-collection-index]").forEach(section => { section.hidden = section.dataset.collectionIndex !== collection.id; });
 document.querySelectorAll("[data-collection-detail]").forEach(section => { section.hidden = section.dataset.collectionDetail !== collection.id; });
-document.querySelector(".collection-directory").hidden = mode !== "hall";
-document.querySelector(".project-index").hidden = mode === "hall";
+document.querySelector(".collection-directory").hidden = !isHome;
+document.querySelector(".project-index").hidden = isHome;
 document.querySelectorAll("[data-collection-nav]").forEach(link => {
-  if (link.dataset.collectionNav === (mode === "hall" ? "hall" : collection.id)) link.setAttribute("aria-current", "page");
+  if (link.dataset.collectionNav === (isHome ? "hall" : collection.id)) link.setAttribute("aria-current", "page");
   // The static fragment keeps the text index reachable without JavaScript.
   link.hash = "";
 });
 document.querySelectorAll(".collection-list a").forEach(link => { link.hash = ""; });
-document.querySelector("#collection-title").textContent = mode === "hall" ? "Datacenter" : collection.title;
-document.querySelector("#collection-subtitle").textContent = mode === "hall"
-  ? "Software, hardware and experience"
-  : `${units.length} ${collection.id === "experience" ? "records" : "projects"} in a 24U rack`;
-document.querySelector("#scene-loading").textContent = mode === "hall" ? "Loading the datacenter…" : "Loading the rack…";
+document.querySelector("#collection-title").textContent = collection.title;
+document.querySelector("#collection-subtitle").textContent = `${units.length} ${collection.id === "experience" ? "records" : "projects"} in a 24U rack`;
+document.querySelector("#scene-loading").textContent = "Loading the rack…";
 document.querySelector("#back-to-rack").textContent = `← ${collection.label} rack`;
 
 const slugs = units.map(unit => unit.id);
@@ -41,6 +40,7 @@ let sceneFailed = false;
 let userMotionChoice = null;
 let phase = "overview";
 let indexScroll = 0;
+let returnFocusTarget = null;
 let selectedModule = null;
 let modulePhase = "closed";
 const moduleInspector = document.querySelector("#module-inspector");
@@ -105,7 +105,6 @@ function showModuleState({ moduleId, phase: nextPhase }) {
 document.querySelector("#return-module").addEventListener("click", () => inspectModule(null));
 
 document.body.classList.add("is-enhanced");
-document.body.classList.toggle("is-hall", mode === "hall");
 motionInput.checked = motionPreference.matches;
 
 function showPhase(nextPhase, index) {
@@ -114,8 +113,13 @@ function showPhase(nextPhase, index) {
   const wasProject = workspace.classList.contains("is-project");
   if (isProject && !wasProject) indexScroll = projectPanel.scrollTop;
   workspace.classList.toggle("is-project", isProject);
+  document.querySelector(".skip-link").href = isProject ? "#project-details" : isHome ? "#collection-directory" : "#project-index";
   if (isProject && !wasProject) projectPanel.scrollTop = 0;
   else if (!isProject && wasProject) projectPanel.scrollTop = indexScroll;
+  if (nextPhase === "overview" && returnFocusTarget) {
+    returnFocusTarget.focus({ preventScroll: true });
+    returnFocusTarget = null;
+  }
   workspace.dataset.phase = nextPhase;
   articles.forEach((article, i) => article.classList.toggle("is-selected", i === index));
   rows.forEach((row, i) => {
@@ -132,7 +136,7 @@ function showPhase(nextPhase, index) {
   };
   phaseLabel.textContent = labels[nextPhase];
   const hints = {
-    overview: mode === "hall" ? "Choose a rack to explore the work." : "Click a unit to open its record.",
+    overview: "Click a unit to open its record.",
     extracting: "",
     focusing: "",
     project: units[index]?.id === "m1-toolchain" ? (selectedModule && modulePhase === "open" ? "Click the pulled-out module to read about the tool." : "Choose a module handle to pull out a tool.") : "Click the engraved title to read the full record.",
@@ -165,6 +169,9 @@ function openProject(index, updateHistory = true) {
   if (selected === index && (index !== null || phase === "overview")) return;
   const previous = selected;
   selected = index;
+  returnFocusTarget = index === null && previous !== null
+    ? (isHome ? document.querySelector(".collection-list a") : rows[previous])
+    : null;
   showModuleState({ moduleId: null, phase: "closed" });
   if (updateHistory) history.pushState(null, "", index === null ? location.pathname + location.search : `#${slugs[index]}`);
   rows.forEach((row, i) => {
@@ -174,7 +181,6 @@ function openProject(index, updateHistory = true) {
   });
   if (scene && !sceneFailed) scene.select(index);
   else showPhase(index === null ? "overview" : "project", index);
-  if (index === null && previous !== null) rows[previous].focus({ preventScroll: true });
   if (matchMedia("(max-width: 900px)").matches) {
     const target = sceneFailed && index !== null ? articles[index] : document.querySelector(".stage");
     target.scrollIntoView({ behavior: motionInput.checked ? "instant" : "smooth", block: "start" });
@@ -256,7 +262,7 @@ motionPreference.addEventListener("change", applyMotionPreference);
 applyMotionPreference();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-datacenter-v6");
+  const { createRackScene } = await import("./scene.js?v=20261018-front-row-v2");
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     collectionId: collection.id,
@@ -270,7 +276,7 @@ try {
     onHover: index => {
       rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
       if (phase === "overview") hint.textContent = index === null
-        ? (mode === "hall" ? "Choose a rack to explore the work." : "Click a unit to open its record.")
+        ? "Click a unit to open its record."
         : `${units[index].title} · ${units[index].u}U`;
     },
     onPhase: ({ phase: nextPhase, index }) => showPhase(nextPhase, index),

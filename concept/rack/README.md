@@ -1,6 +1,6 @@
 # Portfolio datacenter
 
-A local, static 3D portfolio for Christian Nucifora. The entrance looks down a datacenter aisle. Three selectable cabinets hold Software, Hardware and Experience. Ordinary navigation and text views provide the same content alongside the spatial interface.
+A local, static 3D portfolio for Christian Nucifora. Software, Hardware and Experience occupy the middle of a foreground cabinet row, with neighboring equipment on both sides. The page opens close to the software rack. Deeper rows provide the datacenter background. Ordinary navigation and text views provide the same content alongside the spatial interface.
 
 ## Run and deploy
 
@@ -27,7 +27,7 @@ The introductory copy connects engineering and computer science study, UQ Racing
 
 ## Spatial interaction
 
-Select a cabinet in the aisle or use Software, Hardware or Experience in the header. Its record list matches its actual units. Selecting a unit first extracts the enclosure, then focuses the camera. The engraved lid links to its full local page. Escape or the rack return action reverses selection. Zoom and Front view remain available in the relevant steady views. Datacenter returns to the aisle.
+The home page opens at the software rack with the introduction alongside it. Select a unit directly, select a neighboring content cabinet, or use Software, Hardware or Experience in the header. Each collection's record list matches its actual units. Selecting a unit first extracts the enclosure, then focuses the camera. The engraved lid links to its full local page. Escape or the rack return action reverses selection. Zoom and Front view remain available in the relevant steady views. Datacenter returns to the close home view; Reset stays at the current rack.
 
 After opening M1 Toolchain, select one of its fifteen carrier faces or use its Pull out button in the repository list. One carrier slides forward another 1.35 units. Selecting another returns the previous carrier first. The sidebar then shows that tool's actual description, group, local page and GitHub link. Clicking its extracted face opens the module page. Return module, the M1 back action or Escape closes the carrier before returning the outer enclosure.
 
@@ -35,7 +35,7 @@ After opening M1 Toolchain, select one of its fifteen carrier faces or use its P
 
 ## Environment and construction
 
-The aisle contains three detailed cabinets and fifteen ambient cabinets. Opposing equipment fronts, sixteen covered cable-management joins, raised-floor grilles, repeated ceiling fixtures, ladder trays, cable bundles and an end portal establish the datacenter space. [Datacenter references](DATACENTER.md) record the inspected primary photographs and layout guidance. All geometry is authored; reference photos are not shipped.
+The main row contains the three detailed cabinets and flanking ambient cabinets. Repeated rows behind it, covered cabinet joins, raised-floor grilles, ceiling fixtures, ladder trays and cable bundles establish the datacenter space. Background equipment has no project navigation. [Datacenter references](DATACENTER.md) record the inspected primary photographs and layout guidance. All geometry is authored; reference photos are not shipped.
 
 The original hardware anatomy remains tied to each software project. Wavelength retains a navy audio processor; mountd uses storage trays; M1 uses fifteen independent plug-in carriers. Hardware and experience records use illustrative instrument enclosures and document drawers. They are interface objects, not photographs or claimed reproductions of Christian's actual designs. [Hardware references](HARDWARE.md) document the procedural references.
 
@@ -47,12 +47,12 @@ The interface keeps the user's neutral charcoal, off-white and copper palette. G
 
 Three.js r180 is vendored locally under MIT. IBM Plex Sans and Plex Mono are self-hosted under SIL OFL 1.1. Exact font URLs and notices remain in `fonts/`; Three's notice remains in `vendor/`. No new dependency was added.
 
-Native MSAA, Neutral tone mapping, filtered reflections, broad roughness grain and a bounded 2x/6.5-million-pixel drawing buffer remain. Inactive racks use smaller text/engraving bitmaps; the inspected rack retains full texture resolution. Rendering runs on demand, pauses while hidden and follows reduced-motion preferences. The camera fits transformed rack geometry and bounds zoom within the aisle. [Rendering research](RENDERING.md) and the [aliasing follow-up](QUALITY.md) preserve the earlier investigations.
+Native MSAA, Neutral tone mapping, filtered reflections, broad roughness grain and a bounded 2x/6.5-million-pixel drawing buffer remain. Inactive racks use smaller text/engraving bitmaps; the inspected rack retains full texture resolution. Rendering runs on demand, pauses while hidden and follows reduced-motion preferences. The camera fits the selected foreground rack and bounds zoom and rotation within its inspection space. There is no distant entrance camera. [Rendering research](RENDERING.md) and the [aliasing follow-up](QUALITY.md) preserve the earlier investigations.
 
 ## Verification
 
 Temporary checks cover all twenty-one records, three 24U totals, unique IDs, local assets, matching versioned imports, source retention and placeholders. Geometry checks at active and inactive texture scales cover finite vertices and bounds, fifteen module targets, 756 enclosure seam rays, 180 carrier closure rays and resource disposal. The ambient hall remains ten merged meshes.
 
-Browser review covers the aisle, three rack routes, physical collection/unit/engraved clicks, ordinary project pages, mobile navigation, no-JavaScript records and keyboard access. Individual module review covers extraction, switching, return, module pages, reduced motion and the idle frame loop. The production artifact is checked independently of the source server. Physical Safari, real touch gestures and device GPU frame times remain unmeasured.
+Browser review covers the close front row, three rack routes, physical collection/unit/engraved clicks, ordinary project pages, mobile navigation, no-JavaScript records and keyboard access. Individual module review covers extraction, switching, return, module pages, reduced motion and the idle frame loop. The production artifact is checked independently of the source server. Physical Safari, real touch gestures and device GPU frame times remain unmeasured.
 
 Resolved design context: `personal` / `personal-website`, no warnings. The current explicit datacenter, nested-module and neutral-color briefs take precedence over historical PCB and terminal records. This README owns the prototype decisions. No reliable last-push record exists for this branch; signed local commits use this session within the past-day fallback window. No push or public deployment is part of this local work.
