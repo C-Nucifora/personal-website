@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Portfolio editor · Christian Nucifora</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./admin.css">
+  <script type="module" src="./admin.js"></script>
+</head>
+<body>
+  <a class="skip" href="#editor">Skip to editor</a>
+  <header class="masthead">
+    <a href="./" class="wordmark">CN <span>/ Portfolio editor</span></a>
+    <a href="./" target="_blank" rel="noopener">View published site ↗</a>
+  </header>
+  <main id="gate" class="gate">
+    <p class="eyebrow">Private workspace</p>
+    <h1>Portfolio editor</h1>
+    <p id="gate-message" role="status">Checking editor access…</p>
+    <div class="gate-actions">
+      <button id="sign-in" class="primary" hidden>Sign in with GitHub</button>
+      <button id="local-preview" hidden>Open local preview</button>
+    </div>
+    <p class="fine">GitHub sign-in is restricted to the configured owner. Local preview is an in-memory editor for trying changes and exporting JSON. It cannot save or publish to the site.</p>
+  </main>
+  <main id="workspace" hidden>
+    <div id="mode-banner" class="mode-banner" hidden>Local preview · Changes stay in this tab. Save and Publish are unavailable.</div>
+    <section class="toolbar" aria-label="Draft controls">
+      <div><h1>Portfolio</h1><p id="draft-state" role="status">Draft loaded</p></div>
+      <div class="toolbar-actions">
+        <button id="import">Import JSON</button><button id="export">Export JSON</button>
+        <button id="history">History</button><button id="save">Save draft</button><button id="publish" class="primary">Publish</button>
+        <button id="sign-out" hidden>Sign out</button>
+      </div>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+    </section>
+    <div id="notice" role="status" class="notice" hidden></div>
+    <div class="workspace-layout">
+      <aside class="arrangement" aria-label="Rack arrangement and inventory">
+        <div class="section-heading"><h2>Arrangement</h2><button id="new-rack" class="text-button">+ Rack</button></div>
+        <p class="help">U01 starts at the bottom. Select equipment to edit it. Drag onto a free U, or set an exact position in the editor.</p>
+        <div id="rack-list" class="rack-list"></div>
+        <div class="section-heading inventory-heading"><h2>Project inventory</h2><button id="new-project" class="text-button">+ Project</button></div>
+        <label class="search">Search projects<input id="search" type="search" placeholder="Title, stack or description"></label>
+        <label class="inventory-filter">Show<select id="filter"><option value="all">All projects</option><option value="unplaced">Unplaced</option><option value="placed">Placed</option><option value="unpublished">Unpublished</option></select></label>
+        <div id="inventory" class="inventory"></div>
+      </aside>
+      <section class="editor-column">
+        <nav class="editor-tabs" aria-label="Editor sections"><button data-tab="project" aria-pressed="true">Project</button><button data-tab="racks" aria-pressed="false">Racks</button><button data-tab="site" aria-pressed="false">Site & story</button></nav>
+        <div id="editor" class="editor" tabindex="-1"></div>
+      </section>
+    </div>
+  </main>
+  <dialog id="history-dialog"><div class="dialog-heading"><h2>Revision history</h2><button data-close="history-dialog" aria-label="Close history">×</button></div><p class="help">Restore loads a previous revision as a new draft. Publish it when ready.</p><div id="history-list"></div></dialog>
+  <dialog id="preview-dialog"><div class="dialog-heading"><h2>Page preview</h2><button data-close="preview-dialog" aria-label="Close page preview">×</button></div><div id="page-preview"></div></dialog>
+  <noscript><p class="notice">The portfolio editor needs JavaScript. The published portfolio is available from the link above.</p></noscript>
+</body>
+</html>
