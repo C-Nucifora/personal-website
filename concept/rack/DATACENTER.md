@@ -13,6 +13,8 @@ The geometry is original. Reference photographs are research material, not runti
 
 `datacenter.js` exports `createDatacenter({ floorY, rackHeight })`, returning `group`, `stats` and `dispose()`.
 
+Its exported `RACK_SLOTS` registry names the Software, Hardware and Experience anchors. Both the room's reserved positions and the detailed scene models use those coordinates.
+
 - The front row faces positive `z`. Interactive rack centres are `x = -6`, `0` and `6`, all at `z = 0`. Six ambient cabinets continue that row to `x = -24` and `24`.
 - Front ambient cabinets match the interactive rack height of 10.4 units and its 4.92-unit width and 4.84-unit depth. Closed cases, covered joins and narrow seams keep the row continuous.
 - Three background rows sit at `z = -12`, `-24` and `-36`, each with nine ambient cabinets. These cabinets are 12.8 units tall, so their upper equipment and cable routes remain visible behind the focus row.

@@ -27,17 +27,27 @@ The introductory copy connects engineering and computer science study, UQ Racing
 
 ## Spatial interaction
 
-The home page opens at the software rack with the introduction alongside it. Select a unit directly, select a neighboring content cabinet, or use Software, Hardware or Experience in the header. Each collection's record list matches its actual units. Selecting a unit first extracts the enclosure, then focuses the camera. The engraved lid links to its full local page. Escape or the rack return action reverses selection. Zoom and Front view remain available in the relevant steady views. Datacenter returns to the close home view; Reset stays at the current rack.
+The home page opens at the software rack with the introduction alongside it. Select a unit directly, select a neighboring content cabinet, or use Software, Hardware or Experience in the header. Rack changes reuse the current document, renderer and models; their URLs still work directly and with browser history. Each collection's record list matches its actual units. Selecting a unit first extracts the enclosure, then focuses the camera. The engraved lid enters its full local page through a deeper camera move. Escape or the rack return action reverses selection. Zoom and Front view remain available in the relevant steady views. Datacenter returns to the close home view; Reset stays at the current rack.
 
 After opening M1 Toolchain, select one of its fifteen carrier faces or use its Pull out button in the repository list. One carrier slides forward another 1.35 units. Selecting another returns the previous carrier first. The sidebar then shows that tool's actual description, group, local page and GitHub link. Clicking its extracted face opens the module page. Return module, the M1 back action or Escape closes the carrier before returning the outer enclosure.
 
+The header Help button opens the visible native Controls and keyboard shortcuts disclosure. Left and right choose racks; up and down choose projects in the index. Enter opens the chosen unit, then enters its full page from the preview. Escape closes open help, returns a module, then returns the parent unit. Home and End choose the first and last project. These shortcuts apply to the rack and index context; normal links, buttons and form controls keep their own behavior. Tab reaches every native action, including all M1 pull-out buttons. The question-mark shortcut opens help only while a navigation component has focus.
+
+Text view hides the spatial view and uses the same index and record content, with immediate state changes. It does not require canvas interaction. Reduced motion skips camera travel. Project entry can be cancelled before navigation; returning from a completed entry leaves the scene interactive. Same-origin project visits use browser history for Back to rack when their referrer identifies the rack, allowing the browser to retain the scene and camera. Direct visits and modified clicks keep ordinary URLs.
+
 `project.html?project=<id>` shows a full record. `project.html?project=m1-toolchain&module=<module-id>` shows an individual tool. Invalid module IDs show the parent bundle; invalid project IDs offer all records. Modified clicks and ordinary source links retain normal browser behavior. Legacy individual M1 hashes still resolve to the bundle.
+
+Project reading pages have subject-specific authored SVG illustrations in `project-art.js`. Wavelength uses audio hardware, M1 its fifteen carriers, nvim-stm32 embedded circuitry, and the other software projects their own interface or system subject. Their content shares a readable layout. The illustrations are decorative and do not replace descriptions, facts or actions. Hardware diagrams are explicitly illustrative; experience remains a record and missing content stays reserved. This adds no per-project 3D renderer or external art request. M1's reading list links to the local module pages and retains separate GitHub sources.
 
 ## Environment and construction
 
 The main row contains the three detailed cabinets and flanking ambient cabinets. Repeated rows behind it, covered cabinet joins, raised-floor grilles, ceiling fixtures, ladder trays and cable bundles establish the datacenter space. Background equipment has no project navigation. [Datacenter references](DATACENTER.md) record the inspected primary photographs and layout guidance. All geometry is authored; reference photos are not shipped.
 
 The original hardware anatomy remains tied to each software project. Wavelength retains a navy audio processor; mountd uses storage trays; M1 uses fifteen independent plug-in carriers. Hardware and experience records use illustrative instrument enclosures and document drawers. They are interface objects, not photographs or claimed reproductions of Christian's actual designs. [Hardware references](HARDWARE.md) document the procedural references.
+
+These are procedural Three.js models, not GLB imports. `model.js` builds enclosures, extruded lids, screws, controls and carriers from geometry and generated canvas textures. Moving units and M1 carriers have their own groups and hit targets. `datacenter.js` builds the ambient equipment and room, merging repeated parts by material. Dimensions, materials and construction details remain editable in those modules.
+
+`RACK_SLOTS` in `datacenter.js` names the three stable content positions. The room reservations and scene model placement read the same anchors, so changing a cabinet model does not require inventing a second coordinate layout.
 
 A geometry audit aligned the lid, floor, sidewalls and fascia with overlapping seams. All case lids stay closed, including inactive cabinets. M1's labels, screws and ejectors move with their own carriers. Deliberate vent apertures, module clearances and service seams remain, with closed backing rather than accidental holes.
 
@@ -47,7 +57,7 @@ The interface keeps the user's neutral charcoal, off-white and copper palette. G
 
 Three.js r180 is vendored locally under MIT. IBM Plex Sans and Plex Mono are self-hosted under SIL OFL 1.1. Exact font URLs and notices remain in `fonts/`; Three's notice remains in `vendor/`. No new dependency was added.
 
-Native MSAA, Neutral tone mapping, filtered reflections, broad roughness grain and a bounded 2x/6.5-million-pixel drawing buffer remain. Inactive racks use smaller text/engraving bitmaps; the inspected rack retains full texture resolution. Rendering runs on demand, pauses while hidden and follows reduced-motion preferences. The camera fits the selected foreground rack and bounds zoom and rotation within its inspection space. There is no distant entrance camera. [Rendering research](RENDERING.md) and the [aliasing follow-up](QUALITY.md) preserve the earlier investigations.
+Native MSAA, Neutral tone mapping, filtered reflections, broad roughness grain and a bounded 2x/6.5-million-pixel drawing buffer remain. All three racks are built at full texture resolution once. Their textures are uploaded and materials compiled during initial preparation, so changing racks does not recreate geometry, fetch assets or compile newly selected materials. Initial page preparation still takes time. Rendering runs on demand, pauses while hidden and follows reduced-motion preferences. The camera fits the selected foreground rack and bounds zoom and rotation within its inspection space. There is no distant entrance camera. [Rendering research](RENDERING.md) and the [aliasing follow-up](QUALITY.md) preserve the earlier investigations.
 
 ## Verification
 

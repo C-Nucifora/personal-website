@@ -8,17 +8,17 @@
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-front-row-v2">
+  <link rel="stylesheet" href="./styles.css?v=20261018-navigation-v2">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
   <a class="skip-link" href="#collection-directory">Skip to work</a>
   <header class="site-header">
     <a class="identity" href="./index.html">Christian Nucifora</a>
-    <nav class="header-links" aria-label="Main navigation"><a href="./index.html" data-collection-nav="hall">Datacenter</a><a href="./index.html?rack=software#software-index" data-collection-nav="software">Software</a><a href="./index.html?rack=hardware#hardware-index" data-collection-nav="hardware">Hardware</a><a href="./index.html?rack=experience#experience-index" data-collection-nav="experience">Experience</a></nav>
+    <nav class="header-links" aria-label="Main navigation"><a class="overview-link" href="./index.html" data-collection-nav="hall">Datacenter</a><a href="./index.html?rack=software#software-index" data-collection-nav="software">Software</a><a href="./index.html?rack=hardware#hardware-index" data-collection-nav="hardware">Hardware</a><a href="./index.html?rack=experience#experience-index" data-collection-nav="experience">Experience</a><button type="button" id="show-help" aria-controls="keyboard-help">Help</button></nav>
   </header>
   <main class="workspace" id="main">
-    <section class="stage" aria-label="Interactive datacenter and project racks">
+    <section class="stage" tabindex="0" role="group" aria-label="Interactive datacenter and project racks" aria-describedby="keyboard-instructions" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Enter Escape">
       <div class="stage-heading"><h1 id="collection-title">Software projects</h1><p id="collection-subtitle">12 projects in a 24U rack</p></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
       <div class="scene-loading" id="scene-loading" role="status">Loading the rack…</div>
@@ -32,6 +32,22 @@
       <div class="stage-caption"><p id="scene-hint">Click a unit to open its record.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
     </section>
     <aside class="project-panel" aria-label="Work index and details">
+      <div class="rack-tools">
+        <div class="rack-navigation" role="group" aria-label="Rack navigation">
+          <button type="button" id="previous-rack" aria-label="Previous rack">←</button>
+          <span id="current-rack">Software</span>
+          <button type="button" id="next-rack" aria-label="Next rack">→</button>
+          <button type="button" id="text-view" aria-pressed="false">Text view</button>
+        </div>
+        <details id="keyboard-help" open>
+          <summary>Controls and keyboard shortcuts</summary>
+          <div id="keyboard-instructions">
+            <p><kbd>←</kbd> <kbd>→</kbd> change rack. <kbd>↑</kbd> <kbd>↓</kbd> choose a project. <kbd>Enter</kbd> opens it, then opens its full page. <kbd>Esc</kbd> closes help, returns a module, then returns to the rack.</p>
+            <p>Click or tap a unit to open it. Drag to turn the rack; scroll or pinch to zoom. Use the index for the same content. Press <kbd>?</kbd> while the rack or index has focus to reopen this help.</p>
+          </div>
+        </details>
+      </div>
+      <p class="visually-hidden" id="navigation-status" role="status" aria-live="polite" aria-atomic="true"></p>
       <section class="collection-directory" id="collection-directory" tabindex="-1" aria-labelledby="directory-title">
         <p class="directory-kicker">Christian Nucifora</p>
         <h2 id="directory-title">Engineering and software.</h2>
@@ -316,6 +332,6 @@
     </aside>
   </main>
   <noscript><style>.scene-loading,.stage-controls,.phase-label,.stage-caption{display:none}.stage{height:200px!important;min-height:200px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
-  <script type="module" src="./app.js?v=20261018-front-row-v2"></script>
+  <script type="module" src="./app.js?v=20261018-navigation-v2"></script>
 </body>
 </html>

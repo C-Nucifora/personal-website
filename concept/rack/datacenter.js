@@ -1,6 +1,12 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
 
+export const RACK_SLOTS = [
+  { id: 'software', position: [-6, 0, 0] },
+  { id: 'hardware', position: [0, 0, 0] },
+  { id: 'experience', position: [6, 0, 0] },
+];
+
 // The content racks form the front equipment row. Repeated rows behind it supply depth.
 export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const group = new THREE.Group();
@@ -13,7 +19,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const ceilingY = roofY + 4;
   const trayY = roofY + 1.25;
   const endZ = -43.2;
-  const reservedSlots = [[-6, 0], [0, 0], [6, 0]];
+  const reservedSlots = RACK_SLOTS.map(({ position: [x, , z] }) => [x, z]);
   const rows = [];
   const cableManagers = [];
 
@@ -115,7 +121,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     const height = z === 0 ? rackHeight : backgroundHeight;
     for (let index = 0; index < 9; index++) {
       const x = -24 + index * 6;
-      if (z !== 0 || Math.abs(x) > 6) addCabinet(x, z, height, index + Math.abs(z));
+      if (!reservedSlots.some(([slotX, slotZ]) => slotX === x && slotZ === z)) addCabinet(x, z, height, index + Math.abs(z));
     }
     for (let join = 0; join < 8; join++) {
       const x = -21 + join * 6;
