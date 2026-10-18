@@ -48,12 +48,12 @@ export function createRackModel(renderer) {
   brushedCanvas.width = 1024;
   brushedCanvas.height = 256;
   const brushedContext = brushedCanvas.getContext('2d');
-  brushedContext.fillStyle = '#bcbcbc';
+  brushedContext.fillStyle = '#f4f4f4';
   brushedContext.fillRect(0, 0, 1024, 256);
-  for (let line = 0; line < 1600; line++) {
-    const value = Math.round(135 + random() * 85);
-    brushedContext.strokeStyle = `rgba(${value},${value},${value},${0.15 + random() * 0.25})`;
-    brushedContext.lineWidth = 0.2 + random() * 0.7;
+  for (let line = 0; line < 320; line++) {
+    const value = Math.round(225 + random() * 25);
+    brushedContext.strokeStyle = `rgba(${value},${value},${value},0.25)`;
+    brushedContext.lineWidth = 1 + random() * 2;
     const y = random() * 256;
     const x = random() * 1024;
     brushedContext.beginPath();
@@ -63,7 +63,7 @@ export function createRackModel(renderer) {
   }
   const brushed = new THREE.CanvasTexture(brushedCanvas);
   brushed.wrapS = brushed.wrapT = THREE.RepeatWrapping;
-  brushed.repeat.set(1.7, 1.3);
+  brushed.repeat.set(1, 1);
   brushed.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   textures.push(brushed);
   const polymerCanvas = document.createElement('canvas');
@@ -72,19 +72,20 @@ export function createRackModel(renderer) {
   polymerContext.fillStyle = '#eeeeee';
   polymerContext.fillRect(0, 0, 128, 128);
   for (let grain = 0; grain < 5000; grain++) {
-    const value = Math.round(185 + random() * 65);
-    polymerContext.fillStyle = `rgba(${value},${value},${value},0.32)`;
+    const value = Math.round(230 + random() * 25);
+    polymerContext.fillStyle = `rgba(${value},${value},${value},0.2)`;
     polymerContext.fillRect(Math.floor(random() * 128), Math.floor(random() * 128), 1, 1);
   }
   const polymerGrain = new THREE.CanvasTexture(polymerCanvas);
   polymerGrain.wrapS = polymerGrain.wrapT = THREE.RepeatWrapping;
-  polymerGrain.repeat.set(5, 4);
+  polymerGrain.repeat.set(2, 2);
   textures.push(polymerGrain);
   // Vertex colours let all the different metal finishes share a draw call per chassis.
   const materials = {
-    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 1, roughness: 0.5, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.002 }),
-    painted: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0, roughness: 0.72, roughnessMap: polymerGrain, bumpMap: polymerGrain, bumpScale: 0.0015 }),
-    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain, bumpMap: polymerGrain, bumpScale: 0.002 }),
+    // Roughness grain survives minification; micro-bump on these tiny bevels caused specular shimmer.
+    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 1, roughness: 0.5, roughnessMap: brushed }),
+    painted: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0, roughness: 0.72, roughnessMap: polymerGrain }),
+    plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain }),
     board: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.26, roughness: 0.62 }),
     light: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, emissive: '#ffffff', emissiveIntensity: 0.08, metalness: 0.2, roughness: 0.35 }),
   };
@@ -239,8 +240,6 @@ export function createRackModel(renderer) {
       hole(x, py, 0.073, ventRows === 1 ? 0.75 : 0.28, 0.028);
     }
     details.rounded('black', [3.65, 0.018, 1.62], [0, y - 0.052, -0.93], 0.02, [0, 0, 0], 'plastic');
-    const lid = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 3 });
-    details.geometry(lid, color, [0, y, z], [-Math.PI / 2, 0, 0]);
     // Folded side flanges and a narrow rear seam make the cover read as a removable sheet.
     for (const x of [-2.045, 2.045]) details.box(color, [0.022, 0.066, 4.07], [x, y - 0.027, z]);
     details.box('black', [3.48, 0.004, 0.013], [0, y + 0.025, -1.565], [0, 0, 0], 'plastic');
@@ -279,16 +278,19 @@ export function createRackModel(renderer) {
       textures.push(texture);
     }
     // The colour and bump maps make a lit etch, rather than floating, unlit text.
-    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.008, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
-    allMaterials.push(material);
-    const geometry = new THREE.ShapeGeometry(shape, 3);
+    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0015, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
+    const rimMaterial = new THREE.MeshStandardMaterial({ color: COLORS[color], metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
+    allMaterials.push(material, rimMaterial);
+    // The etch belongs to the extrusion's top face, with no second sheet to shadow or fight it.
+    const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 3 });
     const positions = geometry.attributes.position;
     const uv = geometry.attributes.uv;
     for (let vertex = 0; vertex < positions.count; vertex++) uv.setXY(vertex, (positions.getX(vertex) + width / 2) / width, (positions.getY(vertex) + depth / 2) / depth);
     geometries.add(geometry);
-    const cap = new THREE.Mesh(geometry, material);
+    const cap = new THREE.Mesh(geometry, [material, rimMaterial]);
     cap.rotation.x = -Math.PI / 2;
-    cap.position.set(0, y + 0.025, z);
+    cap.position.set(0, y, z);
+    cap.castShadow = true;
     cap.receiveShadow = true;
     parent.add(cap);
 
@@ -396,8 +398,8 @@ export function createRackModel(renderer) {
       cut(x, py, w, ph, 0.008);
       parts.box('black', [w + 0.01, ph + 0.015, 0.065], [x, py, FACE_Z - 0.055], [0, 0, 0], 'plastic');
       for (const side of [-1, 1]) {
-        parts.box('silver', [0.012, ph - 0.008, 0.055], [x + side * (w / 2 - 0.009), py, FACE_Z - 0.005]);
-        parts.box('silver', [w - 0.012, 0.012, 0.055], [x, py + side * (ph / 2 - 0.008), FACE_Z - 0.005]);
+        parts.box('darkSilver', [0.012, ph - 0.008, 0.055], [x + side * (w / 2 - 0.009), py, FACE_Z - 0.005]);
+        parts.box('darkSilver', [w - 0.012, 0.012, 0.055], [x, py + side * (ph / 2 - 0.008), FACE_Z - 0.005]);
       }
       for (let pin = 0; pin < 6; pin++) parts.box('trace', [0.008, 0.026, 0.04], [x - w * 0.3 + pin * w * 0.12, py + ph * 0.19, FACE_Z - 0.01]);
       parts.box('rubber', [w * 0.38, ph * 0.19, 0.015], [x, py - ph * 0.39, FACE_Z - 0.016], [0, 0, 0], 'plastic');

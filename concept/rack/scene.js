@@ -1,9 +1,10 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-aa';
 import { units } from './catalog.js';
 
 const BACKGROUND = '#101211';
+const MAX_DRAWING_PIXELS = 6500000;
 const ease = (t) => t * t * (3 - 2 * t);
 
 export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
@@ -14,7 +15,9 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     onError(error);
     return { select() {}, zoom() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const gl = renderer.getContext();
+  const samples = gl.getParameter(gl.SAMPLES);
+  const maxBufferSize = Math.min(renderer.capabilities.maxTextureSize, gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1;
@@ -22,7 +25,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BACKGROUND);
-  const camera = new THREE.PerspectiveCamera(33, 1, 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(33, 1, 0.5, 80);
   const controls = new OrbitControls(camera, canvas);
   canvas.style.touchAction = 'pan-y';
   controls.enablePan = true;
@@ -123,6 +126,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   let activeStage = null;
   let lastWidth = 0;
   let lastHeight = 0;
+  let lastPixelRatio = 0;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let pointerDown = null;
   const activePointers = new Set();
@@ -266,15 +270,21 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     requestRender();
   }
   function resize() {
+    if (disposed || contextLost) return;
     const rect = canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
-    if (width === lastWidth && height === lastHeight) return;
+    // Supersample low-density displays without allocating an unbounded high-DPI framebuffer.
+    const pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2, Math.sqrt(MAX_DRAWING_PIXELS / (width * height)), maxBufferSize / width, maxBufferSize / height);
+    const sizeChanged = width !== lastWidth || height !== lastHeight;
+    if (!sizeChanged && pixelRatio === lastPixelRatio) return;
     lastWidth = width;
     lastHeight = height;
+    lastPixelRatio = pixelRatio;
+    renderer.setDrawingBufferSize(width, height, pixelRatio);
+    if (!sizeChanged) { requestRender(); return; }
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
     if (!activeStage && !stages.length) {
       const pose = selected === null ? overviewPose() : projectPose(selected);
       camera.position.copy(pose.position);
@@ -302,6 +312,14 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(canvas);
+  let pixelRatioQuery;
+  function watchPixelRatio() {
+    pixelRatioQuery?.removeEventListener('change', pixelRatioChange);
+    pixelRatioQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+    pixelRatioQuery.addEventListener('change', pixelRatioChange);
+  }
+  function pixelRatioChange() { resize(); watchPixelRatio(); }
+  watchPixelRatio();
   function hitAt(event, targets = hitTargets) {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -419,12 +437,13 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { index: target.userData.index, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2 };
       });
-      return { phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], contextLost };
+      return { phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
     },
     dispose() {
       disposed = true;
       if (frame) cancelAnimationFrame(frame);
       resizeObserver.disconnect();
+      pixelRatioQuery.removeEventListener('change', pixelRatioChange);
       controls.removeEventListener('change', requestRender);
       controls.dispose();
       canvas.removeEventListener('pointermove', pointerMove);
