@@ -1,14 +1,14 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-floor-v1';
-import { collections } from './collections.js?v=20261018-floor-v1';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-floor-v1';
-import { stepSpring } from './motion.js?v=20261018-floor-v1';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-screen-v1';
+import { collections } from './collections.js?v=20261018-screen-v1';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-screen-v1';
+import { stepSpring } from './motion.js?v=20261018-screen-v1';
 
 const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
 
-export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
   let units = collection.units;
   const mode = 'rack';
@@ -86,7 +86,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   const targetVelocity = new THREE.Vector3();
   let motion = motionStates[collections.indexOf(collection)];
   let model = models[collections.indexOf(collection)];
-  let { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], moduleAssemblies = [], slotY, heights } = model;
+  let { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], projectScreens = [], moduleAssemblies = [], slotY, heights } = model;
   scene.updateMatrixWorld(true);
   const floorY = -model.height / 2 - 0.22;
   const datacenter = createDatacenter({ floorY, rackHeight: model.height });
@@ -182,12 +182,32 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     pose.target.add(shift).add(worldDirection(new THREE.Vector3(1, 0, 0)).multiplyScalar(assembly.group.position.x * 0.18));
     return pose;
   }
-  function entryPose(index, moduleId) {
-    const assembly = moduleAssemblies.find(item => item.moduleId === moduleId && item.projectIndex === index);
-    const link = projectLinkTargets.find(target => target.userData.index === index);
-    const target = assembly ? assembly.hitTarget.getWorldPosition(new THREE.Vector3()) : link?.getWorldPosition(new THREE.Vector3()) ?? worldPoint(new THREE.Vector3(0, slotY[index], EXTRACTION + FACE_Z));
-    const direction = worldDirection(assembly ? new THREE.Vector3(0.12, 0.22, 1) : new THREE.Vector3(0.25, 0.85, 1));
-    return { target, position: target.clone().addScaledVector(direction, assembly ? 2.6 : 4.3) };
+  function projectScreen(index) { return projectScreens.find(item => item.index === index); }
+  function screenCorners(index) {
+    const screen = projectScreen(index);
+    if (!screen) return [];
+    const { mesh, width, height } = screen;
+    return [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([x, y]) => mesh.localToWorld(new THREE.Vector3(x * width / 2, y * height / 2, 0.008)));
+  }
+  function entryPose(index) {
+    const screen = projectScreen(index);
+    if (!screen) return projectPose(index);
+    const target = screen.mesh.getWorldPosition(new THREE.Vector3());
+    const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screen.mesh.getWorldQuaternion(new THREE.Quaternion()));
+    const direction = normal.add(worldDirection(new THREE.Vector3(0, 0, 0.16))).normalize();
+    return fitPose(target, direction, screenCorners(index), 1.12, 0.95);
+  }
+  function publishProjectScreen() {
+    const screen = projectScreen(selected);
+    if (!screen || (phase !== 'project' && phase !== 'entering') || modulePhase === 'returning' || modulePhase === 'extracting') {
+      onProjectScreen(null);
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const points = screenCorners(selected).map(point => point.project(camera));
+    const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screen.mesh.getWorldQuaternion(new THREE.Quaternion()));
+    const visible = camera.position.clone().sub(screen.mesh.getWorldPosition(new THREE.Vector3())).dot(normal) > 0 && points.every(point => point.z >= -1 && point.z <= 1 && Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1);
+    onProjectScreen(visible ? { index: selected, moduleId: selectedModule, corners: points.map(point => ({ x: rect.left + (point.x + 1) * rect.width / 2, y: rect.top + (1 - point.y) * rect.height / 2 })) } : null);
   }
   function inspectionPose() { return selectedModule === null ? projectPose(selected) : modulePose(selectedModule); }
   function emitModule(nextPhase, moduleId = selectedModule) {
@@ -204,7 +224,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
       controls.maxDistance = distance * 1.2;
       controls.minAzimuthAngle = -0.5;
       controls.maxAzimuthAngle = 0.6;
-      controls.minPolarAngle = phase === 'project' ? 0.5 : 0.9;
+      controls.minPolarAngle = preservePose ? 0 : phase === 'project' ? 0.5 : 0.9;
       controls.cursor.copy(preservePose ? controls.target : pose.target);
       controls.maxTargetRadius = phase === 'project' ? 1.5 : 2;
       controls.update();
@@ -271,6 +291,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     try {
       models.forEach(built => built.updateMechanisms?.());
       renderer.render(scene, camera);
+      publishProjectScreen();
       return true;
     } catch (error) {
       contextLost = true;
@@ -390,7 +411,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     motion = motionStates[collections.indexOf(collection)];
     cameraVelocity.set(0, 0, 0);
     targetVelocity.set(0, 0, 0);
-    ({ rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], moduleAssemblies = [], slotY, heights } = model);
+    ({ rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], projectScreens = [], moduleAssemblies = [], slotY, heights } = model);
     selected = null;
     selectedModule = null;
     hovered = null;
@@ -538,7 +559,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     if (event.pointerType === 'touch' || pointerDown) return;
     if (phase === 'project') {
       if (modulePhase === 'extracting' || modulePhase === 'returning') return;
-      const link = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
+      const link = hitAt(event, [...projectLinkTargets.filter(target => target.userData.index === selected), ...projectScreens.filter(item => item.index === selected).map(item => item.mesh)]);
       const module = hitData(event, moduleAssemblies.filter(item => item.projectIndex === selected).map(item => item.hitTarget));
       canvas.style.cursor = link === selected || module ? 'pointer' : 'grab';
       return;
@@ -568,11 +589,11 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
         if (neighbor) onCollectionSelect(neighbor.collectionId);
       }
     } else if (phase === 'project' && modulePhase !== 'extracting' && modulePhase !== 'returning' && distance < 7 && !dragged) {
-      const index = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
-      if (index === selected) { enterProject(index); return; }
+      const index = hitAt(event, [...projectLinkTargets.filter(target => target.userData.index === selected), ...projectScreens.filter(item => item.index === selected).map(item => item.mesh)]);
+      if (index === selected) { onEntryRequest(index, selectedModule); return; }
       const module = hitData(event, moduleAssemblies.filter(item => item.projectIndex === selected).map(item => item.hitTarget));
       if (module) {
-        if (selectedModule === module.moduleId && modulePhase === 'open') enterProject(selected, module.moduleId);
+        if (selectedModule === module.moduleId && modulePhase === 'open') onEntryRequest(selected, module.moduleId);
         else onModuleSelect(module.moduleId);
       }
     }
@@ -638,6 +659,20 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
     inspectModule,
     setCollection,
     enterProject,
+    refresh: requestRender,
+    restoreInspection() {
+      pendingEntry = null;
+      stages = [];
+      activeStage = null;
+      cameraVelocity.set(0, 0, 0);
+      targetVelocity.set(0, 0, 0);
+      const pose = selected === null ? overviewPose() : inspectionPose();
+      camera.position.copy(pose.position);
+      controls.target.copy(pose.target);
+      camera.lookAt(pose.target);
+      emit(selected === null ? 'overview' : 'project', selected);
+      requestRender();
+    },
     zoom(direction) {
       if (!controls.enabled && !activeStage?.zoom) return;
       const target = activeStage?.zoom ? activeStage.target.clone() : controls.target.clone();
@@ -673,6 +708,10 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { index: target.userData.index, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2 };
       });
+      const screenCenters = projectScreens.map(item => {
+        const point = item.mesh.getWorldPosition(new THREE.Vector3()).project(camera);
+        return { index: item.index, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2 };
+      });
       const moduleCenters = moduleAssemblies.map(item => {
         const point = item.hitTarget.getWorldPosition(new THREE.Vector3()).project(camera);
         return { moduleId: item.moduleId, projectIndex: item.projectIndex, index: item.index, slide: Number(item.group.position.z.toFixed(3)), pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
@@ -681,7 +720,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { id: collections[index].id, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
       });
-      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
+      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, screenCenters, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
     },
     dispose() {
       disposed = true;

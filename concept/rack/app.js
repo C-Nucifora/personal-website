@@ -1,4 +1,6 @@
-import { collections, allUnits } from "./collections.js?v=20261018-floor-v1";
+import { collections, allUnits } from "./collections.js?v=20261018-screen-v1";
+
+import { createProjectReader } from "./project-reader.js?v=20261018-screen-v1";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -14,6 +16,75 @@ let isHome = true;
 let previewed = null;
 let textView = false;
 const mode = "rack";
+let entryRequest = 0;
+let pendingEntry = null;
+let prepared = null;
+let reading = false;
+let readingRackURL = null;
+const rackHeader = document.querySelector('body > .site-header');
+const rackSkip = document.querySelector('body > .skip-link');
+const reader = createProjectReader({
+  onReturn: () => history.go(-(history.state?.readerDepth ?? 1)),
+  onNavigate: url => showReaderRoute(url, true),
+});
+
+function setReading(value) {
+  reading = value;
+  document.body.classList.toggle('is-reading', value);
+  workspace.inert = value;
+  rackHeader.inert = value;
+  rackSkip.inert = value;
+}
+function prepareProject(index, moduleId = null) {
+  const unit = units[index];
+  if (!unit) return Promise.resolve(null);
+  const key = `${unit.id}/${moduleId ?? ''}`;
+  if (prepared?.key === key) return prepared.promise;
+  const promise = reader.prepare(unit.id, moduleId).then(record => { scene?.refresh?.(); return record; });
+  // Failed speculative preparation is handled by the native route if the visitor opens it.
+  promise.catch(() => {});
+  prepared = { key, promise };
+  return promise;
+}
+function cancelEntry({ invalidate = false } = {}) {
+  entryRequest++;
+  pendingEntry = null;
+  reader.hide({ invalidate });
+  if (invalidate) prepared = null;
+}
+function closeReader() {
+  const wasReading = reading;
+  setReading(false);
+  cancelEntry({ invalidate: true });
+  if (selected !== null) prepareProject(selected, selectedModule);
+  scene?.restoreInspection?.();
+  updateCollectionUI();
+  if (wasReading) (selectedModule ? document.querySelector('#module-title') : articles[selected]?.querySelector('h2'))?.focus({ preventScroll: true });
+}
+async function showReaderRoute(url, push = false) {
+  const request = ++entryRequest;
+  try {
+    const record = await reader.prepare(url.searchParams.get('project'), url.searchParams.get('module'));
+    if (!record || request !== entryRequest) return;
+    if (push) history.pushState({ rackReader: true, readerDepth: (history.state?.readerDepth ?? 0) + 1, rackURL: readingRackURL }, '', url);
+    setReading(true);
+    document.title = record.title;
+    await reader.open(true);
+  } catch {
+    if (request === entryRequest) location.href = url.href;
+  }
+}
+async function finishEntry(index, moduleId = null) {
+  const entry = pendingEntry;
+  if (!entry || entry.index !== index || entry.moduleId !== moduleId || entry.request !== entryRequest || selected !== index) return;
+  pendingEntry = null;
+  readingRackURL = location.href;
+  history.pushState({ rackReader: true, readerDepth: 1, rackURL: readingRackURL }, '', entry.destination);
+  setReading(true);
+  document.title = entry.record.title;
+  await reader.open(motionInput.checked);
+}
+
 
 function readRoute() {
   const requested = new URLSearchParams(location.search).get("rack");
@@ -56,6 +127,7 @@ function updateCollectionUI() {
 }
 
 function activateCollection(id, { home = false, index = null, historyMode = "push", focus = false } = {}) {
+  cancelEntry({ invalidate: true });
   const next = collections.find(item => item.id === id) ?? collections[0];
   const changed = next !== collection;
   collection = next;
@@ -83,6 +155,13 @@ function activateCollection(id, { home = false, index = null, historyMode = "pus
 }
 
 function followRoute() {
+  const url = new URL(location.href);
+  if (url.pathname.endsWith('/project.html') && history.state?.rackReader) {
+    readingRackURL = history.state.rackURL;
+    showReaderRoute(url);
+    return;
+  }
+  if (reading || pendingEntry) closeReader();
   const route = readRoute();
   if (rows.length && route.id === collection.id && route.home === isHome && route.index === selected) return;
   activateCollection(route.id, { ...route, historyMode: "none" });
@@ -127,6 +206,7 @@ for (const module of m1Unit.modules) {
 }
 
 function inspectModule(id) {
+  cancelEntry();
   if (!scene || sceneFailed || units[selected]?.id !== "m1-toolchain") return;
   scene.inspectModule(id);
 }
@@ -140,6 +220,7 @@ function showModuleState({ moduleId, phase: nextPhase }) {
     moduleButtons.find(button => button.dataset.module === previousModule)?.focus({ preventScroll: true });
   }
   selectedModule = module?.id ?? null;
+  if (selected !== null) prepareProject(selected, selectedModule);
   modulePhase = nextPhase;
   moduleInspector.hidden = !module || units[selected]?.id !== "m1-toolchain";
   document.querySelector("#m1-toolchain").classList.toggle("has-open-module", !moduleInspector.hidden);
@@ -254,20 +335,39 @@ function moveRack(direction) {
   activateCollection(collections[index].id, { focus: true });
 }
 
-function enterProject(moduleId = null, href = null) {
-  if (selected === null) return;
-  const destination = href ?? `./project.html?project=${encodeURIComponent(units[selected].id)}${moduleId ? `&module=${encodeURIComponent(moduleId)}` : ""}`;
-  if (!scene || sceneFailed || textView) location.href = destination;
-  else scene.enterProject(selected, moduleId);
+async function enterProject(moduleId = null, href = null) {
+  if (selected === null || reading || pendingEntry) return;
+  const index = selected;
+  const destination = href ?? `./project.html?project=${encodeURIComponent(units[index].id)}${moduleId ? `&module=${encodeURIComponent(moduleId)}` : ''}`;
+  if (!scene || sceneFailed || textView) { location.href = destination; return; }
+  if (phase !== 'project' || (moduleId && (selectedModule !== moduleId || modulePhase !== 'open'))) return;
+  const request = ++entryRequest;
+  pendingEntry = { index, moduleId, destination, request };
+  try {
+    const record = await prepareProject(index, moduleId);
+    if (request !== entryRequest || !pendingEntry || selected !== index || (moduleId !== null && selectedModule !== moduleId) || phase !== 'project') return;
+    if (!record) throw new Error('Project preparation was cancelled');
+    pendingEntry.record = record;
+    if (!scene.enterProject(index, moduleId)) pendingEntry = null;
+  } catch {
+    if (request === entryRequest) { pendingEntry = null; location.href = destination; }
+  }
 }
 
 function returnFromProject() {
+  if (reading) { history.go(-(history.state?.readerDepth ?? 1)); return; }
+  if (pendingEntry || phase === 'entering') {
+    cancelEntry();
+    scene?.restoreInspection?.();
+    return;
+  }
   if (selectedModule !== null) inspectModule(null);
   else openProject(null);
 }
 
 function openProject(index, updateHistory = true) {
   if (selected === index && (index !== null || phase === "overview")) return;
+  cancelEntry({ invalidate: true });
   const previous = selected;
   selected = index;
   returnFocusTarget = index === null && previous !== null
@@ -290,6 +390,7 @@ function openProject(index, updateHistory = true) {
 
 function failScene(error) {
   if (sceneFailed) return;
+  if (!reading) cancelEntry();
   const removedFocus = moduleInspector.contains(document.activeElement) || moduleButtons.includes(document.activeElement) || stage.contains(document.activeElement);
   sceneFailed = true;
   showModuleState({ moduleId: null, phase: "closed" });
@@ -306,6 +407,7 @@ function failScene(error) {
 
 document.addEventListener("click", event => {
   const link = event.target.closest("a");
+  if (reader.contains(event.target)) return;
   if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   if (link.matches("[data-collection-nav], .collection-list a, .identity, .datacenter-return")) {
     const url = new URL(link.href);
@@ -342,6 +444,9 @@ document.querySelectorAll("[data-project]").forEach(row => {
   row.addEventListener("focus", highlight);
 });
 
+window.addEventListener('scroll', () => {
+  if (!reading) scene?.refresh?.();
+}, { capture: true, passive: true });
 window.addEventListener("popstate", followRoute);
 window.addEventListener("hashchange", followRoute);
 document.querySelector(".skip-link").addEventListener("click", event => {
@@ -361,6 +466,10 @@ document.querySelector("#show-help").addEventListener("click", openHelp);
 document.addEventListener("keydown", event => {
   if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
   const target = event.target;
+  if (reading) {
+    if (event.key === 'Escape') { event.preventDefault(); returnFromProject(); }
+    return;
+  }
   if (event.key === "Escape" && !target.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) {
     if (help.open) {
       help.open = false;
@@ -400,6 +509,9 @@ document.addEventListener("keydown", event => {
 document.querySelector("#previous-rack").addEventListener("click", () => moveRack(-1));
 document.querySelector("#next-rack").addEventListener("click", () => moveRack(1));
 document.querySelector("#text-view").addEventListener("click", event => {
+  const wasEntering = pendingEntry || phase === "entering";
+  cancelEntry();
+  if (wasEntering) scene?.restoreInspection?.();
   textView = !textView;
   event.currentTarget.setAttribute("aria-pressed", String(textView));
   event.currentTarget.textContent = textView ? "Show 3D" : "Text view";
@@ -444,16 +556,27 @@ applyMotionPreference();
 followRoute();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-floor-v1");
+  const [{ createRackScene }] = await Promise.all([
+    import("./scene.js?v=20261018-screen-v1"),
+    Promise.allSettled([
+      document.fonts.load('700 32px "IBM Plex Sans"'),
+      document.fonts.load('700 32px "IBM Plex Mono"'),
+    ]),
+  ]);
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
     collectionId: collection.id,
     mode,
     onCollectionSelect: id => activateCollection(id, { focus: true }),
     onSelect: index => openProject(index),
-    onProjectOpen: index => { location.href = `./project.html?project=${encodeURIComponent(units[index].id)}`; },
+    onProjectOpen: index => finishEntry(index),
+    onEntryRequest: (index, moduleId) => { if (index === selected) enterProject(moduleId); },
+    onProjectScreen: screen => {
+      const key = `${units[selected]?.id}/${(pendingEntry ? pendingEntry.moduleId : selectedModule) ?? ''}`;
+      reader.preview(screen && screen.index === selected && reader.getState().key === key && !textView ? screen.corners : null);
+    },
     onModuleSelect: inspectModule,
-    onModuleOpen: id => { location.href = `./project.html?project=m1-toolchain&module=${encodeURIComponent(id)}`; },
+    onModuleOpen: id => finishEntry(selected, id),
     onModuleChange: state => { if (!state.collectionId || state.collectionId === collection.id) showModuleState(state); },
     onHover: index => {
       if (index !== null && !units[index]) return;
@@ -487,5 +610,5 @@ window.addEventListener("pagehide", event => {
 
 // Inspectable state for local prototype verification, with no network telemetry.
 window.__rackPrototype = {
-  getState: () => ({ selected, phase, selectedModule, modulePhase, sceneFailed, mode, isHome, previewed, textView, collection: collection.id, scene: scene?.getState() }),
+  getState: () => ({ selected, phase, selectedModule, modulePhase, sceneFailed, mode, isHome, previewed, textView, reading, reader: reader.getState(), collection: collection.id, scene: scene?.getState() }),
 };

@@ -289,3 +289,9 @@ body:not(.is-enhanced) .details-toolbar, body:not(.is-enhanced) .datacenter-retu
 .phase-label:not(:empty) { background: var(--background); padding: 8px 12px; }
 
 #m1-toolchain.has-open-module > :not(.module-inspector):not(.bundle-modules) { display: none; }
+
+.project-reader { position: fixed; z-index: 4; inset: 0 auto auto 0; margin: 0; overflow: hidden; background: var(--background); transform-origin: 0 0; pointer-events: none; backface-visibility: hidden; contain: layout paint; }
+.project-reader.is-expanding { z-index: 30; will-change: transform; }
+.project-reader.is-open { z-index: 30; overflow: auto; overscroll-behavior: contain; pointer-events: auto; }
+body.is-reading { overflow: hidden; }
+.workspace[data-phase="entering"] .stage-heading, .workspace[data-phase="entering"] .stage-controls, .workspace[data-phase="entering"] .stage-caption, .workspace[data-phase="entering"] .phase-label { opacity: 0; pointer-events: none; }
