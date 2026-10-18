@@ -1,11 +1,8 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
+import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js';
 
-export const RACK_SLOTS = [
-  { id: 'software', position: [-6, 0, 0] },
-  { id: 'hardware', position: [0, 0, 0] },
-  { id: 'experience', position: [6, 0, 0] },
-];
+export const RACK_SLOTS = portfolio.racks.map((rack, index) => ({ id: rack.id, label: rack.label, position: [(index - Math.floor(portfolio.racks.length / 2)) * 6, 0, 0] }));
 
 // The content racks form the front equipment row. Repeated rows behind it supply depth.
 export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
@@ -35,7 +32,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     parts.set(material, []);
     return material;
   }
-  const floor = finish('Raised floor', '#77777a', 0.9, 0);
+  const floor = finish('Raised floor', siteSettings.appearance.floorColor, 0.9, 0);
   const wall = finish('Painted containment', '#95979b', 0.84, 0.05);
   const ceiling = finish('Ceiling deck', '#282a2e', 0.92, 0.1);
   const cabinet = finish('Powder-coated cabinet steel', '#24262a', 0.78, 0.12);
@@ -45,7 +42,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
   const rubber = finish('Leveling pads and gaskets', '#16171a', 0.98, 0);
   const cable = finish('Blue cable bundles', '#39597a', 0.83, 0.05);
   const lamp = finish('White fixture diffusers', '#f0f2f5', 1, 0, true);
-  const amber = finish('Equipment indicators', '#bca77b', 1, 0, true);
+  const amber = finish('Equipment indicators', usesBundledPortfolio ? '#bca77b' : siteSettings.appearance.accent, 1, 0, true);
 
   function box(material, width, height, depth, x, y, z) {
     const geometry = new THREE.BoxGeometry(width, height, depth);
@@ -263,7 +260,7 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     group.add(mesh);
   });
   // Fixed floor planes clear the raised seams and fit between cabinet fronts and grilles.
-  RACK_SLOTS.forEach(({ id, position: [x, , z] }, index) => {
+  RACK_SLOTS.forEach(({ id, label: rackLabel, position: [x, , z] }, index) => {
     const canvas = document.createElement('canvas');
     canvas.width = 1280;
     canvas.height = 240;
@@ -272,11 +269,11 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4 } = {}) {
     context.fillRect(16, 38, 1248, 164);
     context.textBaseline = 'middle';
     context.font = '500 82px "IBM Plex Sans", Arial, sans-serif';
-    context.fillStyle = '#cf9e77';
+    context.fillStyle = usesBundledPortfolio ? '#cf9e77' : siteSettings.appearance.accent;
     context.fillText(String(index + 1).padStart(2, '0'), 68, 122);
     context.font = '500 102px "IBM Plex Sans", Arial, sans-serif';
     context.fillStyle = '#f1ede5';
-    context.fillText(id.toUpperCase(), 218, 122);
+    context.fillText(rackLabel.toUpperCase(), 218, 122, 1000);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearMipmapLinearFilter;

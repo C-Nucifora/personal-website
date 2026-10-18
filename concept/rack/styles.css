@@ -77,6 +77,10 @@ body.text-view .stage { display: none; }
 .header-links #show-help { display: none; min-width: 44px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--foreground); font: inherit; text-decoration: underline; text-underline-offset: 5px; }
 .is-enhanced .header-links #show-help { display: block; }
 .header-links #show-help:hover { color: var(--accent); }
+.site-header > .identity { display: block; flex-shrink: 0; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 44px; }
+.header-links { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+.header-links > a, .header-links > button { flex-shrink: 0; }
+.header-links > a:focus-visible, .header-links > button:focus-visible { outline-offset: -2px; }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 380px; height: calc(100svh - 76px); min-height: 580px; }
 .stage { position: relative; min-width: 0; overflow: hidden; isolation: isolate; }
@@ -232,6 +236,7 @@ body:not(.is-enhanced) .details-toolbar, body:not(.is-enhanced) .datacenter-retu
 @media (max-width: 900px) {
   .site-header { height: 113px; padding: 10px 22px 0; gap: 0; flex-wrap: wrap; }
   .identity { font-size: 15px; }
+  .site-header > .identity { max-width: 100%; }
   .header-links { flex-basis: 100%; justify-content: space-between; gap: 12px; font-size: 13px; }
   .workspace { display: flex; flex-direction: column; height: auto; min-height: 0; }
   .stage { height: 785px; flex-shrink: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) 115px; }

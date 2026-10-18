@@ -1,6 +1,8 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
 import { softwareUnits } from './catalog.js?v=20261018-screen-v1';
+import { allUnits as bundledUnits } from './bundled-collections.js';
+import { hasModuleCarriers } from './rack-layout.js';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;
@@ -38,7 +40,10 @@ function roundedBox(width, height, depth, radius = 0.025) {
   return geometry;
 }
 
-export function createRackModel(renderer, units = softwareUnits, label = 'Software', detailScale = 1) {
+export function createRackModel(renderer, units = softwareUnits, label = 'Software', detailScale = 1, { capacityU, appearance = {}, ownerName = 'Christian Nucifora' } = {}) {
+  const palette = { ...COLORS, frame: appearance.rackColor ?? COLORS.frame };
+  const roughness = appearance.materialRoughness ?? 0.5;
+  const metalness = appearance.materialMetalness ?? 1;
   const geometries = new Set();
   const textures = [];
   const allMaterials = [];
@@ -88,7 +93,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
   // Vertex colours let all the different metal finishes share a draw call per chassis.
   const materials = {
     // Roughness grain survives minification; micro-bump on these tiny bevels caused specular shimmer.
-    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 1, roughness: 0.5, roughnessMap: brushed }),
+    metal: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness, roughness, roughnessMap: brushed }),
     painted: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0, roughness: 0.72, roughnessMap: polymerGrain }),
     plastic: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.1, roughness: 0.64, roughnessMap: polymerGrain }),
     board: new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, metalness: 0.26, roughness: 0.62 }),
@@ -107,7 +112,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1, 1, 1));
       geometry.applyMatrix4(matrix);
       if (finish === 'metal' && ['frame', 'graphite', 'black'].includes(color)) finish = 'painted';
-      const rgb = new THREE.Color(COLORS[color] || color);
+      const rgb = new THREE.Color(palette[color] || color);
       if (finish === 'metal') rgb.multiplyScalar(0.985 + random() * 0.03);
       const attribute = new Float32Array(geometry.attributes.position.count * 3);
       for (let i = 0; i < attribute.length; i += 3) {
@@ -287,7 +292,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     relief.width = relief.height = surface.width;
     const colorContext = surface.getContext('2d');
     const bumpContext = relief.getContext('2d');
-    colorContext.fillStyle = COLORS[color];
+    colorContext.fillStyle = palette[color];
     colorContext.fillRect(0, 0, 1024, 1024);
     bumpContext.fillStyle = '#ffffff';
     bumpContext.fillRect(0, 0, 1024, 1024);
@@ -339,8 +344,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       textures.push(texture);
     }
     // The colour and bump maps make a lit etch, rather than floating, unlit text.
-    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0025, metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
-    const rimMaterial = new THREE.MeshStandardMaterial({ color: COLORS[color], metalness: painted ? 0 : 1, roughness: painted ? 0.72 : 0.5, roughnessMap: painted ? polymerGrain : brushed });
+    const material = new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: 0.0025, metalness: painted ? 0 : metalness, roughness: painted ? 0.72 : roughness, roughnessMap: painted ? polymerGrain : brushed });
+    const rimMaterial = new THREE.MeshStandardMaterial({ color: palette[color], metalness: painted ? 0 : metalness, roughness: painted ? 0.72 : roughness, roughnessMap: painted ? polymerGrain : brushed });
     allMaterials.push(material, rimMaterial);
     // The etch belongs to the extrusion's top face, with no second sheet to shadow or fight it.
     const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 3 });
@@ -367,7 +372,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     projectLinkTargets.push(link);
   }
 
-  const totalU = units.reduce((sum, unit) => sum + unit.u, 0);
+  const totalU = capacityU ?? units.reduce((sum, unit) => sum + unit.u, 0);
   const stackHeight = totalU * U;
   const height = stackHeight + 0.8;
   const rack = new THREE.Group();
@@ -390,7 +395,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
   for (const x of [-2.46, 2.46]) {
     rackParts.rounded('black', [0.008, height - 1.0, 3.95], [x, -0.03, -0.07], 0.02, [0, 0, 0], 'plastic');
     rackParts.rounded('frame', [0.012, height - 1.08, 3.86], [x * 1.001, -0.03, -0.07], 0.02);
-    for (let v = 0; v < 24; v++) {
+    for (let v = 0; v < Math.min(24, Math.max(0, Math.floor((height - 1.5) / 0.1))); v++) {
       rackParts.box('black', [0.018, 0.035, 1.8], [x * 1.004, -half + 1.0 + v * 0.1, -0.57], [0, 0, 0], 'plastic');
     }
     for (const z of [-1.77, 1.65]) {
@@ -402,8 +407,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
   rackParts.box('frame', [4.5, 0.30, 0.045], [0, half - 0.255, 2.401]);
   rackParts.finish();
   texturePlane(rack, 4.34, 0.28, [0, half - 0.25, 2.428], g => {
-    g.text(label.toUpperCase(), -1.97, 0.032, 0.15, '#f5f3ee', 'left', 700);
-    g.text('CHRISTIAN NUCIFORA', -1.97, -0.086, 0.044, '#cfceca');
+    g.text(label.toUpperCase(), -1.97, 0.032, 0.15, '#f5f3ee', 'left', 700, 0, 3.5);
+    g.text(ownerName.toUpperCase(), -1.97, -0.086, 0.044, '#cfceca', 'left', 500, 0, 3.5);
     g.text(`${totalU}U`, 1.99, 0.028, 0.105, '#f5f3ee', 'right', 700);
   });
   for (const side of [-1, 1]) {
@@ -411,6 +416,23 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (let u = 0; u < totalU; u++) g.text(String(totalU - u).padStart(2, '0'), 0, stackHeight / 2 - U / 2 - u * U, 0.053, '#aaa8a4', 'center');
     }, [0, 0, 0], 64);
   }
+
+  // Unoccupied rack space is closed by panels without selectable project targets.
+  const occupied = new Set();
+  let sequentialTop = totalU;
+  for (const unit of units) {
+    const bottom = unit.startU ?? sequentialTop - unit.u + 1;
+    for (let u = bottom; u < bottom + unit.u; u++) occupied.add(u);
+    sequentialTop -= unit.u;
+  }
+  const blanks = batch(rack);
+  for (let u = 1; u <= totalU; u++) {
+    if (occupied.has(u)) continue;
+    const y = -stackHeight / 2 + (u - 0.5) * U;
+    blanks.rounded('frame', [4.52, U - 0.025, 0.055], [0, y, FACE_Z], 0.02);
+    for (const x of [-2.26, 2.26]) screw(blanks, x, y, FACE_Z + 0.04, 0.026);
+  }
+  blanks.finish();
 
   const bays = [];
   const interiors = [];
@@ -428,7 +450,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
   for (let index = 0; index < units.length; index++) {
     const unit = units[index];
     const h = unit.u * U - 0.025;
-    const y = stackHeight / 2 - usedU * U - unit.u * U / 2;
+    const y = unit.startU == null ? stackHeight / 2 - usedU * U - unit.u * U / 2
+      : -stackHeight / 2 + (unit.startU - 1 + unit.u / 2) * U;
     usedU += unit.u;
     slotY.push(y);
     heights.push(h);
@@ -520,7 +543,15 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       parts.torus('silver', 0.033, 0.009, [x, py, FACE_Z + 0.035]);
     };
 
-    if (unit.type === 'network') {
+    const original = bundledUnits.find(item => item.id === unit.id);
+    const originalName = original?.faceTitle || original?.title;
+    const detailedFront = original && original.type === unit.type && original.u === unit.u && (unit.faceTitle || unit.title) === originalName && (unit.type !== 'compute' || hasModuleCarriers(unit));
+    if (!detailedFront) {
+      projectName(unit.faceTitle || unit.title, -1.8, 0, 3.6, Math.min(0.24, h * 0.48));
+      if (unit.u > 1) {
+        for (let vent = 0; vent < 15; vent++) parts.rounded('black', [0.09, Math.min(0.25, h * 0.16), 0.025], [-1.4 + vent * 0.2, -h * 0.3, FACE_Z + 0.02], 0.008, [0, 0, 0], 'plastic');
+      }
+    } else if (unit.type === 'network') {
       // Two rows of twelve retain all 24 sockets beside a reserved two-line nameplate.
       display(-1.8, 0, 0.2, 0.245, (g, x, py) => {
         g.text('CI', x, py + 0.035, 0.072, '#e6e4de', 'center');
@@ -627,7 +658,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         parts.box('darkSilver', [3.55, 0.075, 0.12], [0, py, FACE_Z + 0.035]);
         parts.box('black', [3.5, 0.014, 0.006], [0, py, FACE_Z + 0.1], [0, 0, 0], 'plastic');
       }
-      const modules = ['Language tools', 'Editor integration', 'Project tools'].flatMap(group => unit.modules.filter(module => module.group === group));
+      const modules = ['Language tools', 'Editor integration', 'Project tools'].flatMap(group => (unit.modules ?? []).filter(module => module.group === group));
       modules.forEach((module, moduleIndex) => {
         const x = -1.6 + moduleIndex * (3.2 / 14);
         const tint = moduleIndex < 7 ? 'silver' : moduleIndex < 9 ? 'darkSilver' : 'bright';

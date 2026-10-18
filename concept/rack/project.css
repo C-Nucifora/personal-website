@@ -122,3 +122,18 @@
   .document-art > div { margin-left: -18px; margin-right: -18px; }
   .document-facts { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+.document-sections { margin-top: 56px; }
+.document-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); }
+.section-prose, .project-description { white-space: pre-wrap; }
+.document-media { margin: 0; min-width: 0; }
+.document-media img { display: block; max-width: 100%; height: auto; }
+.document-media figcaption { margin-top: 12px; color: var(--subtle); font-size: 14px; line-height: 1.5; }
+.document-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; align-items: start; }
+.document-section pre { max-width: 100%; overflow: auto; padding: 24px; background: color-mix(in srgb, var(--foreground) 6%, var(--background)); font: 14px/1.6 var(--mono); }
+.project-document[data-layout="wide"] { max-width: 1600px; }
+.project-document[data-layout="editorial"] { max-width: 960px; }
+.project-document[data-layout="editorial"] .document-heading { display: block; }
+.project-document[data-layout="editorial"] .document-introduction { margin-top: 28px; }
+.project-document[data-layout="editorial"] h1 { max-width: 20ch; }
+.unplaced-list { display: grid; margin-top: 12px; }
+.unplaced-list a { display: flex; align-items: center; min-height: 44px; padding: 8px 0; color: var(--foreground); border-top: 1px solid var(--line); }

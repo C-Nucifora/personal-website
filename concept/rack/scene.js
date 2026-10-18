@@ -1,11 +1,12 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-screen-v1';
+import { siteSettings, usesBundledPortfolio } from './site-data.js';
 import { collections } from './collections.js?v=20261018-screen-v1';
 import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-screen-v1';
 import { stepSpring } from './motion.js?v=20261018-screen-v1';
 
-const BACKGROUND = '#121212';
+const BACKGROUND = usesBundledPortfolio ? '#121212' : siteSettings.appearance.background;
 const MAX_DRAWING_PIXELS = 6500000;
 
 export function createRackScene({ canvas, collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
@@ -24,8 +25,8 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   const maxBufferSize = Math.min(renderer.capabilities.maxTextureSize, gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1;
-  renderer.shadowMap.enabled = true;
+  renderer.toneMappingExposure = siteSettings.appearance.exposure;
+  renderer.shadowMap.enabled = siteSettings.appearance.shadows;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BACKGROUND);
@@ -71,16 +72,19 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   const pmrem = new THREE.PMREMGenerator(renderer);
   const environment = pmrem.fromScene(studio, 0.04);
   scene.environment = environment.texture;
+  scene.environmentIntensity = siteSettings.appearance.environmentIntensity;
   studioGeometries.forEach(geometry => geometry.dispose());
   studioMaterials.forEach(material => material.dispose());
   pmrem.dispose();
 
   const models = collections.map(item => {
-    const built = createRackModel(renderer, item.units, item.label);
+    const built = createRackModel(renderer, item.units, item.label, 1, { capacityU: item.capacityU, appearance: siteSettings.appearance, ownerName: siteSettings.intro.name });
     built.rack.position.fromArray(RACK_SLOTS.find(slot => slot.id === item.id).position);
     scene.add(built.rack);
     return built;
   });
+  const tallestHeight = Math.max(...models.map(built => built.height));
+  for (const built of models) built.rack.position.y = (built.height - tallestHeight) / 2;
   const motionStates = models.map(built => ({ bays: built.bays.map(() => 0), modules: built.moduleAssemblies?.map(() => 0) ?? [] }));
   const cameraVelocity = new THREE.Vector3();
   const targetVelocity = new THREE.Vector3();
@@ -88,14 +92,16 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   let model = models[collections.indexOf(collection)];
   let { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], projectScreens = [], moduleAssemblies = [], slotY, heights } = model;
   scene.updateMatrixWorld(true);
-  const floorY = -model.height / 2 - 0.22;
-  const datacenter = createDatacenter({ floorY, rackHeight: model.height });
+  const floorY = -tallestHeight / 2 - 0.22;
+  const datacenter = createDatacenter({ floorY, rackHeight: tallestHeight });
   scene.add(datacenter.group);
   scene.fog = new THREE.Fog(BACKGROUND, 42, 100);
-  const rackTargetGeometry = new THREE.BoxGeometry(4.9, model.height, 0.18);
+  const rackTargetGeometries = [];
   const rackTargetMaterial = new THREE.MeshBasicMaterial({ visible: false });
   const rackTargets = models.map((built, index) => {
-    const target = new THREE.Mesh(rackTargetGeometry, rackTargetMaterial);
+    const geometry = new THREE.BoxGeometry(4.9, built.height, 0.18);
+    rackTargetGeometries.push(geometry);
+    const target = new THREE.Mesh(geometry, rackTargetMaterial);
     target.position.z = FACE_Z + 0.12;
     target.userData.collectionId = collections[index].id;
     built.rack.add(target);
@@ -135,7 +141,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
   let lastWidth = 0;
   let lastHeight = 0;
   let lastPixelRatio = 0;
-  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let reducedMotion = siteSettings.appearance.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let pointerDown = null;
   const activePointers = new Set();
   let hiddenAt = null;
@@ -741,7 +747,7 @@ export function createRackScene({ canvas, collectionId = 'software', onCollectio
       document.removeEventListener('visibilitychange', visibilityChange);
       models.forEach(item => item.dispose());
       datacenter.dispose();
-      rackTargetGeometry.dispose();
+      rackTargetGeometries.forEach(geometry => geometry.dispose());
       rackTargetMaterial.dispose();
       environment.dispose();
       key.shadow.map?.dispose();

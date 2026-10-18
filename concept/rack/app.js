@@ -1,5 +1,10 @@
 import { collections, allUnits } from "./collections.js?v=20261018-screen-v1";
 
+import { hasModuleCarriers } from './rack-layout.js';
+import { siteSettings, portfolio } from './site-data.js';
+import { buildPublicIndex } from './public-dom.js';
+buildPublicIndex();
+
 import { createProjectReader } from "./project-reader.js?v=20261018-screen-v1";
 
 const workspace = document.querySelector(".workspace");
@@ -93,7 +98,7 @@ function readRoute() {
   const unit = allUnits.find(item => item.id === slug || item.modules?.some(module => module.id === slug));
   const owner = collections.find(item => item.units.includes(unit));
   const rack = owner ?? collections.find(item => item.id === requested) ?? collections[0];
-  return { id: rack.id, home: requested === null && !unit, index: unit ? rack.units.indexOf(unit) : null };
+  return { id: rack.id, home: requested === null && !owner, index: owner ? rack.units.indexOf(unit) : null };
 }
 
 function writeRoute(index, method = "push") {
@@ -116,11 +121,11 @@ function updateCollectionUI() {
   });
   document.querySelectorAll(".collection-list a").forEach(link => { link.hash = ""; });
   document.querySelector("#collection-title").textContent = collection.title;
-  document.querySelector("#collection-subtitle").textContent = `${units.length} ${collection.id === "experience" ? "records" : "projects"} in a 24U rack`;
+  document.querySelector("#collection-subtitle").textContent = `${units.length} ${collection.id === "experience" ? "records" : "projects"} in a ${collection.capacityU}U rack`;
   document.querySelector("#current-rack").textContent = collection.label;
   document.querySelector("#back-to-rack").textContent = `← ${collection.label} rack`;
   document.querySelector(".skip-link").href = selected !== null ? "#project-details" : isHome ? "#collection-directory" : "#project-index";
-  document.title = `Christian Nucifora / ${isHome ? "Work" : collection.label}`;
+  document.title = `${siteSettings.intro.name} / ${isHome ? "Work" : collection.label}`;
   const position = collections.indexOf(collection);
   document.querySelector("#previous-rack").setAttribute("aria-label", `Previous rack, ${collections[(position + collections.length - 1) % collections.length].label}`);
   document.querySelector("#next-rack").setAttribute("aria-label", `Next rack, ${collections[(position + 1) % collections.length].label}`);
@@ -185,7 +190,7 @@ const moduleInspector = document.querySelector("#module-inspector");
 const moduleButtons = [];
 const m1Unit = allUnits.find(unit => unit.id === "m1-toolchain");
 
-for (const module of m1Unit.modules) {
+for (const module of hasModuleCarriers(m1Unit) ? m1Unit.modules : []) {
   const link = [...document.querySelectorAll("#m1-toolchain .module-link")].find(item => item.href === module.sourceUrl);
   if (!link) continue;
   const row = document.createElement("div");
@@ -207,12 +212,12 @@ for (const module of m1Unit.modules) {
 
 function inspectModule(id) {
   cancelEntry();
-  if (!scene || sceneFailed || units[selected]?.id !== "m1-toolchain") return;
+  if (!scene || sceneFailed || units[selected]?.id !== "m1-toolchain" || !hasModuleCarriers(m1Unit)) return;
   scene.inspectModule(id);
 }
 
 function showModuleState({ moduleId, phase: nextPhase }) {
-  const module = m1Unit.modules.find(item => item.id === moduleId);
+  const module = m1Unit?.modules?.find(item => item.id === moduleId);
   const previousModule = selectedModule;
   const inspectorHadFocus = moduleInspector.contains(document.activeElement);
   const pullHadFocus = moduleButtons.some(button => button === document.activeElement);
@@ -223,14 +228,14 @@ function showModuleState({ moduleId, phase: nextPhase }) {
   if (selected !== null) prepareProject(selected, selectedModule);
   modulePhase = nextPhase;
   moduleInspector.hidden = !module || units[selected]?.id !== "m1-toolchain";
-  document.querySelector("#m1-toolchain").classList.toggle("has-open-module", !moduleInspector.hidden);
+  document.querySelector("#m1-toolchain")?.classList.toggle("has-open-module", !moduleInspector.hidden);
   document.querySelector("#back-to-rack").textContent = module && !moduleInspector.hidden ? "← M1 Toolchain" : `← ${collection.label} rack`;
   if (nextPhase === "extracting" && !moduleInspector.hidden) projectPanel.scrollTop = 0;
   moduleButtons.forEach(button => {
     const active = button.dataset.module === selectedModule;
     button.setAttribute("aria-pressed", String(active));
     button.textContent = active ? "Return" : "Pull out";
-    button.setAttribute("aria-label", `${active ? "Return" : "Pull out"} ${m1Unit.modules.find(item => item.id === button.dataset.module).title}`);
+    button.setAttribute("aria-label", `${active ? "Return" : "Pull out"} ${m1Unit?.modules?.find(item => item.id === button.dataset.module).title}`);
   });
   if (module && !moduleInspector.hidden) {
     document.querySelector("#module-title").textContent = module.title;
@@ -242,7 +247,7 @@ function showModuleState({ moduleId, phase: nextPhase }) {
     document.querySelector("#return-module").disabled = nextPhase === "returning";
     if (nextPhase === "extracting" && (pullHadFocus || inspectorHadFocus)) document.querySelector("#module-title").focus({ preventScroll: true });
   }
-  if (phase === "project" && units[selected]?.id === "m1-toolchain") {
+  if (phase === "project" && hasModuleCarriers(units[selected])) {
     hint.textContent = module && nextPhase === "open"
       ? "Click the pulled-out module to read about the tool."
       : "Choose a module handle to pull out a tool.";
@@ -287,7 +292,7 @@ function showPhase(nextPhase, index) {
     overview: "Click a unit to open its record.",
     extracting: "",
     focusing: "",
-    project: units[index]?.id === "m1-toolchain" ? (selectedModule && modulePhase === "open" ? "Click the pulled-out module to read about the tool." : "Choose a module handle to pull out a tool.") : "Click the engraved title to read the full record.",
+    project: hasModuleCarriers(units[index]) ? (selectedModule && modulePhase === "open" ? "Click the pulled-out module to read about the tool." : "Choose a module handle to pull out a tool.") : "Click the engraved title to read the full record.",
     returning: "",
     entering: "Opening the full page…",
   };
@@ -311,6 +316,7 @@ function showPhase(nextPhase, index) {
 }
 
 function markPreview(index) {
+  if (index !== null && !units[index]) return;
   previewed = index;
   rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
   if (phase === "overview") scene?.hover(index);
@@ -318,6 +324,7 @@ function markPreview(index) {
 }
 
 function chooseProject(index) {
+  if (!units[index]) return;
   if (isHome) {
     isHome = false;
     updateCollectionUI();
@@ -366,6 +373,7 @@ function returnFromProject() {
 }
 
 function openProject(index, updateHistory = true) {
+  if (index !== null && !units[index]) return;
   if (selected === index && (index !== null || phase === "overview")) return;
   cancelEntry({ invalidate: true });
   const previous = selected;
@@ -400,6 +408,10 @@ function failScene(error) {
   document.querySelector("#scene-error").hidden = false;
   document.querySelector("#rack-canvas").hidden = true;
   hint.textContent = "Use the project index to explore the work";
+  if (!portfolio.racks.length) {
+    document.querySelector("#scene-error").firstElementChild.textContent = "No racks are currently published.";
+    document.querySelector("#scene-error").lastElementChild.textContent = "Published records remain available in the work directory.";
+  }
   if (selected !== null) showPhase("project", selected);
   if (removedFocus) (selected !== null ? articles[selected].querySelector("h2") : document.querySelector(isHome ? "#collection-directory" : "#project-index")).focus({ preventScroll: true });
   console.warn("Rack 3D view unavailable", error?.message || error);
@@ -541,7 +553,7 @@ document.querySelectorAll("[data-zoom]").forEach(button => {
 });
 
 function applyMotionPreference() {
-  const reduced = userMotionChoice ?? motionPreference.matches;
+  const reduced = userMotionChoice ?? (motionPreference.matches || siteSettings.appearance.reducedMotion);
   motionInput.checked = reduced;
   document.body.classList.toggle("reduced-motion", reduced);
   scene?.setReducedMotion(reduced || textView);
@@ -556,6 +568,7 @@ applyMotionPreference();
 followRoute();
 
 try {
+  if (!portfolio.racks.length) throw new Error('No racks are currently published');
   const [{ createRackScene }] = await Promise.all([
     import("./scene.js?v=20261018-screen-v1"),
     Promise.allSettled([
