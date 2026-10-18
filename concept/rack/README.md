@@ -24,6 +24,8 @@ The HTML index and actual model share the same project order, unit sizes and sel
 
 The [rendering spike](RENDERING.md) records the 18 October research and matched tone-mapping comparison. Closed metal covers replace the repeated illustrative electronics. Bare aluminium and painted panels use separate finishes. The covers have real vent apertures, recessed fasteners and lit bump-map engraving. The renderer uses Neutral tone mapping, filtered studio reflections and one shadow-casting key light.
 
+The [aliasing follow-up](QUALITY.md) removes duplicate lid surfaces and fine material bump, adds bounded low-density supersampling and keeps the changed module graph versioned. The [interface language research](INTERFACE.md) compares operator manuals, a productive technical system and modular product catalogues for future HTML work. These are proposed directions, not three themes added to the site.
+
 ## Project allocation
 
 The rack heights are an editorial representation of relative project scope and bundle breadth, not a measurement of effort, repository disk usage, performance or real deployment. Larger native apps occupy 3U; embedded/control tools 2U; focused infrastructure tools and small collections 1U. The M1 ecosystem has the largest enclosure.
