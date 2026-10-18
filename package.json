@@ -10,6 +10,7 @@
     "prebuild": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
     "dev": "next dev",
     "build": "next build",
+    "build:rack": "node scripts/build-rack.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

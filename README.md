@@ -1,5 +1,16 @@
 # personal-website
 
+The current site is the static 3D datacenter portfolio in [`concept/rack`](concept/rack/README.md). It contains Software, Hardware and Experience racks, individual M1 module inspection and normal project pages.
+
+```sh
+npm run build:rack
+python3 -m http.server 4318 --directory dist
+```
+
+Vercel uses the repository's `vercel.json` to run `build:rack` and serve `dist/` at the root URL. See [deployment notes](concept/rack/DEPLOYMENT.md) and [content editing notes](concept/rack/CONTENT.md). The Next.js terminal implementation below is retained as the earlier version; its commands do not build the current Vercel site.
+
+## Earlier terminal portfolio
+
 A developer portfolio that looks and behaves like a terminal — one tmux
 session, windows mapped onto a virtual filesystem — but stays fully usable for
 visitors who have never touched a command line. Every action can be **typed**
