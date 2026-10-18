@@ -3,5 +3,8 @@
   "space-grotesk-medium.ttf": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj7aUUsj.ttf",
   "ibm-plex-mono-regular.ttf": "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf",
   "SPACE-GROTESK-OFL.txt": "https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/OFL.txt",
-  "IBM-PLEX-MONO-OFL.txt": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/OFL.txt"
+  "IBM-PLEX-MONO-OFL.txt": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/OFL.txt",
+  "ibm-plex-sans-regular.woff2": "https://raw.githubusercontent.com/IBM/plex/71f558992315a12ca1f06a2215d57962a1992162/packages/plex-sans/fonts/complete/woff2/IBMPlexSans-Regular.woff2",
+  "ibm-plex-sans-medium.woff2": "https://raw.githubusercontent.com/IBM/plex/71f558992315a12ca1f06a2215d57962a1992162/packages/plex-sans/fonts/complete/woff2/IBMPlexSans-Medium.woff2",
+  "IBM-PLEX-SANS-OFL.txt": "https://raw.githubusercontent.com/IBM/plex/71f558992315a12ca1f06a2215d57962a1992162/packages/plex-sans/fonts/complete/woff2/license.txt"
 }

@@ -16,7 +16,7 @@ The 17 October 2026 brief calls for a larger rack, varied real equipment, sizes 
 
 The cabinet follows a shared rack-unit grid. Satin aluminium network faces sit above graphite compute hardware, a modular M1 enclosure, audio-style controls, a large display, a console and compact storage appliances. Beveled edges, recessed apertures, cross-head screws, washers, tray latches, etched labels and quiet displays provide detail at close range. Original procedural textures add brushed metal and fine polymer grain; large studio light cards give the metal visible reflections. The UI uses charcoal, warm white and a muted amber accent.
 
-Space Grotesk carries navigation, headings and descriptions. IBM Plex Mono is reserved for equipment labels, dimensions and small technical details. Plain navigation and a numbered project list leave the cabinet as the main visual. Project details put the source link immediately below the summary. M1's fifteen repositories are grouped into language tools, editor integration and project tools.
+IBM Plex Sans carries navigation, headings and descriptions, with normal tracking, distinct medium-weight headings and readable secondary text. IBM Plex Mono is reserved for equipment labels, repository identifiers and bay numbers. Full project pages use a 44px maximum title, 18px reading text and a narrow specification column. Plain navigation and a numbered project list leave the cabinet as the main visual. Project details put the source link immediately below the summary. M1's fifteen repositories are grouped into language tools, editor integration and project tools.
 
 The [checklist review](CHECKLIST.md) records how all thirty points in the user's AIToolPick reference apply here. M1 groups use native disclosures to keep the longer list manageable; the language tools start open. The opening title states the subject, and mobile links and controls have at least 44px targets in both dimensions.
 
@@ -24,7 +24,7 @@ The HTML index and actual model share the same project order, unit sizes and sel
 
 The [rendering spike](RENDERING.md) records the 18 October research and matched tone-mapping comparison. Closed metal covers replace the repeated illustrative electronics. Bare aluminium and painted panels use separate finishes. The covers have real vent apertures, recessed fasteners and lit bump-map engraving. The renderer uses Neutral tone mapping, filtered studio reflections and one shadow-casting key light.
 
-The [aliasing follow-up](QUALITY.md) removes duplicate lid surfaces and fine material bump, adds bounded low-density supersampling and keeps the changed module graph versioned. The [interface language research](INTERFACE.md) compares operator manuals, a productive technical system and modular product catalogues for future HTML work. These are proposed directions, not three themes added to the site.
+The [aliasing follow-up](QUALITY.md) removes duplicate lid surfaces and fine material bump, adds bounded low-density supersampling and keeps the changed module graph versioned. The [interface language research](INTERFACE.md) records the implemented computing-manual typography and two further font and layout studies. The [hardware reference mapping](HARDWARE.md) links each rebuilt unit to the inspected equipment. A dim equipment room adds two neighboring cabinets, broad floor joints, a rear wall and an overhead cable tray. These add five merged room meshes while keeping the foreground rack as the only interactive equipment.
 
 ## Project allocation
 
@@ -53,14 +53,9 @@ All summaries were checked against current public GitHub READMEs. The catalog co
 
 ## Hardware research
 
-The models and textures are original. These primary references supplied proportions and component anatomy; none of their photos, CAD models, logos or code is included.
+The models and textures are original. [HARDWARE.md](HARDWARE.md) records the current manufacturer references, inspected photos and component anatomy. Networking tools use switches and gateways; embedded development uses bench-instrument controls; Wavelength uses an audio processor; mountd uses storage trays. M1's fifteen tools share one modular enclosure. Project labels replace manufacturer branding, and the hardware does not imply a real deployment.
 
-- [Ubiquiti Pro Max 24](https://techspecs.ui.com/unifi/switching/usw-pro-max-24): 1U satin-silver fascia, left LCD, one row of Ethernet ports and small SFP sockets.
-- [Supermicro SSG-540P](https://www.supermicro.com/en/products/system/up_storage/4u/ssg-540p-e1ctr36h): perforated caddies, release tabs, mounting ears and vertical grab handles.
-- [Synology RS1221+](https://www.synology.com/en-us/products/RS1221%2B): shallow removable drive trays and narrow status indicators.
-- [Blackmagic Videohub](https://www.blackmagicdesign.com/products/blackmagicvideohub): matte black panels, LCD, square buttons and recessed encoders.
-- [Eaton rack guide](https://www.eaton.com/us/en-us/products/server-racks-enclosures-airflow-management/Enclosures/server-racks--everything-you-need-to-know.html): shared rack-unit sizing.
-- [Ubiquiti rack panels](https://store.ui.com/us/en/category/accessories-rack-mount/products/uacc-rack-panel-ocd?variant=uacc-rack-panel-brush-1u): panel spacing and ventilation vocabulary.
+The neighboring cabinets use the 600 × 1199 × 1070 mm proportions in the [APC NetShelter SX 24U manual](https://iportal.se.com/Contents/docs/UPS-AR3104.PDF). Broad recessed door strips avoid another field of tiny perforations that could shimmer at a distance. Manufacturer photos are research references only and are not shipped as site assets.
 
 ## Interaction and access
 
@@ -76,9 +71,13 @@ Resolved profile: `personal`; product: `personal-website`; no resolver warnings.
 
 Three.js r180 / 0.180.0 by the three.js authors, MIT, remains vendored unchanged. Its notice is `vendor/THREE-LICENSE.txt`. Entry modules are `three.module.js`, `three.core.js`, `OrbitControls.js` and `BufferGeometryUtils.js`. Original sources are under [the pinned Three.js release](https://github.com/mrdoob/three.js/tree/r180).
 
-Space Grotesk by the Space Grotesk Project Authors and IBM Plex Mono by IBM are unchanged Google Fonts distributions, under SIL OFL 1.1. Their full notices and exact download URLs are retained in `fonts/`. The files are self-hosted; using them does not make a runtime Google request.
+IBM Plex Sans by IBM is pinned to upstream commit `71f558992315a12ca1f06a2215d57962a1992162`, unchanged and self-hosted under SIL OFL 1.1. The earlier Space Grotesk and current IBM Plex Mono files remain unchanged Google Fonts distributions under SIL OFL 1.1. Their full notices and exact download URLs are retained in `fonts/`. The files are self-hosted; using them does not make a runtime Google request.
 
 ## Verification
+
+The reference-hardware and room update preserves all twelve engraved targets and the 24U allocation. Independent geometry checks confirm finite attributes and bounds, attached raycast targets, and disposal of 134 geometries, 83 materials and 45 textures. Final desktop overview reports 68 draw calls and 165,884 triangles with the room and inactive audio meter segments. It retains four MSAA samples, a 2× drawing buffer and the 6.5-million-pixel allocation cap in the preview.
+
+The new typography loads local Plex regular and medium WOFF2 files. Browser checks cover a 1280px project page, 320px reading layout and rack overview controls, with no overflow or failed asset requests. Final entry, scene and model imports use the same `20261018-hardware-v3` version. Manufacturer references and further type studies remain local research artifacts rather than runtime dependencies.
 
 - JavaScript syntax checks pass for app, catalog, model and scene. HTML checks confirm twelve index/detail pairs, eighteen module source links, unique IDs and valid local assets. Authored files pass Git whitespace checks.
 - T3's local browser rendered the polished model at 1280 × 800, 980 × 800 and 390 × 844 with no horizontal overflow. A 320px layout check also passed. All runtime asset requests stayed on the local origin and succeeded, including self-hosted fonts. The canvas preserves vertical touch scrolling. CSS and navigation use the same 900px stacking breakpoint.
