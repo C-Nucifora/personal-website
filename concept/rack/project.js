@@ -1,7 +1,10 @@
-import { units } from './catalog.js';
+import { collections, allUnits } from './collections.js?v=20261018-datacenter-v6';
 
 const projectId = new URLSearchParams(window.location.search).get('project');
-const unit = units.find((item) => item.id === projectId);
+const unit = allUnits.find((item) => item.id === projectId);
+const collection = collections.find(item => item.units.includes(unit));
+const moduleId = new URLSearchParams(window.location.search).get('module');
+const module = unit?.id === 'm1-toolchain' ? unit.modules.find(item => item.id === moduleId) : null;
 const fallback = document.querySelector('#project-fallback');
 
 function element(tag, text, className) {
@@ -12,28 +15,45 @@ function element(tag, text, className) {
 }
 
 if (unit) {
-  document.title = `${unit.title} / Christian Nucifora`;
-  document.querySelector('meta[name="description"]').content = unit.summary;
-  document.querySelector('#project-category').textContent = unit.subtitle;
-  document.querySelector('#project-title').textContent = unit.title;
-  document.querySelector('#project-summary').textContent = unit.summary;
+  document.title = `${module?.title ?? unit.title} / Christian Nucifora`;
+  document.querySelector('meta[name="description"]').content = module?.description ?? unit.summary;
+  document.querySelector('#project-category').textContent = module ? `M1 Toolchain / ${module.group}` : unit.subtitle;
+  document.querySelector('#project-title').textContent = module?.title ?? unit.title;
+  document.querySelector('#project-summary').textContent = module?.description ?? unit.summary;
   document.querySelector('#project-description').textContent = unit.description;
-  const source = document.querySelector('#project-source');
-  source.href = unit.sourceUrl;
-  if (unit.id === 'small-utilities') source.firstChild.textContent = 'GitHub profile ';
-  if (unit.id === 'm1-toolchain') source.firstChild.textContent = 'Toolchain on GitHub ';
-  for (const link of document.querySelectorAll('[data-rack-link]')) {
-    link.href = `./index.html#${encodeURIComponent(unit.id)}`;
+  if (module) {
+    document.querySelector('#overview-title').textContent = 'Part of the M1 Toolchain';
+    const parentLink = element('a', 'Read about the full toolchain →', 'document-source');
+    parentLink.href = './project.html?project=m1-toolchain';
+    document.querySelector('.document-overview').append(parentLink);
   }
-  for (const technology of unit.stack) {
+  const source = document.querySelector('#project-source');
+  if (module?.sourceUrl || unit.sourceUrl) source.href = module?.sourceUrl ?? unit.sourceUrl;
+  else source.hidden = true;
+  if (unit.sourceLabel) source.firstChild.textContent = `${unit.sourceLabel} `;
+  if (unit.id === 'small-utilities') source.firstChild.textContent = 'GitHub profile ';
+  if (unit.id === 'm1-toolchain') source.firstChild.textContent = module ? 'Source on GitHub ' : 'Toolchain on GitHub ';
+  for (const link of document.querySelectorAll('[data-rack-link]')) {
+    link.href = `./index.html?rack=${collection.id}#${encodeURIComponent(unit.id)}`;
+    link.lastChild.textContent = module ? ' M1 Toolchain rack unit' : ` ${collection.label} rack`;
+  }
+  document.querySelector('#project-placeholder').hidden = !unit.placeholder;
+  const stack = module ? [] : unit.stack;
+  if (!stack.length) {
+    document.querySelector('#project-stack-title').hidden = true;
+    document.querySelector('#project-stack').hidden = true;
+  }
+  document.querySelector('#project-article').dataset.collection = collection.id;
+  for (const technology of stack) {
     document.querySelector('#project-stack').append(element('li', technology));
   }
-  for (const fact of unit.facts) {
+  const facts = module ? [{ label: 'Bundle', value: 'M1 Toolchain' }, { label: 'Group', value: module.group }] : unit.facts;
+  for (const fact of facts) {
     const row = element('div');
     row.append(element('dt', fact.label), element('dd', fact.value));
     document.querySelector('#project-facts').append(row);
   }
-  if (unit.modules?.length) {
+  if (unit.modules?.length && !module) {
     const groups = unit.id === 'm1-toolchain'
       ? ['Language tools', 'Editor integration', 'Project tools']
       : [null];
@@ -70,10 +90,10 @@ if (unit) {
   fallback.querySelector('h1').textContent = projectId ? 'Project not found' : 'Projects';
   fallback.querySelector('.document-summary').textContent = projectId
     ? 'That project link is not in this rack.'
-    : 'Software projects by Christian Nucifora.';
-  fallback.querySelector('.document-copy').textContent = 'Choose a project below, or return to the rack.';
+    : 'Software, hardware and experience by Christian Nucifora.';
+  fallback.querySelector('.document-copy').textContent = 'Choose a record below, or return to the datacenter.';
   const list = element('ul', '', 'project-choice-list');
-  for (const item of units) {
+  for (const item of allUnits) {
     const row = element('li');
     const link = element('a', item.title);
     link.href = `./project.html?project=${encodeURIComponent(item.id)}`;

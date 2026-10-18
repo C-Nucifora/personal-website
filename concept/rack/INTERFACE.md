@@ -31,3 +31,9 @@ The research output compares three real, licensed font systems using the same ex
 Earlier studies considered teenage engineering's [OP-1 guide](https://teenage.engineering/guides/op-1), Carbon's [type strategies](https://www.carbondesignsystem.com/building-blocks/foundations/typography/style-strategies), and Vitsœ's [606 system](https://www.vitsoe.com/us/606). Their object-led presentation and control discipline remain useful. The new studies change type families and page structure, rather than repeating the same layout with different colors.
 
 The active design context is `personal` / `personal-website`, with no resolver warnings. The explicit rack brief and README own this surface's decisions. Existing public project claims and experimental qualifications remain intact.
+
+## Datacenter and nested tools
+
+The entrance now presents software, hardware and experience as three ordinary navigation destinations and three physical cabinets in an aisle. A short factual introduction connects the approved study and UQ Racing history to the software work. Each rack has its own index and full record pages; missing material is explicitly marked as a placeholder.
+
+M1 has a second level of selection. The nested inspector shows the selected tool's real group, description, source and page while its carrier is extracted. Pull out and Return buttons provide a keyboard equivalent to the physical faces. Escape and the back action return one level before closing the parent enclosure. Utility text has opaque neutral backing where it would otherwise sit on a bright floor or wall. Mobile headings and captions occupy normal grid rows, so wrapped headings cannot collide with instructions.

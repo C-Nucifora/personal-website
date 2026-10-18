@@ -24,3 +24,7 @@ On 18 October the user supplied Alan West's article, "How to fix the AI-generate
 The article was applied as a critique of defaults, rather than a replacement theme. Custom neutral tokens now cover the HTML, room and procedural display artwork. The equipment remains specific to each project. Page composition uses a compact contents list and an asymmetric project opening. Flat rules, clear focus and underlined actions provide a consistent component vocabulary. The existing precise descriptions and experimental qualifications remain intact; real counts such as M1's fifteen repositories come from the catalog.
 
 The relevant checks are visible composition, readable type, factual copy, responsive layout and normal navigation. A palette audit also checks for remaining green and olive literals in the live authored assets.
+
+## Datacenter expansion
+
+The three racks now separate software, engineering and experience without adding a marketing section stack. All twenty-one records remain in the static HTML. Two entries are visibly marked as placeholders. Native rack links, full project routes and M1 tool pages work independently of the scene. Mobile skip links target the visible content, and utility labels use neutral backing over lighter surfaces. The aisle's exposed equipment, overhead services and cabinet joins follow the physical references recorded in DATACENTER.md.

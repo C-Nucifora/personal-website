@@ -1,20 +1,23 @@
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-neutral-v2';
-import { units } from './catalog.js';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-datacenter-v6';
+import { collections } from './collections.js?v=20261018-datacenter-v6';
+import { createDatacenter } from './datacenter.js?v=20261018-datacenter-v6';
 
 const BACKGROUND = '#121212';
 const MAX_DRAWING_PIXELS = 6500000;
 const ease = (t) => t * t * (3 - 2 * t);
 
-export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export function createRackScene({ canvas, collectionId = 'software', mode: initialMode = 'hall', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+  const collection = collections.find(item => item.id === collectionId) || collections[0];
+  const units = collection.units;
+  let mode = initialMode;
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
   } catch (error) {
     onError(error);
-    return { select() {}, zoom() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
+    return { select() {}, inspectModule() {}, zoom() {}, reset() {}, setReducedMotion() {}, setView() {}, hover() {}, dispose() {}, getState: () => ({ phase: 'error', selected: null, drawCalls: 0 }) };
   }
   const gl = renderer.getContext();
   const samples = gl.getParameter(gl.SAMPLES);
@@ -26,7 +29,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BACKGROUND);
-  const camera = new THREE.PerspectiveCamera(33, 1, 0.5, 80);
+  const camera = new THREE.PerspectiveCamera(64, 1, 0.5, 110);
   const controls = new OrbitControls(camera, canvas);
   canvas.style.touchAction = 'pan-y';
   controls.enablePan = true;
@@ -72,105 +75,42 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   studioMaterials.forEach(material => material.dispose());
   pmrem.dispose();
 
-  const model = createRackModel(renderer);
-  const { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], slotY, heights } = model;
-  scene.add(rack);
-  const floorY = -model.height / 2 - 0.22;
-  const floorGeometry = new THREE.PlaneGeometry(80, 80);
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: '#1c1c1d', roughness: 0.96, envMapIntensity: 0.15 });
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = floorY;
-  floor.receiveShadow = true;
-  scene.add(floor);
-  const roomGeometries = [];
-  const roomMaterials = [];
-  const room = new THREE.Group();
-  const roomParts = new Map();
-  function roomFinish(color, roughness = 0.85, metalness = 0) {
-    const material = new THREE.MeshStandardMaterial({ color, roughness, metalness, envMapIntensity: 0.22 });
-    roomMaterials.push(material);
-    roomParts.set(material, []);
-    return material;
-  }
-  function roomBox(material, size, position) {
-    const geometry = new THREE.BoxGeometry(...size);
-    geometry.translate(...position);
-    roomParts.get(material).push(geometry);
-  }
-  const wall = roomFinish('#181819');
-  const joint = roomFinish('#0e0e10');
-  const cabinet = roomFinish('#202022', 0.73, 0.15);
-  const door = roomFinish('#171719', 0.88, 0.08);
-  const trim = roomFinish('#303033', 0.64, 0.28);
-  roomBox(wall, [80, 35, 0.3], [0, floorY + 17.5, -14]);
-  roomBox(trim, [80, 0.28, 0.08], [0, floorY + 0.14, -13.8]);
-  // Wide floor joints survive minification without a fine procedural grid.
-  for (let x = -24; x <= 24; x += 4) roomBox(joint, [0.025, 0.012, 48], [x + 1.8, floorY + 0.002, 0]);
-  for (let z = -20; z <= 20; z += 4) roomBox(joint, [56, 0.012, 0.025], [0, floorY + 0.002, z + 0.4]);
-  // The neighboring cabinets borrow the 600 × 1199 × 1070 mm proportions of a 24U NetShelter SX.
-  for (const x of [-7.6, 7.6]) {
-    const height = model.height;
-    const width = height * 600 / 1199;
-    const depth = height * 1070 / 1199;
-    const centerY = floorY + height / 2 + 0.1;
-    const front = -2.7;
-    roomBox(cabinet, [width, height, depth], [x, centerY, front - depth / 2]);
-    roomBox(joint, [width - 0.28, height - 0.38, 0.06], [x, centerY, front + 0.035]);
-    roomBox(door, [width - 0.55, height - 0.65, 0.07], [x, centerY, front + 0.08]);
-    for (const side of [-1, 1]) roomBox(trim, [0.1, height - 0.42, 0.12], [x + side * (width / 2 - 0.12), centerY, front + 0.06]);
-    for (const sign of [-1, 1]) roomBox(trim, [width - 0.18, 0.13, 0.12], [x, centerY + sign * (height / 2 - 0.14), front + 0.06]);
-    // Broad recessed ventilation strips suggest a perforated door without subpixel hole patterns.
-    for (let row = 0; row < 15; row++) roomBox(joint, [width - 0.94, 0.16, 0.03], [x, centerY - height * 0.38 + row * height * 0.054, front + 0.125]);
-    roomBox(trim, [0.085, 0.68, 0.14], [x + width / 2 - 0.42, centerY - 0.25, front + 0.19]);
-    for (const side of [-1, 1]) roomBox(joint, [0.32, 0.14, 0.45], [x + side * (width / 2 - 0.45), floorY + 0.07, front - 0.65]);
-  }
-  const trayY = floorY + model.height + 1.5;
-  roomBox(trim, [25, 0.1, 0.85], [0, trayY, -13]);
-  roomBox(cabinet, [25, 0.25, 0.08], [0, trayY + 0.12, -12.6]);
-  for (const x of [-10, 0, 10]) roomBox(trim, [0.08, 1.3, 0.08], [x, trayY + 0.65, -13]);
-  roomParts.forEach((parts, material) => {
-    const geometry = mergeGeometries(parts, false);
-    parts.forEach(part => part.dispose());
-    roomGeometries.push(geometry);
-    const mesh = new THREE.Mesh(geometry, material);
-    room.add(mesh);
+  const models = collections.map((item, index) => {
+    const built = createRackModel(renderer, item.units, item.label, item.id === collection.id && initialMode !== 'hall' ? 1 : 0.35);
+    built.rack.position.set(-8, 0, -index * 6);
+    built.rack.rotation.y = Math.PI / 2;
+    scene.add(built.rack);
+    return built;
   });
-  scene.add(room);
-  const contactCanvas = document.createElement('canvas');
-  contactCanvas.width = contactCanvas.height = 256;
-  const context = contactCanvas.getContext('2d');
-  const gradient = context.createRadialGradient(128, 128, 24, 128, 128, 128);
-  gradient.addColorStop(0, 'rgba(0,0,0,0.75)');
-  gradient.addColorStop(0.45, 'rgba(0,0,0,0.4)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 256, 256);
-  const contactTexture = new THREE.CanvasTexture(contactCanvas);
-  const contactGeometry = new THREE.PlaneGeometry(8.3, 7.1);
-  const contactMaterial = new THREE.MeshBasicMaterial({ map: contactTexture, transparent: true, depthWrite: false });
-  const contact = new THREE.Mesh(contactGeometry, contactMaterial);
-  contact.rotation.x = -Math.PI / 2;
-  contact.position.set(0, floorY + 0.008, 0.15);
-  scene.add(contact);
-  for (const x of [-7.6, 7.6]) {
-    const cabinetContact = new THREE.Mesh(contactGeometry, contactMaterial);
-    cabinetContact.rotation.x = -Math.PI / 2;
-    cabinetContact.scale.set(1.05, 1.55, 1);
-    cabinetContact.position.set(x, floorY + 0.008, -6.4);
-    scene.add(cabinetContact);
-  }
-  scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', 0.35));
+  const model = models[collections.indexOf(collection)];
+  const { rack, bays, interiors, highlights, hitTargets, projectLinkTargets = [], moduleAssemblies = [], slotY, heights } = model;
+  scene.updateMatrixWorld(true);
+  const floorY = -model.height / 2 - 0.22;
+  const datacenter = createDatacenter({ floorY, rackHeight: model.height });
+  scene.add(datacenter.group);
+  scene.fog = new THREE.Fog(BACKGROUND, 42, 100);
+  const rackTargetGeometry = new THREE.BoxGeometry(4.9, model.height, 0.18);
+  const rackTargetMaterial = new THREE.MeshBasicMaterial({ visible: false });
+  const rackTargets = models.map((built, index) => {
+    const target = new THREE.Mesh(rackTargetGeometry, rackTargetMaterial);
+    target.position.z = FACE_Z + 0.12;
+    target.userData.collectionId = collections[index].id;
+    built.rack.add(target);
+    return target;
+  });
+  const worldPoint = point => rack.localToWorld(point);
+  const worldDirection = direction => direction.applyQuaternion(rack.quaternion).normalize();
+  scene.add(new THREE.HemisphereLight('#e7e7eb', '#29292b', 0.8));
   const key = new THREE.DirectionalLight('#f8f6ef', 2.2);
-  key.position.set(-5, 11, 12);
-  key.target.position.set(0, 0, 1);
+  key.position.set(1, 12, 7);
+  key.target.position.set(-8, 0, -6);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  Object.assign(key.shadow.camera, { left: -7.5, right: 7.5, top: 8, bottom: -8, near: 1, far: 32 });
+  Object.assign(key.shadow.camera, { left: -12, right: 12, top: 11, bottom: -11, near: 1, far: 50 });
   key.shadow.bias = -0.00008;
   key.shadow.normalBias = 0.008;
   scene.add(key, key.target);
-  const fill = new THREE.DirectionalLight('#e9e9ee', 0.4);
+  const fill = new THREE.DirectionalLight('#e9e9ee', 0.75);
   fill.position.set(8, 2, 10);
   scene.add(fill);
   const rim = new THREE.DirectionalLight('#d4dce1', 1.6);
@@ -181,6 +121,8 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   let contextLost = false;
   let selected = null;
   let phase = 'overview';
+  let selectedModule = null;
+  let modulePhase = 'closed';
   let view = 'perspective';
   let hovered = null;
   let frame = 0;
@@ -214,26 +156,52 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     for (const x of [minimum[0], maximum[0]]) for (const y of [minimum[1], maximum[1]]) for (const z of [minimum[2], maximum[2]]) corners.push(new THREE.Vector3(x, y, z));
     return corners;
   }
-  function overviewPose() {
-    const direction = view === 'front' ? new THREE.Vector3(0.002, 0.085, 1).normalize() : new THREE.Vector3(0.27, 0.15, 1).normalize();
-    const target = new THREE.Vector3(0, -0.02, 0.38);
-    return fitPose(target, direction, cornersOf([-2.5, -model.height / 2 - 0.25, -2.45], [2.5, model.height / 2 + 0.02, 2.65]), 1.04);
+  function hallPose() {
+    const entrance = lastWidth / Math.max(lastHeight, 1) < 0.85 ? 25 : 18;
+    return { position: new THREE.Vector3(0.4, 2.6, entrance), target: new THREE.Vector3(0, 0.8, -18) };
   }
+  function rackPose() {
+    const direction = worldDirection(view === 'front' ? new THREE.Vector3(0.002, 0.085, 1) : new THREE.Vector3(0.22, 0.15, 1));
+    const target = worldPoint(new THREE.Vector3(0, -0.02, 0.38));
+    const corners = cornersOf([-2.5, -model.height / 2 - 0.25, -2.45], [2.5, model.height / 2 + 0.02, 2.65]).map(worldPoint);
+    return fitPose(target, direction, corners, 1.04);
+  }
+  function overviewPose() { return mode === 'hall' ? hallPose() : rackPose(); }
   function projectPose(index) {
-    const direction = new THREE.Vector3(0.4, 0.66, 1).normalize();
-    const target = new THREE.Vector3(0, slotY[index] - 0.03, EXTRACTION + 0.18);
-    return fitPose(target, direction, cornersOf([-2.2, slotY[index] - heights[index] / 2 - 0.04, EXTRACTION - 2.1], [2.2, slotY[index] + heights[index] / 2 + 0.08, EXTRACTION + 2.67]), 1.18, 7.6);
+    const direction = worldDirection(new THREE.Vector3(0.4, 0.66, 1));
+    const target = worldPoint(new THREE.Vector3(0, slotY[index] - 0.03, EXTRACTION + 0.18));
+    const corners = cornersOf([-2.2, slotY[index] - heights[index] / 2 - 0.04, EXTRACTION - 2.1], [2.2, slotY[index] + heights[index] / 2 + 0.08, EXTRACTION + 2.67]).map(worldPoint);
+    return fitPose(target, direction, corners, 1.18, 7.6);
+  }
+  function modulePose(moduleId) {
+    const assembly = moduleAssemblies.find(item => item.moduleId === moduleId);
+    const pose = projectPose(assembly?.projectIndex ?? selected);
+    if (!assembly) return pose;
+    const shift = worldDirection(new THREE.Vector3(0, 0, 1)).multiplyScalar(0.45);
+    pose.position.add(shift);
+    pose.target.add(shift).add(worldDirection(new THREE.Vector3(1, 0, 0)).multiplyScalar(assembly.group.position.x * 0.18));
+    pose.position.x = Math.min(pose.position.x, 3.8);
+    return pose;
+  }
+  function inspectionPose() { return selectedModule === null ? projectPose(selected) : modulePose(selectedModule); }
+  function emitModule(nextPhase, moduleId = selectedModule) {
+    modulePhase = nextPhase;
+    onModuleChange({ moduleId, phase: modulePhase });
   }
   function updateControls() {
-    controls.enabled = phase === 'overview' || phase === 'project';
+    controls.enabled = modulePhase !== 'returning' && modulePhase !== 'extracting' && (phase === 'overview' || phase === 'project');
     if (controls.enabled) {
-      const pose = phase === 'project' ? projectPose(selected) : overviewPose();
+      const pose = phase === 'project' ? inspectionPose() : overviewPose();
       const distance = pose.position.distanceTo(pose.target);
-      controls.minDistance = phase === 'project' ? Math.max(3.8, distance * 0.5) : Math.max(6, distance * 0.35);
-      controls.maxDistance = distance * 1.8;
+      controls.minDistance = phase === 'project' ? Math.max(3.8, distance * 0.5) : mode === 'hall' ? distance * 0.65 : Math.max(6, distance * 0.55);
+      const direction = pose.position.clone().sub(pose.target).normalize();
+      const aisleLimit = (3.8 - pose.target.x) / Math.max(direction.x, 0.01);
+      controls.maxDistance = mode === 'hall' ? distance * 1.3 : Math.max(distance, Math.min(distance * 1.25, aisleLimit));
+      controls.minAzimuthAngle = mode === 'hall' ? -0.28 : Math.PI / 2 - 0.5;
+      controls.maxAzimuthAngle = mode === 'hall' ? 0.28 : Math.PI / 2 + 0.6;
       controls.minPolarAngle = phase === 'project' ? 0.5 : 0.9;
       controls.cursor.copy(pose.target);
-      controls.maxTargetRadius = phase === 'project' ? 1.5 : model.height * 0.65;
+      controls.maxTargetRadius = phase === 'project' ? 1.5 : mode === 'hall' ? 8 : 2;
       controls.update();
     }
     canvas.style.cursor = controls.enabled ? 'grab' : 'default';
@@ -244,15 +212,16 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     onPhase({ phase, index });
   }
   function capture() {
-    return { position: camera.position.clone(), target: controls.target.clone(), slides: bays.map((bay) => bay.position.z) };
+    return { position: camera.position.clone(), target: controls.target.clone(), slides: bays.map((bay) => bay.position.z), moduleSlides: moduleAssemblies.map(item => item.group.position.z) };
   }
-  function queueStage(nextPhase, duration, target, slides, index) {
-    stages.push({ phase: nextPhase, duration: reducedMotion ? 0 : duration, position: target.position.clone(), target: target.target.clone(), slides: [...slides], index });
+  function queueStage(nextPhase, duration, target, slides, index, extra = {}) {
+    stages.push({ phase: nextPhase, duration: reducedMotion ? 0 : duration, position: target.position.clone(), target: target.target.clone(), slides: [...slides], moduleSlides: moduleAssemblies.map(() => 0), index, ...extra });
   }
   function beginNext(now) {
     const next = stages.shift();
     if (!next) { activeStage = null; return; }
     activeStage = { ...next, start: capture(), startedAt: now };
+    if (next.modulePhase) emitModule(next.modulePhase, next.moduleId);
     emit(next.phase, next.index);
   }
   function applyStage(stage, progress) {
@@ -262,7 +231,10 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     camera.lookAt(controls.target);
     bays.forEach((bay, index) => {
       bay.position.z = THREE.MathUtils.lerp(stage.start.slides[index], stage.slides[index], t);
-      interiors[index].visible = bay.position.z > 0.002;
+      interiors[index].visible = true;
+    });
+    moduleAssemblies.forEach((item, index) => {
+      item.group.position.z = THREE.MathUtils.lerp(stage.start.moduleSlides[index], stage.moduleSlides[index], t);
     });
   }
   function requestRender() {
@@ -274,10 +246,11 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     if (!activeStage && stages.length) beginNext(now);
     // Reduced motion resolves the same state changes immediately, without simulating rapid movement.
     while (activeStage) {
-      const progress = activeStage.duration === 0 ? 1 : Math.min((now - activeStage.startedAt) / activeStage.duration, 1);
+      const progress = activeStage.duration === 0 ? 1 : THREE.MathUtils.clamp((now - activeStage.startedAt) / activeStage.duration, 0, 1);
       applyStage(activeStage, progress);
       if (progress < 1) break;
       const finishedPhase = activeStage.phase;
+      if (activeStage.modulePhase) emitModule(activeStage.modulePhase === 'extracting' ? 'open' : 'closed', activeStage.modulePhase === 'extracting' ? activeStage.moduleId : null);
       activeStage = null;
       if (stages.length) beginNext(now);
       else {
@@ -306,10 +279,48 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     setHover(null, true);
     canvas.style.cursor = controls.enabled ? 'grab' : 'default';
   }
+  function queueModuleReturn(current, index) {
+    if (!current.moduleSlides.some(position => position > 0.002)) {
+      emitModule('closed', null);
+      return;
+    }
+    const previousModule = moduleAssemblies[current.moduleSlides.findIndex(position => position > 0.002)]?.moduleId;
+    queueStage('project', 380, { position: current.position, target: current.target }, current.slides, index, { modulePhase: 'returning', moduleId: previousModule });
+  }
+  function inspectModule(moduleId) {
+    if (selected === null || phase !== 'project') return;
+    const assembly = moduleAssemblies.find(item => item.moduleId === moduleId && item.projectIndex === selected);
+    if (moduleId !== null && !assembly) return;
+    const next = assembly?.moduleId ?? null;
+    if (next === selectedModule && (modulePhase === 'open' || modulePhase === 'extracting' || modulePhase === 'closed')) return;
+    const current = capture();
+    selectedModule = next;
+    stages = [];
+    activeStage = null;
+    clearHover();
+    queueModuleReturn(current, selected);
+    if (next !== null) {
+      const moduleSlides = moduleAssemblies.map(item => item === assembly ? 1.35 : 0);
+      queueStage('project', 560, modulePose(next), current.slides, selected, { moduleSlides, modulePhase: 'extracting', moduleId: next });
+    } else if (stages.length) {
+      const last = stages[stages.length - 1];
+      const pose = projectPose(selected);
+      last.position.copy(pose.position);
+      last.target.copy(pose.target);
+    }
+    if (stages.length) beginNext(performance.now());
+    else updateControls();
+    requestRender();
+  }
   function select(index) {
     const next = Number.isInteger(index) && index >= 0 && index < bays.length ? index : null;
-    if (next === selected && ((next === null && phase === 'overview') || phase === 'project')) return;
+    if (next === selected && ((next === null && phase === 'overview') || phase === 'project')) {
+      if (selectedModule !== null) inspectModule(null);
+      return;
+    }
     const previous = selected;
+    selectedModule = null;
+    if (next !== null) mode = 'rack';
     selected = next;
     stages = [];
     activeStage = null;
@@ -317,6 +328,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     controls.enabled = false;
     const overview = overviewPose();
     const current = capture();
+    queueModuleReturn(current, previous);
     const hasSlide = current.slides.some((position) => position > 0.005);
     const cameraAway = current.position.distanceTo(overview.position) > 0.02 || current.target.distanceTo(overview.target) > 0.02;
     if (cameraAway) queueStage('returning', 460, overview, current.slides, previous);
@@ -330,6 +342,10 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     if (!stages.length) { emit('overview'); requestRender(); return; }
     beginNext(performance.now());
     requestRender();
+  }
+  function poseForStage(stage) {
+    if (stage.modulePhase) return stage.modulePhase === 'extracting' ? modulePose(stage.moduleId) : projectPose(stage.index);
+    return stage.phase === 'focusing' ? projectPose(stage.index) : overviewPose();
   }
   function resize() {
     if (disposed || contextLost) return;
@@ -348,7 +364,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     if (!activeStage && !stages.length) {
-      const pose = selected === null ? overviewPose() : projectPose(selected);
+      const pose = selected === null ? overviewPose() : inspectionPose();
       camera.position.copy(pose.position);
       controls.target.copy(pose.target);
       camera.lookAt(pose.target);
@@ -357,7 +373,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
       const now = performance.now();
       if (activeStage) {
         const remaining = Math.max(0, activeStage.duration - (now - activeStage.startedAt));
-        const pose = activeStage.phase === 'focusing' ? projectPose(activeStage.index) : overviewPose();
+        const pose = poseForStage(activeStage);
         activeStage.start = capture();
         activeStage.startedAt = now;
         activeStage.duration = remaining;
@@ -365,7 +381,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
         activeStage.target.copy(pose.target);
       }
       stages.forEach((stage) => {
-        const pose = stage.phase === 'focusing' ? projectPose(stage.index) : overviewPose();
+        const pose = poseForStage(stage);
         stage.position.copy(pose.position);
         stage.target.copy(pose.target);
       });
@@ -382,28 +398,35 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
   }
   function pixelRatioChange() { resize(); watchPixelRatio(); }
   watchPixelRatio();
-  function hitAt(event, targets = hitTargets) {
+  function hitData(event, targets) {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    return raycaster.intersectObjects(targets, false)[0]?.object.userData.index ?? null;
+    return raycaster.intersectObjects(targets, false)[0]?.object.userData ?? null;
   }
+  function hitAt(event, targets = hitTargets) { return hitData(event, targets)?.index ?? null; }
   function pointerMove(event) {
     if (pointerDown && Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y) >= 7) pointerDown.dragged = true;
     if (event.pointerType === 'touch' || pointerDown) return;
     if (phase === 'project') {
+      if (modulePhase === 'extracting' || modulePhase === 'returning') return;
       const link = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
-      canvas.style.cursor = link === selected ? 'pointer' : 'grab';
+      const module = hitData(event, moduleAssemblies.filter(item => item.projectIndex === selected).map(item => item.hitTarget));
+      canvas.style.cursor = link === selected || module ? 'pointer' : 'grab';
       return;
     }
     if (phase !== 'overview') return;
+    if (mode === 'hall') {
+      canvas.style.cursor = hitData(event, rackTargets) ? 'pointer' : 'grab';
+      return;
+    }
     const index = hitAt(event);
     if (hovered !== index) setHover(index, true);
     canvas.style.cursor = index === null ? 'grab' : 'pointer';
   }
   function pointerStart(event) {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || !controls.enabled) return;
     activePointers.add(event.pointerId);
     pointerDown = activePointers.size === 1 ? { x: event.clientX, y: event.clientY, pointerId: event.pointerId } : null;
   }
@@ -414,11 +437,21 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     const dragged = pointerDown.dragged;
     pointerDown = null;
     if (phase === 'overview' && distance < 7 && !dragged) {
+      if (mode === 'hall') {
+        const item = hitData(event, rackTargets);
+        if (item) onCollectionSelect(item.collectionId);
+        return;
+      }
       const index = hitAt(event);
       if (index !== null) onSelect(index);
-    } else if (phase === 'project' && distance < 7 && !dragged) {
+    } else if (phase === 'project' && modulePhase !== 'extracting' && modulePhase !== 'returning' && distance < 7 && !dragged) {
       const index = hitAt(event, projectLinkTargets.filter(target => target.userData.index === selected));
-      if (index === selected) onProjectOpen(index);
+      if (index === selected) { onProjectOpen(index); return; }
+      const module = hitData(event, moduleAssemblies.filter(item => item.projectIndex === selected).map(item => item.hitTarget));
+      if (module) {
+        if (selectedModule === module.moduleId && modulePhase === 'open') onModuleOpen(module.moduleId);
+        else onModuleSelect(module.moduleId);
+      }
     }
   }
   function pointerCancel(event) { activePointers.delete(event.pointerId); pointerDown = null; clearHover(); }
@@ -468,6 +501,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
 
   return {
     select,
+    inspectModule,
     zoom(direction) {
       if (!controls.enabled) return;
       const offset = camera.position.clone().sub(controls.target);
@@ -490,7 +524,7 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
     getState() {
       const rect = canvas.getBoundingClientRect();
       const frontCenters = units.map((unit, index) => {
-        const point = new THREE.Vector3(0, slotY[index], FACE_Z + bays[index].position.z + 0.08).project(camera);
+        const point = worldPoint(new THREE.Vector3(0, slotY[index], FACE_Z + bays[index].position.z + 0.08)).project(camera);
         const x = (point.x + 1) * 0.5 * lastWidth;
         const y = (1 - point.y) * 0.5 * lastHeight;
         return { index, id: unit.id, u: unit.u, x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), pageX: Number((rect.left + x).toFixed(1)), pageY: Number((rect.top + y).toFixed(1)), visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
@@ -499,7 +533,15 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { index: target.userData.index, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2 };
       });
-      return { phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
+      const moduleCenters = moduleAssemblies.map(item => {
+        const point = item.hitTarget.getWorldPosition(new THREE.Vector3()).project(camera);
+        return { moduleId: item.moduleId, projectIndex: item.projectIndex, index: item.index, slide: Number(item.group.position.z.toFixed(3)), pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
+      });
+      const rackCenters = rackTargets.map((target, index) => {
+        const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
+        return { id: collections[index].id, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
+      });
+      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
     },
     dispose() {
       disposed = true;
@@ -515,14 +557,10 @@ export function createRackScene({ canvas, onSelect = () => {}, onProjectOpen = (
       canvas.removeEventListener('pointerleave', clearHover);
       canvas.removeEventListener('webglcontextlost', contextLoss);
       document.removeEventListener('visibilitychange', visibilityChange);
-      model.dispose();
-      floorGeometry.dispose();
-      floorMaterial.dispose();
-      roomGeometries.forEach(geometry => geometry.dispose());
-      roomMaterials.forEach(material => material.dispose());
-      contactGeometry.dispose();
-      contactMaterial.dispose();
-      contactTexture.dispose();
+      models.forEach(item => item.dispose());
+      datacenter.dispose();
+      rackTargetGeometry.dispose();
+      rackTargetMaterial.dispose();
       environment.dispose();
       key.shadow.map?.dispose();
       renderer.dispose();

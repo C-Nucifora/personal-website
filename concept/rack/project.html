@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#121212">
-  <meta name="description" content="Software projects by Christian Nucifora. Read project details and browse their source repositories.">
+  <meta name="description" content="Software, hardware and experience by Christian Nucifora. Read project details and work history.">
   <title>Project / Christian Nucifora</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-neutral-v2">
-  <link rel="stylesheet" href="./project.css?v=20261018-neutral-v2">
+  <link rel="stylesheet" href="./styles.css?v=20261018-datacenter-v6">
+  <link rel="stylesheet" href="./project.css?v=20261018-datacenter-v6">
 </head>
 <body class="project-page">
   <a class="skip-link" href="#project-content">Skip to project</a>
@@ -31,6 +31,7 @@
         <p class="document-category" id="project-category"></p>
         <h1 id="project-title"></h1>
         <div class="document-introduction">
+          <p class="placeholder-note" id="project-placeholder" hidden>Placeholder · Details to come</p>
           <p class="document-summary" id="project-summary"></p>
           <a class="document-source" id="project-source" target="_blank" rel="noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a>
         </div>
@@ -41,7 +42,7 @@
           <p class="document-copy" id="project-description"></p>
         </section>
         <aside class="document-specification" aria-label="Project details">
-          <h2>Built with</h2>
+          <h2 id="project-stack-title">Built with</h2>
           <ul class="document-stack" id="project-stack"></ul>
           <dl class="document-facts" id="project-facts"></dl>
         </aside>
@@ -55,6 +56,6 @@
       </footer>
     </article>
   </main>
-  <script type="module" src="./project.js"></script>
+  <script type="module" src="./project.js?v=20261018-datacenter-v6"></script>
 </body>
 </html>

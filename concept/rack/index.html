@@ -4,24 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#121212">
-  <meta name="description" content="Software projects by Christian Nucifora. Language tools, native apps, embedded development and small utilities.">
+  <meta name="description" content="Software, hardware engineering and experience by Christian Nucifora. Explore three racks or read the full text index.">
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-neutral-v2">
+  <link rel="stylesheet" href="./styles.css?v=20261018-datacenter-v6">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
-  <a class="skip-link" href="#project-index">Skip to projects</a>
+  <a class="skip-link" href="#collection-directory">Skip to work</a>
   <header class="site-header">
-    <a class="identity" href="#" aria-label="Christian Nucifora, back to work">Christian Nucifora</a>
-    <nav class="header-links" aria-label="Main navigation"><a class="overview-link" href="#" aria-current="page">Work</a><a href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a><a href="mailto:cgnucifora@proton.me">Email</a></nav>
+    <a class="identity" href="./index.html">Christian Nucifora</a>
+    <nav class="header-links" aria-label="Main navigation"><a href="./index.html" data-collection-nav="hall">Datacenter</a><a href="./index.html?rack=software#software-index" data-collection-nav="software">Software</a><a href="./index.html?rack=hardware#hardware-index" data-collection-nav="hardware">Hardware</a><a href="./index.html?rack=experience#experience-index" data-collection-nav="experience">Experience</a></nav>
   </header>
   <main class="workspace" id="main">
-    <section class="stage" aria-label="Interactive project rack">
-      <div class="stage-heading"><h1>Software projects</h1><p>12 projects in a 24U rack</p></div>
+    <section class="stage" aria-label="Interactive datacenter and project racks">
+      <div class="stage-heading"><h1 id="collection-title">Datacenter</h1><p id="collection-subtitle">Software, hardware and experience</p></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
-      <div class="scene-loading" id="scene-loading" role="status">Loading the rack…</div>
+      <div class="scene-loading" id="scene-loading" role="status">Loading the datacenter…</div>
       <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still read every project in the list.</p></div>
       <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
       <div class="stage-controls" role="group" aria-label="3D view controls">
@@ -29,28 +29,66 @@
         <div class="zoom-controls" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div>
         <div class="view-utilities"><button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">Reset view</button><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div>
       </div>
-      <div class="stage-caption"><p id="scene-hint">Click a unit to open a project.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
+      <div class="stage-caption"><p id="scene-hint">Choose a rack to explore the work.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
     </section>
-    <aside class="project-panel" aria-label="Projects">
-      <div class="project-index" id="project-index" tabindex="-1">
-        <div class="panel-heading"><h2>Project index</h2><span>Height</span></div>
-        <nav aria-label="Select a project">
-          <a class="project-row" href="#ci-runner-console" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>CI Runner Console</strong><span>Build infrastructure</span></span><span class="row-size">1U</span></a>
-          <a class="project-row" href="#artifact-platform" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>Artifact Platform</strong><span>Self-hosted publishing</span></span><span class="row-size">1U</span></a>
-          <a class="project-row" href="#nvim-stm32" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>nvim-stm32</strong><span>Embedded development</span></span><span class="row-size">2U</span></a>
-          <a class="project-row" href="#mozaproxy" data-project="3"><span class="bay-number">04</span><span class="row-copy"><strong>mozaproxy</strong><span>Wheel control</span></span><span class="row-size">2U</span></a>
-          <a class="project-row" href="#m1-toolchain" data-project="4"><span class="bay-number">05</span><span class="row-copy"><strong>M1 Toolchain</strong><span>Language tools · 15 repositories</span></span><span class="row-size">6U</span></a>
-          <a class="project-row" href="#wavelength" data-project="5"><span class="bay-number">06</span><span class="row-copy"><strong>Wavelength</strong><span>Music discovery</span></span><span class="row-size">3U</span></a>
-          <a class="project-row" href="#islet" data-project="6"><span class="bay-number">07</span><span class="row-copy"><strong>Islet</strong><span>Desktop utility</span></span><span class="row-size">3U</span></a>
-          <a class="project-row" href="#personal-website" data-project="7"><span class="bay-number">08</span><span class="row-copy"><strong>Personal Website</strong><span>Interface experiments</span></span><span class="row-size">2U</span></a>
-          <a class="project-row" href="#reconcile-app" data-project="8"><span class="bay-number">09</span><span class="row-copy"><strong>Reconcile</strong><span>Shared expenses</span></span><span class="row-size">1U</span></a>
-          <a class="project-row" href="#mountd" data-project="9"><span class="bay-number">10</span><span class="row-copy"><strong>mountd</strong><span>Network storage</span></span><span class="row-size">1U</span></a>
-          <a class="project-row" href="#gphotos-album-downloader" data-project="10"><span class="bay-number">11</span><span class="row-copy"><strong>Photos Downloader</strong><span>Media archive</span></span><span class="row-size">1U</span></a>
-          <a class="project-row" href="#small-utilities" data-project="11"><span class="bay-number">12</span><span class="row-copy"><strong>Small Utilities</strong><span>Scripts + shortcuts</span></span><span class="row-size">1U</span></a>
+    <aside class="project-panel" aria-label="Work index and details">
+      <section class="collection-directory" id="collection-directory" tabindex="-1" aria-labelledby="directory-title">
+        <p class="directory-kicker">Christian Nucifora</p>
+        <h2 id="directory-title">Engineering and software.</h2>
+        <p class="directory-introduction">I'm studying engineering and computer science at UQ, contributing to perception and electrical systems with UQ Racing, and building software alongside that.</p>
+        <nav class="collection-list" aria-label="Choose a rack">
+          <a href="./index.html?rack=software#software-index"><span class="collection-number">01</span><span><strong>Software</strong><span>Applications, language tools and self-hosted infrastructure.</span></span><span aria-hidden="true">→</span></a>
+          <a href="./index.html?rack=hardware#hardware-index"><span class="collection-number">02</span><span><strong>Hardware</strong><span>Vehicle engineering, perception and electrical systems.</span></span><span aria-hidden="true">→</span></a>
+          <a href="./index.html?rack=experience#experience-index"><span class="collection-number">03</span><span><strong>Experience</strong><span>Work history, study and the story behind the projects.</span></span><span aria-hidden="true">→</span></a>
         </nav>
+        <p class="directory-note">Some hardware details and the personal introduction are still to come. Those entries are marked as placeholders.</p>
+        <div class="directory-links"><a href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn ↗</a><a href="https://github.com/C-Nucifora" target="_blank" rel="noreferrer">GitHub ↗</a><a href="mailto:cgnucifora@proton.me">Email</a></div>
+      </section>
+      <div class="project-index" id="project-index" tabindex="-1">
+        <a class="datacenter-return" href="./index.html">← Datacenter</a>
+        <section data-collection-index="software" id="software-index">
+          <div class="panel-heading"><h2>Software projects</h2><span>Height</span></div>
+          <p class="collection-description">Applications, language tools and self-hosted infrastructure.</p>
+          <nav aria-label="Select a project">
+            <a class="project-row" href="#ci-runner-console" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>CI Runner Console</strong><span>Build infrastructure</span></span><span class="row-size">1U</span></a>
+            <a class="project-row" href="#artifact-platform" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>Artifact Platform</strong><span>Self-hosted publishing</span></span><span class="row-size">1U</span></a>
+            <a class="project-row" href="#nvim-stm32" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>nvim-stm32</strong><span>Embedded development</span></span><span class="row-size">2U</span></a>
+            <a class="project-row" href="#mozaproxy" data-project="3"><span class="bay-number">04</span><span class="row-copy"><strong>mozaproxy</strong><span>Wheel control</span></span><span class="row-size">2U</span></a>
+            <a class="project-row is-bundle" href="#m1-toolchain" data-project="4"><span class="bay-number">05</span><span class="row-copy"><strong>M1 Toolchain</strong><span>Language tools</span></span><span class="row-size">6U</span></a>
+            <a class="project-row" href="#wavelength" data-project="5"><span class="bay-number">06</span><span class="row-copy"><strong>Wavelength</strong><span>Music discovery</span></span><span class="row-size">3U</span></a>
+            <a class="project-row" href="#islet" data-project="6"><span class="bay-number">07</span><span class="row-copy"><strong>Islet</strong><span>Desktop utility</span></span><span class="row-size">3U</span></a>
+            <a class="project-row" href="#personal-website" data-project="7"><span class="bay-number">08</span><span class="row-copy"><strong>Personal Website</strong><span>Interface experiments</span></span><span class="row-size">2U</span></a>
+            <a class="project-row" href="#reconcile-app" data-project="8"><span class="bay-number">09</span><span class="row-copy"><strong>Reconcile</strong><span>Shared expenses</span></span><span class="row-size">1U</span></a>
+            <a class="project-row" href="#mountd" data-project="9"><span class="bay-number">10</span><span class="row-copy"><strong>mountd</strong><span>Network storage</span></span><span class="row-size">1U</span></a>
+            <a class="project-row" href="#gphotos-album-downloader" data-project="10"><span class="bay-number">11</span><span class="row-copy"><strong>Photos Downloader</strong><span>Media archive</span></span><span class="row-size">1U</span></a>
+            <a class="project-row" href="#small-utilities" data-project="11"><span class="bay-number">12</span><span class="row-copy"><strong>Small Utilities</strong><span>Scripts + shortcuts</span></span><span class="row-size">1U</span></a>
+          </nav>
+        </section>
+        <section data-collection-index="hardware" id="hardware-index">
+          <div class="panel-heading"><h2>Hardware + engineering</h2><span>Height</span></div>
+          <p class="collection-description">Vehicle engineering, perception and electrical systems.</p>
+          <nav aria-label="Select a project">
+            <a class="project-row" href="#hardware-uqr-autonomous" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>UQ Racing Autonomous Systems</strong><span>Perception + electrical systems</span></span><span class="row-size">8U</span></a>
+            <a class="project-row" href="#hardware-uqr-electric" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>UQ Racing Electric Vehicle Systems</strong><span>Vehicle electrical systems</span></span><span class="row-size">8U</span></a>
+            <a class="project-row" href="#hardware-project-placeholder" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>Hardware project</strong><span>Project details to come · Placeholder</span></span><span class="row-size">8U</span></a>
+          </nav>
+        </section>
+        <section data-collection-index="experience" id="experience-index">
+          <div class="panel-heading"><h2>Experience + education</h2><span>Height</span></div>
+          <p class="collection-description">Work history, study and the story behind the projects.</p>
+          <nav aria-label="Select an experience record">
+            <a class="project-row" href="#experience-uqr" data-project="0"><span class="bay-number">01</span><span class="row-copy"><strong>Electrical Systems Engineer</strong><span>UQ Racing</span></span><span class="row-size">6U</span></a>
+            <a class="project-row" href="#experience-dataannotation" data-project="1"><span class="bay-number">02</span><span class="row-copy"><strong>Software Engineer</strong><span>DataAnnotation</span></span><span class="row-size">4U</span></a>
+            <a class="project-row" href="#experience-st-leos" data-project="2"><span class="bay-number">03</span><span class="row-copy"><strong>IT Assistant</strong><span>St Leo&#39;s College</span></span><span class="row-size">4U</span></a>
+            <a class="project-row" href="#experience-uq-study" data-project="3"><span class="bay-number">04</span><span class="row-copy"><strong>Engineering + Computer Science</strong><span>The University of Queensland</span></span><span class="row-size">6U</span></a>
+            <a class="project-row" href="#experience-st-augustines" data-project="4"><span class="bay-number">05</span><span class="row-copy"><strong>St Augustine&#39;s College, Cairns</strong><span>Education</span></span><span class="row-size">2U</span></a>
+            <a class="project-row" href="#experience-story-placeholder" data-project="5"><span class="bay-number">06</span><span class="row-copy"><strong>Your story</strong><span>Personal introduction to come · Placeholder</span></span><span class="row-size">2U</span></a>
+          </nav>
+        </section>
       </div>
-      <section class="project-details" id="project-details" aria-label="Project details">
+      <section class="project-details" id="project-details" aria-label="Record details">
         <div class="details-toolbar"><a href="#" id="back-to-rack">← All projects</a><span id="detail-bay">01 / 1U</span></div>
+        <section data-collection-detail="software" aria-label="Software details">
         <article id="ci-runner-console" data-detail="0">
           <p class="project-category">Build infrastructure</p>
           <h2 tabindex="-1">CI Runner Console</h2>
@@ -99,6 +137,13 @@
           <p class="project-description">One bundle for the language server, syntax grammar, formatter, linter and project-aware type checker. Related tools generate documentation, inspect CAN databases, visualise project relationships and evaluate scripts offline. Neovim integration and reusable CI workflows connect the tools to everyday development.</p>
           <div class="project-stack"><span>Rust</span><span>Lua</span><span>Tree-sitter</span><span>LSP</span></div>
           <dl><div><dt>Language</dt><dd>MoTeC M1 Script</dd></div><div><dt>Bundle</dt><dd>15 public repositories</dd></div></dl>
+          <section class="module-inspector" id="module-inspector" aria-labelledby="module-title" hidden>
+            <p class="project-category" id="module-group"></p>
+            <h3 id="module-title"></h3>
+            <p id="module-description"></p>
+            <p class="module-status" id="module-status" role="status"></p>
+            <div class="module-actions"><a id="module-page" class="project-page-link">Read about this tool →</a><a id="module-source" class="source-link" target="_blank" rel="noreferrer">GitHub ↗</a><button type="button" id="return-module">Return module</button></div>
+          </section>
           <section class="bundle-modules" aria-label="Included projects"><h3>Included tools</h3><details class="module-group" open><summary><span>Language tools</span><span class="module-count">7</span></summary><a class="module-link" href="https://github.com/C-Nucifora/tree-sitter-m1" target="_blank" rel="noreferrer"><strong>tree-sitter-m1</strong><span>M1 grammar, parser and editor highlight queries.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-core" target="_blank" rel="noreferrer"><strong>m1-core</strong><span>Shared syntax-tree access, diagnostics and annotations.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lsp" target="_blank" rel="noreferrer"><strong>m1-lsp</strong><span>Language server for navigation, completion and live diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-fmt" target="_blank" rel="noreferrer"><strong>m1-fmt</strong><span>Source formatter with CLI and library interfaces.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-lint" target="_blank" rel="noreferrer"><strong>m1-lint</strong><span>Syntax-based style and correctness checks with safe autofixes.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-typecheck" target="_blank" rel="noreferrer"><strong>m1-typecheck</strong><span>Project-aware symbol resolution and semantic diagnostics.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-eval" target="_blank" rel="noreferrer"><strong>m1-eval</strong><span>Experimental deterministic offline script evaluation and traces.</span><i aria-hidden="true">↗</i></a></details><details class="module-group"><summary><span>Editor integration</span><span class="module-count">2</span></summary><a class="module-link" href="https://github.com/C-Nucifora/nvim-m1" target="_blank" rel="noreferrer"><strong>nvim-m1</strong><span>Neovim setup for the bundled language and editor tools.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/telescope-m1.nvim" target="_blank" rel="noreferrer"><strong>telescope-m1.nvim</strong><span>Pickers for symbols, components, call rates and lint rules.</span><i aria-hidden="true">↗</i></a></details><details class="module-group"><summary><span>Project tools</span><span class="module-count">6</span></summary><a class="module-link" href="https://github.com/C-Nucifora/m1-tools" target="_blank" rel="noreferrer"><strong>m1-tools</strong><span>Toolchain manifest, setup and release coordination.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-ci" target="_blank" rel="noreferrer"><strong>m1-ci</strong><span>Reusable GitHub Actions workflows for M1 project checks.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-doc" target="_blank" rel="noreferrer"><strong>m1-doc</strong><span>Project references in Markdown, HTML and structured JSON.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-visualiser" target="_blank" rel="noreferrer"><strong>m1-visualiser</strong><span>Interactive project dependency graphs with experimental value overlays.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-can" target="_blank" rel="noreferrer"><strong>m1-can</strong><span>CAN topology inspection and standard DBC export.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/m1-dbc" target="_blank" rel="noreferrer"><strong>m1-dbc</strong><span>M1 database export with committed-output drift checks.</span><i aria-hidden="true">↗</i></a></details></section>
         </article>
         <article id="wavelength" data-detail="5">
@@ -171,11 +216,106 @@
           <dl><div><dt>Bundle</dt><dd>3 repositories</dd></div><div><dt>Format</dt><dd>Scripts + shortcuts</dd></div></dl>
           <section class="bundle-modules" aria-label="Included projects"><h3>Repositories</h3><a class="module-link" href="https://github.com/C-Nucifora/iOS-Shortcuts" target="_blank" rel="noreferrer"><strong>iOS Shortcuts</strong><span>Version-controlled shortcut sources and installable builds.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/instagram-unliker" target="_blank" rel="noreferrer"><strong>Instagram Unliker</strong><span>A Python script for removing likes with persisted progress.</span><i aria-hidden="true">↗</i></a><a class="module-link" href="https://github.com/C-Nucifora/leetcode" target="_blank" rel="noreferrer"><strong>LeetCode</strong><span>Programming exercises and solutions, primarily in Python.</span><i aria-hidden="true">↗</i></a></section>
         </article>
+        </section>
+        <section data-collection-detail="hardware" aria-label="Hardware details">
+        <article id="hardware-uqr-autonomous" data-detail="0">
+          <p class="project-category">Perception + electrical systems</p>
+          <h2 tabindex="-1">UQ Racing Autonomous Systems</h2>
+
+          <p class="project-summary">Perception and electrical work within UQ Racing&#39;s autonomous program.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=hardware-uqr-autonomous">Read more →</a></div>
+          <p class="project-description">Christian has contributed substantially to perception and broader electrical work across both UQ Racing cars, as part of the team. This record focuses on the autonomous program.</p>
+
+          <dl><div><dt>Program</dt><dd>UQ Racing autonomous vehicle</dd></div><div><dt>Contribution</dt><dd>Team engineering</dd></div></dl>
+        </article>
+        <article id="hardware-uqr-electric" data-detail="1">
+          <p class="project-category">Vehicle electrical systems</p>
+          <h2 tabindex="-1">UQ Racing Electric Vehicle Systems</h2>
+
+          <p class="project-summary">Electrical engineering within UQ Racing&#39;s electric vehicle program.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=hardware-uqr-electric">Read more →</a></div>
+          <p class="project-description">Christian has contributed substantially to perception and broader electrical work across both UQ Racing cars, as part of the team. This record focuses on the electric vehicle program.</p>
+
+          <dl><div><dt>Program</dt><dd>UQ Racing electric vehicle</dd></div><div><dt>Contribution</dt><dd>Team engineering</dd></div></dl>
+        </article>
+        <article id="hardware-project-placeholder" data-detail="2">
+          <p class="project-category">Project details to come</p>
+          <h2 tabindex="-1">Hardware project</h2>
+          <p class="placeholder-note">Placeholder · Details to come</p>
+          <p class="project-summary">A space for a hardware project and its build record.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=hardware-project-placeholder">Read more →</a></div>
+          <p class="project-description">Project details and photographs will go here. This entry is a placeholder.</p>
+
+          <dl><div><dt>Status</dt><dd>Placeholder</dd></div></dl>
+        </article>
+        </section>
+        <section data-collection-detail="experience" aria-label="Experience details">
+        <article id="experience-uqr" data-detail="0">
+          <p class="project-category">UQ Racing</p>
+          <h2 tabindex="-1">Electrical Systems Engineer</h2>
+
+          <p class="project-summary">Electrical Systems Engineer at UQ Racing.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-uqr">Read more →</a><a class="source-link" href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a></div>
+          <p class="project-description">Part-time at UQ Racing, contributing to perception and broader electrical work across both cars as part of the team.</p>
+
+          <dl><div><dt>Period</dt><dd>March 2026 to present</dd></div><div><dt>Engagement</dt><dd>Part-time</dd></div><div><dt>Location</dt><dd>St Lucia, Queensland, Australia</dd></div><div><dt>Work mode</dt><dd>Hybrid</dd></div></dl>
+        </article>
+        <article id="experience-dataannotation" data-detail="1">
+          <p class="project-category">DataAnnotation</p>
+          <h2 tabindex="-1">Software Engineer</h2>
+
+          <p class="project-summary">Contract Software Engineer at DataAnnotation.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-dataannotation">Read more →</a><a class="source-link" href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a></div>
+          <p class="project-description">A remote contract software engineering role based in Brisbane.</p>
+
+          <dl><div><dt>Period</dt><dd>August 2026 to present</dd></div><div><dt>Engagement</dt><dd>Contract</dd></div><div><dt>Location</dt><dd>Brisbane</dd></div><div><dt>Work mode</dt><dd>Remote</dd></div></dl>
+        </article>
+        <article id="experience-st-leos" data-detail="2">
+          <p class="project-category">St Leo&#39;s College</p>
+          <h2 tabindex="-1">IT Assistant</h2>
+
+          <p class="project-summary">IT Assistant at St Leo&#39;s College within The University of Queensland.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-st-leos">Read more →</a><a class="source-link" href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a></div>
+          <p class="project-description">Provided Level 1 technical support to the college team and residents, including after-hours assistance and day-to-day troubleshooting.</p>
+
+          <dl><div><dt>Period</dt><dd>February 2025 to November 2025</dd></div><div><dt>Engagement</dt><dd>Part-time</dd></div><div><dt>Location</dt><dd>Brisbane, Queensland, Australia</dd></div><div><dt>Work mode</dt><dd>On-site</dd></div></dl>
+        </article>
+        <article id="experience-uq-study" data-detail="3">
+          <p class="project-category">The University of Queensland</p>
+          <h2 tabindex="-1">Engineering + Computer Science</h2>
+
+          <p class="project-summary">Studying a Bachelor of Engineering and Bachelor of Computer Science at The University of Queensland.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-uq-study">Read more →</a><a class="source-link" href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a></div>
+          <p class="project-description">A combined BE / BCS with Electrical and Electronics Engineering as the listed field of study. The degree is in progress, with July 2029 as the expected completion date.</p>
+
+          <dl><div><dt>Started</dt><dd>February 2024</dd></div><div><dt>Expected completion</dt><dd>July 2029</dd></div><div><dt>Field</dt><dd>Electrical and Electronics Engineering</dd></div><div><dt>Status</dt><dd>In progress</dd></div></dl>
+        </article>
+        <article id="experience-st-augustines" data-detail="4">
+          <p class="project-category">Education</p>
+          <h2 tabindex="-1">St Augustine&#39;s College, Cairns</h2>
+
+          <p class="project-summary">Attended St Augustine&#39;s College in Cairns.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-st-augustines">Read more →</a><a class="source-link" href="https://www.linkedin.com/in/christian-nucifora-501432387/" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a></div>
+          <p class="project-description">Education at St Augustine&#39;s College, Cairns, from January 2018 to November 2023.</p>
+
+          <dl><div><dt>Period</dt><dd>January 2018 to November 2023</dd></div></dl>
+        </article>
+        <article id="experience-story-placeholder" data-detail="5">
+          <p class="project-category">Personal introduction to come</p>
+          <h2 tabindex="-1">Your story</h2>
+          <p class="placeholder-note">Placeholder · Details to come</p>
+          <p class="project-summary">A space for the story behind the work.</p>
+          <div class="project-actions"><a class="project-page-link" href="./project.html?project=experience-story-placeholder">Read more →</a></div>
+          <p class="project-description">A personal introduction will go here. This entry is a placeholder.</p>
+
+          <dl><div><dt>Status</dt><dd>Placeholder</dd></div></dl>
+        </article>
+        </section>
         <a class="next-project" href="#artifact-platform" id="next-project">Next · Artifact Platform →</a>
       </section>
     </aside>
   </main>
   <noscript><style>.scene-loading,.stage-controls,.phase-label,.stage-caption{display:none}.stage{height:200px!important;min-height:200px}.project-details{display:block}.workspace{height:auto;align-items:start}.project-panel{max-height:none;overflow:visible}.project-details article{display:block;margin-bottom:56px}</style></noscript>
-  <script type="module" src="./app.js?v=20261018-neutral-v2"></script>
+  <script type="module" src="./app.js?v=20261018-datacenter-v6"></script>
 </body>
 </html>

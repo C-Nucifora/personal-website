@@ -39,3 +39,9 @@ The Ubiquiti, StarTech and Neutrik PDFs were downloaded and rendered locally for
 ## Rendering limits
 
 The models keep the existing closed engraved covers, their project-page click targets, MSAA, anisotropic texture sampling and low-frequency roughness. Socket and monitor apertures are cut into the faceplate. Meshes remain merged by material per chassis. Knurling uses sixteen broad ribs per knob to avoid the previous dense specular comb at overview distance. Etching remains on the lid's own material, without a second coplanar cover.
+
+## Enclosure repair and individual carriers
+
+The follow-up closes unintended seams by aligning the chassis shell at 4.19 units wide and z=-2.05 through 2.30. Floors, sidewalls, lids and fascias overlap slightly instead of stopping short or sharing coplanar sheets. All lids remain visible in inactive units. Intended ventilation has closed backing.
+
+M1's fifteen carrier assemblies now own their faces, labels, screws, ejectors, closed narrow bodies and click targets. Each can move another 1.35 units, revealing stationary guides and the backplane behind it. Geometry checks cover all fifteen raycasts and 378 rays along enclosure seams across all twenty-one records. The additional engineering and experience enclosures are illustrative interface objects, with no claim to reproduce Christian's actual hardware.

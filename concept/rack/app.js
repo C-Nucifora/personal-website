@@ -1,9 +1,34 @@
-import { units } from "./catalog.js";
+import { collections, allUnits } from "./collections.js?v=20261018-datacenter-v6";
+
+const requestedRack = new URLSearchParams(location.search).get("rack");
+const hashUnit = allUnits.find(unit => unit.id === location.hash.slice(1) || unit.modules?.some(module => module.id === location.hash.slice(1)));
+const collection = collections.find(item => item.id === requestedRack)
+  ?? collections.find(item => item.units.includes(hashUnit))
+  ?? collections[0];
+const units = collection.units;
+const mode = requestedRack !== null || hashUnit ? "rack" : "hall";
+document.querySelector(".skip-link").href = mode === "hall" ? "#collection-directory" : "#project-index";
+document.querySelectorAll("[data-collection-index]").forEach(section => { section.hidden = section.dataset.collectionIndex !== collection.id; });
+document.querySelectorAll("[data-collection-detail]").forEach(section => { section.hidden = section.dataset.collectionDetail !== collection.id; });
+document.querySelector(".collection-directory").hidden = mode !== "hall";
+document.querySelector(".project-index").hidden = mode === "hall";
+document.querySelectorAll("[data-collection-nav]").forEach(link => {
+  if (link.dataset.collectionNav === (mode === "hall" ? "hall" : collection.id)) link.setAttribute("aria-current", "page");
+  // The static fragment keeps the text index reachable without JavaScript.
+  link.hash = "";
+});
+document.querySelectorAll(".collection-list a").forEach(link => { link.hash = ""; });
+document.querySelector("#collection-title").textContent = mode === "hall" ? "Datacenter" : collection.title;
+document.querySelector("#collection-subtitle").textContent = mode === "hall"
+  ? "Software, hardware and experience"
+  : `${units.length} ${collection.id === "experience" ? "records" : "projects"} in a 24U rack`;
+document.querySelector("#scene-loading").textContent = mode === "hall" ? "Loading the datacenter…" : "Loading the rack…";
+document.querySelector("#back-to-rack").textContent = `← ${collection.label} rack`;
 
 const slugs = units.map(unit => unit.id);
 const workspace = document.querySelector(".workspace");
-const rows = [...document.querySelectorAll("[data-project]")];
-const articles = [...document.querySelectorAll("[data-detail]")];
+const rows = [...document.querySelector(`[data-collection-index="${collection.id}"]`).querySelectorAll("[data-project]")];
+const articles = [...document.querySelector(`[data-collection-detail="${collection.id}"]`).querySelectorAll("[data-detail]")];
 const loading = document.querySelector("#scene-loading");
 const hint = document.querySelector("#scene-hint");
 const phaseLabel = document.querySelector("#phase-label");
@@ -16,8 +41,71 @@ let sceneFailed = false;
 let userMotionChoice = null;
 let phase = "overview";
 let indexScroll = 0;
+let selectedModule = null;
+let modulePhase = "closed";
+const moduleInspector = document.querySelector("#module-inspector");
+const moduleButtons = [];
+const m1Unit = allUnits.find(unit => unit.id === "m1-toolchain");
+
+for (const module of m1Unit.modules) {
+  const link = [...document.querySelectorAll("#m1-toolchain .module-link")].find(item => item.href === module.sourceUrl);
+  if (!link) continue;
+  const row = document.createElement("div");
+  row.className = "module-entry";
+  link.before(row);
+  row.append(link);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "module-pull";
+  button.dataset.module = module.id;
+  button.textContent = "Pull out";
+  button.setAttribute("aria-label", `Pull out ${module.title}`);
+  button.setAttribute("aria-pressed", "false");
+  button.setAttribute("aria-controls", "module-inspector");
+  button.addEventListener("click", () => inspectModule(selectedModule === module.id ? null : module.id));
+  row.append(button);
+  moduleButtons.push(button);
+}
+
+function inspectModule(id) {
+  if (!scene || sceneFailed || units[selected]?.id !== "m1-toolchain") return;
+  scene.inspectModule(id);
+}
+
+function showModuleState({ moduleId, phase: nextPhase }) {
+  const module = m1Unit.modules.find(item => item.id === moduleId);
+  selectedModule = module?.id ?? null;
+  modulePhase = nextPhase;
+  moduleInspector.hidden = !module || units[selected]?.id !== "m1-toolchain";
+  document.querySelector("#m1-toolchain").classList.toggle("has-open-module", !moduleInspector.hidden);
+  document.querySelector("#back-to-rack").textContent = module && !moduleInspector.hidden ? "← M1 Toolchain" : `← ${collection.label} rack`;
+  if (nextPhase === "extracting" && !moduleInspector.hidden) projectPanel.scrollTop = 0;
+  moduleButtons.forEach(button => {
+    const active = button.dataset.module === selectedModule;
+    button.setAttribute("aria-pressed", String(active));
+    button.textContent = active ? "Return" : "Pull out";
+    button.setAttribute("aria-label", `${active ? "Return" : "Pull out"} ${m1Unit.modules.find(item => item.id === button.dataset.module).title}`);
+  });
+  if (module && !moduleInspector.hidden) {
+    document.querySelector("#module-title").textContent = module.title;
+    document.querySelector("#module-group").textContent = module.group;
+    document.querySelector("#module-description").textContent = module.description;
+    document.querySelector("#module-page").href = `./project.html?project=m1-toolchain&module=${encodeURIComponent(module.id)}`;
+    document.querySelector("#module-source").href = module.sourceUrl;
+    document.querySelector("#module-status").textContent = nextPhase === "extracting" ? "Pulling out module…" : nextPhase === "returning" ? "Returning module…" : "Module pulled out";
+    document.querySelector("#return-module").disabled = nextPhase === "returning";
+  }
+  if (phase === "project" && units[selected]?.id === "m1-toolchain") {
+    hint.textContent = module && nextPhase === "open"
+      ? "Click the pulled-out module to read about the tool."
+      : "Choose a module handle to pull out a tool.";
+  }
+}
+
+document.querySelector("#return-module").addEventListener("click", () => inspectModule(null));
 
 document.body.classList.add("is-enhanced");
+document.body.classList.toggle("is-hall", mode === "hall");
 motionInput.checked = motionPreference.matches;
 
 function showPhase(nextPhase, index) {
@@ -44,10 +132,10 @@ function showPhase(nextPhase, index) {
   };
   phaseLabel.textContent = labels[nextPhase];
   const hints = {
-    overview: "Click a unit to open a project.",
+    overview: mode === "hall" ? "Choose a rack to explore the work." : "Click a unit to open its record.",
     extracting: "",
     focusing: "",
-    project: "Click the engraved title to open the project page.",
+    project: units[index]?.id === "m1-toolchain" ? (selectedModule && modulePhase === "open" ? "Click the pulled-out module to read about the tool." : "Choose a module handle to pull out a tool.") : "Click the engraved title to read the full record.",
     returning: "",
   };
   hint.textContent = hints[nextPhase];
@@ -57,7 +145,7 @@ function showPhase(nextPhase, index) {
     const link = document.querySelector("#next-project");
     link.href = `#${slugs[next]}`;
     link.textContent = `Next · ${units[next].title} →`;
-    articles[index].querySelector("h2").focus({ preventScroll: true });
+    if (!wasProject) articles[index].querySelector("h2").focus({ preventScroll: true });
   }
   document.querySelectorAll("[data-view]").forEach(button => {
     button.disabled = nextPhase !== "overview";
@@ -77,6 +165,7 @@ function openProject(index, updateHistory = true) {
   if (selected === index && (index !== null || phase === "overview")) return;
   const previous = selected;
   selected = index;
+  showModuleState({ moduleId: null, phase: "closed" });
   if (updateHistory) history.pushState(null, "", index === null ? location.pathname + location.search : `#${slugs[index]}`);
   rows.forEach((row, i) => {
     if (i === index) row.setAttribute("aria-current", "true");
@@ -95,6 +184,7 @@ function openProject(index, updateHistory = true) {
 function failScene(error) {
   if (sceneFailed) return;
   sceneFailed = true;
+  moduleButtons.forEach(button => { button.disabled = true; });
   loading.hidden = true;
   document.body.classList.add("no-scene");
   document.querySelector("#scene-error").hidden = false;
@@ -111,9 +201,10 @@ document.addEventListener("click", event => {
     event.preventDefault();
     const index = slugs.indexOf(link.hash.slice(1));
     if (index >= 0) openProject(index);
-  } else if (link.matches("#back-to-rack, .identity, .overview-link")) {
+  } else if (link.matches("#back-to-rack")) {
     event.preventDefault();
-    openProject(null);
+    if (selectedModule !== null) inspectModule(null);
+    else openProject(null);
   }
 });
 
@@ -131,7 +222,8 @@ window.addEventListener("hashchange", () => openProject(routeIndex(), false));
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && selected !== null) {
     event.preventDefault();
-    openProject(null);
+    if (selectedModule !== null) inspectModule(null);
+    else openProject(null);
   }
 });
 
@@ -164,14 +256,22 @@ motionPreference.addEventListener("change", applyMotionPreference);
 applyMotionPreference();
 
 try {
-  const { createRackScene } = await import("./scene.js?v=20261018-neutral-v2");
+  const { createRackScene } = await import("./scene.js?v=20261018-datacenter-v6");
   scene = createRackScene({
     canvas: document.querySelector("#rack-canvas"),
+    collectionId: collection.id,
+    mode,
+    onCollectionSelect: id => { location.href = `./index.html?rack=${encodeURIComponent(id)}`; },
     onSelect: index => openProject(index),
     onProjectOpen: index => { location.href = `./project.html?project=${encodeURIComponent(units[index].id)}`; },
+    onModuleSelect: inspectModule,
+    onModuleOpen: id => { location.href = `./project.html?project=m1-toolchain&module=${encodeURIComponent(id)}`; },
+    onModuleChange: showModuleState,
     onHover: index => {
       rows.forEach((row, i) => row.classList.toggle("is-hovered", i === index));
-      if (phase === "overview") hint.textContent = index === null ? "Click a unit to open a project." : `${units[index].title} · ${units[index].u}U`;
+      if (phase === "overview") hint.textContent = index === null
+        ? (mode === "hall" ? "Choose a rack to explore the work." : "Click a unit to open its record.")
+        : `${units[index].title} · ${units[index].u}U`;
     },
     onPhase: ({ phase: nextPhase, index }) => showPhase(nextPhase, index),
     onReady: () => { loading.hidden = true; },
@@ -195,5 +295,5 @@ window.addEventListener("pagehide", event => {
 
 // Inspectable state for local prototype verification, with no network telemetry.
 window.__rackPrototype = {
-  getState: () => ({ selected, phase, sceneFailed, scene: scene?.getState() }),
+  getState: () => ({ selected, phase, selectedModule, modulePhase, sceneFailed, mode, collection: collection.id, scene: scene?.getState() }),
 };

@@ -1,10 +1,15 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { units } from './catalog.js';
+import { softwareUnits } from './catalog.js?v=20261018-datacenter-v6';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;
 export const EXTRACTION = 4.42;
+const CASE_WIDTH = 4.19;
+const CASE_FRONT = FACE_Z - 0.01;
+const CASE_REAR = -2.05;
+const CASE_DEPTH = CASE_FRONT - CASE_REAR;
+const CASE_Z = (CASE_FRONT + CASE_REAR) / 2;
 const COLORS = {
   frame: '#37383a', edge: '#696b6e', silver: '#bfc2c5', bright: '#e2e3e5',
   darkSilver: '#888b8f', graphite: '#505052', black: '#141416', rubber: '#28282b',
@@ -33,7 +38,7 @@ function roundedBox(width, height, depth, radius = 0.025) {
   return geometry;
 }
 
-export function createRackModel(renderer) {
+export function createRackModel(renderer, units = softwareUnits, label = 'Software', detailScale = 1) {
   const geometries = new Set();
   const textures = [];
   const allMaterials = [];
@@ -137,6 +142,7 @@ export function createRackModel(renderer) {
   }
   function texturePlane(parent, width, height, position, paint, rotation = [0, 0, 0], resolution = 2048) {
     const surface = document.createElement('canvas');
+    resolution = Math.max(64, Math.round(resolution * detailScale));
     surface.width = resolution;
     surface.height = Math.max(128, Math.round(resolution * height / width));
     const ctx = surface.getContext('2d');
@@ -211,10 +217,10 @@ export function createRackModel(renderer) {
   }
 
   function createCover(parent, unit, index, h) {
-    const width = 4.12;
-    const depth = 4.15;
+    const width = CASE_WIDTH;
+    const depth = CASE_DEPTH;
     const y = h / 2 - 0.05;
-    const z = 0.075;
+    const z = CASE_Z;
     const shape = new THREE.Shape();
     roundedPath(shape, -width / 2, -depth / 2, width, depth, 0.035);
     const details = batch(parent);
@@ -245,22 +251,22 @@ export function createRackModel(renderer) {
     }
     details.rounded('black', [3.65, 0.018, 1.62], [0, y - 0.052, -0.93], 0.02, [0, 0, 0], 'plastic');
     // Folded side flanges and a narrow rear seam make the cover read as a removable sheet.
-    for (const x of [-2.045, 2.045]) details.box(color, [0.022, 0.066, 4.07], [x, y - 0.027, z]);
+    for (const x of [-2.07, 2.07]) details.box(color, [0.035, 0.066, depth - 0.04], [x, y - 0.027, z]);
     details.box('black', [3.48, 0.004, 0.013], [0, y + 0.025, -1.565], [0, 0, 0], 'plastic');
     details.finish();
 
     const surface = document.createElement('canvas');
-    surface.width = surface.height = 1024;
+    surface.width = surface.height = Math.round(1024 * detailScale);
     const relief = document.createElement('canvas');
-    relief.width = relief.height = 1024;
+    relief.width = relief.height = surface.width;
     const colorContext = surface.getContext('2d');
     const bumpContext = relief.getContext('2d');
     colorContext.fillStyle = COLORS[color];
     colorContext.fillRect(0, 0, 1024, 1024);
     bumpContext.fillStyle = '#ffffff';
     bumpContext.fillRect(0, 0, 1024, 1024);
-    const sx = 1024 / width;
-    const sy = 1024 / depth;
+    const sx = surface.width / width;
+    const sy = surface.height / depth;
     const text = (value, x, py, size, weight = 500) => {
       for (const [ctx, ink] of [[colorContext, painted ? '#c5c4c0' : '#303034'], [bumpContext, '#050505']]) {
         ctx.font = `${weight} ${size * sy}px monospace`;
@@ -344,7 +350,7 @@ export function createRackModel(renderer) {
   for (let v = 0; v < 21; v++) rackParts.rounded('black', [0.065, 0.014, 2.2], [-1.4 + v * 0.14, half + 0.007, -0.1], 0.016, [0, 0, 0], 'plastic');
   rackParts.finish();
   texturePlane(rack, 4.34, 0.21, [0, half - 0.24, 2.428], g => {
-    g.text('CHRISTIAN NUCIFORA / PROJECTS', -1.97, 0, 0.077, '#c9c8c4');
+    g.text(`CHRISTIAN NUCIFORA / ${label.toUpperCase()}`, -1.97, 0, 0.077, '#c9c8c4');
     g.text(`${totalU}U`, 1.99, 0, 0.075, '#aaa8a4', 'right');
     g.rect(1.58, 0, 0.035, 0.035, '#e4b17f', 0.01);
   });
@@ -359,6 +365,8 @@ export function createRackModel(renderer) {
   const hitTargets = [];
   // Separate targets let the scene enable project links only after extraction and focus finish.
   const projectLinkTargets = [];
+  const moduleAssemblies = [];
+  const moduleTargets = [];
   const highlights = [];
   const slotY = [];
   const heights = [];
@@ -376,15 +384,15 @@ export function createRackModel(renderer) {
     bays.push(bay);
     const parts = batch(bay);
     const inside = new THREE.Group();
-    inside.visible = false;
+    inside.visible = true;
     bay.add(inside);
     interiors.push(inside);
-    const bottom = -h / 2 + 0.045;
-    const caseHeight = Math.min(h, Math.max(0.2, h - 0.05));
-    parts.rounded('darkSilver', [4.19, 0.048, 4.25], [0, bottom, 0.075], 0.025);
-    parts.rounded('darkSilver', [0.045, caseHeight, 4.2], [-2.05, -0.01, 0.075], 0.015);
-    parts.rounded('darkSilver', [0.045, caseHeight, 4.2], [2.05, -0.01, 0.075], 0.015);
-    parts.rounded('darkSilver', [4.12, caseHeight, 0.05], [0, -0.01, -2.0], 0.018);
+    const bottom = -h / 2 + 0.047;
+    const caseHeight = h - 0.069;
+    // Folded sheets overlap at their joins and meet the back of the faceplate.
+    parts.box('darkSilver', [CASE_WIDTH, 0.054, CASE_DEPTH], [0, bottom, CASE_Z]);
+    for (const x of [-2.068, 2.068]) parts.box('darkSilver', [0.054, caseHeight, CASE_DEPTH], [x, -0.0125, CASE_Z]);
+    parts.box('darkSilver', [CASE_WIDTH, caseHeight, 0.055], [0, -0.0125, CASE_REAR + 0.0275]);
     const holes = [];
     const paintCommands = [];
     const raisedPaintCommands = [];
@@ -481,6 +489,32 @@ export function createRackModel(renderer) {
       sfp(1.77, 0.075); sfp(1.77, -0.077);
       faceLabel('ARTIFACT', -1.42, 0.052, 0.061);
       faceLabel('PUBLISHING', -1.42, -0.054, 0.039);
+    } else if (unit.type === 'engineering') {
+      // Illustrative test enclosure, not a reproduction of a project circuit board.
+      faceLabel(unit.faceTitle || unit.title, -1.77, h / 2 - 0.2, 0.095);
+      faceLabel('UQ RACING / TEAM ENGINEERING', -1.77, h / 2 - 0.4, 0.045);
+      display(-0.54, 0.14, 2.35, Math.min(1.45, h - 0.9), (g, x, py, w, ph) => {
+        g.text(unit.subtitle.toUpperCase(), x - w / 2 + 0.15, py + ph / 2 - 0.18, 0.068, '#d8d7d3');
+        g.line([[x - 0.92, py + 0.17], [x - 0.1, py + 0.17], [x - 0.1, py - 0.24], [x + 0.86, py - 0.24]], '#c8a487', 0.018);
+        for (const dx of [-0.73, 0.04, 0.75]) {
+          g.rect(x + dx, py - 0.04, 0.28, 0.25, '#6e717a', 0.02);
+          g.rect(x + dx, py - 0.04, 0.19, 0.15, '#202126', 0.01);
+        }
+        g.text('ELECTRICAL SYSTEMS', x, py - ph / 2 + 0.14, 0.049, '#b5b1ab', 'center');
+      });
+      for (const py of [-0.39, 0.12, 0.63]) {
+        parts.rounded('rubber', [0.78, 0.34, 0.06], [1.25, py, FACE_Z + 0.08], 0.04, [0, 0, 0], 'plastic');
+        for (const dx of [-0.18, 0, 0.18]) bnc(1.25 + dx, py);
+      }
+      handle(parts, -1.96, 0, h - 0.4, 'darkSilver');
+      handle(parts, 1.96, 0, h - 0.4, 'darkSilver');
+    } else if (unit.type === 'record') {
+      // Document drawers hold roles, education and explicitly reserved content.
+      faceLabel(unit.faceTitle || unit.title, -1.68, h / 2 - 0.24, 0.12);
+      faceLabel(unit.subtitle, -1.68, h / 2 - 0.49, 0.056);
+      parts.rounded('black', [2.55, 0.22, 0.06], [0, -h / 2 + 0.35, FACE_Z + 0.06], 0.04, [0, 0, 0], 'plastic');
+      parts.rounded('darkSilver', [1.9, 0.055, 0.12], [0, -h / 2 + 0.34, FACE_Z + 0.11], 0.025);
+      if (unit.placeholder) faceLabel('SPACE RESERVED', -1.68, 0, 0.075);
     } else if (unit.type === 'instrument') {
       // Bench instrument function groups adapted into a 2U rack adapter.
       parts.rounded('rubber', [3.64, h - 0.09, 0.045], [0, 0, FACE_Z + 0.016], 0.045, [0, 0, 0], 'plastic');
@@ -527,7 +561,7 @@ export function createRackModel(renderer) {
       // A 6U Eurocard subrack, not disk drawers. Each repository has a tall plug-in panel.
       faceLabel('M1 / LANGUAGE TOOLCHAIN', -1.68, h / 2 - 0.095, 0.075);
       cut(0, -0.015, 3.5, h - 0.42, 0.008);
-      parts.box('black', [3.57, h - 0.35, 0.08], [0, -0.015, FACE_Z - 0.045], [0, 0, 0], 'plastic');
+      parts.box('pcb', [3.57, h - 0.35, 0.065], [0, -0.015, -0.7], [0, 0, 0], 'board');
       for (const py of [-h / 2 + 0.15, h / 2 - 0.15]) {
         parts.box('darkSilver', [3.55, 0.075, 0.12], [0, py, FACE_Z + 0.035]);
         parts.box('black', [3.5, 0.014, 0.006], [0, py, FACE_Z + 0.1], [0, 0, 0], 'plastic');
@@ -537,12 +571,38 @@ export function createRackModel(renderer) {
         const x = -1.6 + moduleIndex * (3.2 / 14);
         const tint = moduleIndex < 7 ? 'silver' : moduleIndex < 9 ? 'darkSilver' : 'bright';
         const bladeH = h - 0.53;
-        parts.box(tint, [0.213, bladeH, 0.065], [x, -0.015, FACE_Z + 0.068]);
-        for (const py of [-bladeH / 2 + 0.075, bladeH / 2 - 0.075]) screw(parts, x, py - 0.015, FACE_Z + 0.115, 0.018);
-        parts.rounded('black', [0.13, 0.23, 0.055], [x, -bladeH / 2 + 0.24, FACE_Z + 0.115], 0.017, [0, 0, 0], 'plastic');
-        parts.rounded(moduleIndex < 7 ? 'navy' : moduleIndex < 9 ? 'orange' : 'graphite', [0.075, 0.135, 0.09], [x, -bladeH / 2 + 0.205, FACE_Z + 0.157], 0.014, [0.1, 0, 0], 'plastic');
-        raisedPaintCommands.push(g => g.text(module.id, x, 0.13, 0.046, moduleIndex < 7 ? '#303238' : moduleIndex < 9 ? '#eeece7' : '#383a40', 'center', 500, -Math.PI / 2));
-        if (moduleIndex === 0 || moduleIndex === 7 || moduleIndex === 9) parts.box(moduleIndex === 7 ? 'orange' : 'navy', [0.14, 0.035, 0.008], [x, bladeH / 2 - 0.16, FACE_Z + 0.108], [0, 0, 0], 'plastic');
+        const bladeY = -0.015;
+        const sled = new THREE.Group();
+        sled.name = module.id;
+        sled.position.x = x;
+        bay.add(sled);
+        const sledParts = batch(sled);
+        // Narrow closed carriers slide between stationary upper and lower guides.
+        sledParts.rounded('darkSilver', [0.185, bladeH - 0.15, 2.9], [0, bladeY, FACE_Z + 0.04 - 1.45], 0.008);
+        sledParts.box(tint, [0.213, bladeH, 0.065], [0, bladeY, FACE_Z + 0.068]);
+        for (const py of [-bladeH / 2 + 0.075, bladeH / 2 - 0.075]) screw(sledParts, 0, py + bladeY, FACE_Z + 0.107, 0.018);
+        sledParts.rounded('black', [0.13, 0.23, 0.055], [0, -bladeH / 2 + 0.24, FACE_Z + 0.115], 0.017, [0, 0, 0], 'plastic');
+        sledParts.rounded(moduleIndex < 7 ? 'navy' : moduleIndex < 9 ? 'orange' : 'graphite', [0.075, 0.135, 0.09], [0, -bladeH / 2 + 0.205, FACE_Z + 0.157], 0.014, [0.1, 0, 0], 'plastic');
+        if (moduleIndex === 0 || moduleIndex === 7 || moduleIndex === 9) sledParts.box(moduleIndex === 7 ? 'orange' : 'navy', [0.14, 0.035, 0.008], [0, bladeH / 2 - 0.16, FACE_Z + 0.108], [0, 0, 0], 'plastic');
+        sledParts.box('rubber', [0.145, bladeH - 0.21, 0.055], [0, bladeY, FACE_Z + 0.04 - 2.88], [0, 0, 0], 'plastic');
+        sledParts.finish();
+        texturePlane(sled, 0.2, bladeH - 0.29, [0, 0.06, FACE_Z + 0.104], g => {
+          g.text(module.id, 0, 0, 0.046, moduleIndex < 7 ? '#303238' : moduleIndex < 9 ? '#eeece7' : '#383a40', 'center', 500, -Math.PI / 2);
+        }, [0, 0, 0], 128);
+        for (const sign of [-1, 1]) {
+          parts.box('black', [0.21, 0.032, 2.96], [x, bladeY + sign * (bladeH / 2 - 0.035), FACE_Z - 1.49], [0, 0, 0], 'plastic');
+          parts.box('darkSilver', [0.045, 0.045, 0.15], [x, bladeY + sign * (bladeH / 2 - 0.035), -0.62]);
+        }
+        const targetGeometry = new THREE.BoxGeometry(0.213, bladeH, 0.18);
+        geometries.add(targetGeometry);
+        const targetMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        allMaterials.push(targetMaterial);
+        const hitTarget = new THREE.Mesh(targetGeometry, targetMaterial);
+        hitTarget.position.set(0, bladeY, FACE_Z + 0.12);
+        hitTarget.userData = { index: moduleIndex, projectIndex: index, moduleId: module.id };
+        sled.add(hitTarget);
+        moduleAssemblies.push({ projectIndex: index, index: moduleIndex, moduleId: module.id, group: sled, hitTarget });
+        moduleTargets.push(hitTarget);
       });
       faceLabel('LANGUAGE', -0.915, -h / 2 + 0.061, 0.049, 'center');
       faceLabel('EDITOR', 0.115, -h / 2 + 0.061, 0.042, 'center');
@@ -706,7 +766,7 @@ export function createRackModel(renderer) {
     highlights.push(highlight);
   }
   return {
-    rack, bays, interiors, hitTargets, projectLinkTargets, highlights, slotY, heights, totalU, height,
+    rack, bays, interiors, hitTargets, projectLinkTargets, moduleAssemblies, moduleTargets, highlights, slotY, heights, totalU, height,
     dispose() {
       geometries.forEach(geometry => geometry.dispose());
       textures.forEach(texture => texture.dispose());
