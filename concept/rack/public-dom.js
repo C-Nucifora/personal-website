@@ -1,5 +1,5 @@
 import { allUnits as bundledUnits } from './bundled-collections.js';
-import { collections, allUnits } from './collections.js?v=20261018-curated-rack-v1';
+import { collections, allUnits } from './collections.js?v=20261021-audit-v2';
 import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js';
 
 export function element(tag, text = '', className = '') {
@@ -19,10 +19,10 @@ export function buildPublicIndex() {
   document.querySelector('meta[name="theme-color"]').content = siteSettings.appearance.background;
   document.documentElement.style.setProperty('--accent', siteSettings.appearance.accent);
   const directory = document.querySelector('.collection-directory');
-  directory.querySelector('.directory-kicker').textContent = siteSettings.intro.name;
+  document.querySelector('.directory-kicker').textContent = `${siteSettings.intro.name} / Engineering + software`;
   if (!usesBundledPortfolio) {
-    directory.querySelector('#directory-title').textContent = siteSettings.intro.role || siteSettings.intro.name;
-    directory.querySelector('.directory-introduction').textContent = siteSettings.intro.bio;
+    document.querySelector('#directory-title').textContent = siteSettings.intro.role || siteSettings.intro.name;
+    document.querySelector('.directory-introduction').textContent = siteSettings.intro.bio;
     directory.querySelector('.directory-note').hidden = true;
   }
   if (portfolioError) {
@@ -68,21 +68,38 @@ export function buildPublicIndex() {
     index.dataset.collectionIndex = rack.id;
     index.id = `rack-collection-${rack.id}`;
     const heading = element('div', '', 'panel-heading');
-    heading.append(element('h2', rack.title), element('span', 'Height'));
+    heading.append(element('h2', rack.title), element('span', `${rack.capacityU}U / Manifest`));
     index.append(heading, element('p', rack.description, 'collection-description'));
     const rows = element('nav', '', 'project-list');
     rows.setAttribute('aria-label', rack.title);
     const details = element('section');
     details.dataset.collectionDetail = rack.id;
     details.setAttribute('aria-label', `${rack.label} details`);
+    let nextU = rack.capacityU;
+    function appendBlankUnits(bottomU) {
+      while (nextU >= bottomU) {
+        const blank = element('div', '', 'manifest-blank');
+        blank.append(element('span', `U${String(nextU).padStart(2, '0')}`, 'bay-number'), element('span', 'Blank panel'));
+        rows.append(blank);
+        nextU--;
+      }
+    }
     rack.units.forEach((unit, unitIndex) => {
+      const topU = unit.startU + unit.u - 1;
+      appendBlankUnits(topU + 1);
       const row = element('a', '', `project-row${unit.modules.length ? ' is-bundle' : ''}`);
       row.href = `#${unit.id}`;
       row.dataset.project = String(unitIndex);
+      row.style.setProperty('--unit-span', unit.u);
+      row.setAttribute('aria-label', `${unit.title}, U${String(topU).padStart(2, '0')} to U${String(unit.startU).padStart(2, '0')}, ${unit.u} rack units`);
       const copy = element('span', '', 'row-copy');
       copy.append(element('strong', unit.title), element('span', `${unit.subtitle}${unit.placeholder ? ' · Placeholder' : ''}`));
-      row.append(element('span', String(unitIndex + 1).padStart(2, '0'), 'bay-number'), copy, element('span', `${unit.u}U`, 'row-size'));
+      const position = element('span', '', 'bay-number');
+      position.append(element('span', `U${String(topU).padStart(2, '0')}`));
+      if (unit.u > 1) position.append(element('span', `U${String(unit.startU).padStart(2, '0')}`));
+      row.append(position, copy, element('span', `${unit.u}U`, 'row-size'));
       rows.append(row);
+      nextU = unit.startU - 1;
       const article = element('article');
       article.id = bundledUnits.some(item => item.id === unit.id) ? unit.id : `rack-project-${unit.id}`;
       article.dataset.projectId = unit.id;
@@ -131,6 +148,7 @@ export function buildPublicIndex() {
       }
       details.append(article);
     });
+    appendBlankUnits(1);
     if (!rack.units.length) rows.append(element('p', 'No units are placed in this rack.', 'collection-description'));
     index.append(rows);
     indexRoot.append(index);

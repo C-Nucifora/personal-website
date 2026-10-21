@@ -46,7 +46,8 @@ function wheel() {
 }
 
 function toolchain(unit, selected) {
-  const carriers = unit.modules.map((item, index) => {
+  const modules = ['Language tools', 'Editor integration', 'Project tools'].flatMap(group => unit.modules.filter(item => item.group === group));
+  const carriers = modules.map((item, index) => {
     const x = 53 + index * 74;
     const active = item.id === selected?.id;
     return `<g data-module="${escape(item.id)}" class="${active ? 'art-selected' : ''}">
@@ -119,7 +120,7 @@ function engineering(electric) {
     ${line('M501 200h115', 'art-trace')}
     ${electric
       ? `${rect(653, 91, 440, 218)}${repeat(8, i => rect(680 + i * 48, 115, 28, 166, 'art-carrier'))}${line('M616 200h37M1093 200h52', 'art-trace')}`
-      : `${line('M616 200h74M731 94h263l52 70v127H679V164Z', 'art-structure')}${line('M755 116h214l31 52H724ZM716 273h294M745 196h234')}${circle(723, 294, 29)}${circle(1003, 294, 29)}${line('M849 65v-30m-63 25-21-21m147 21 21-21', 'art-accent-line')}`}
+      : `${line('M616 200h70', 'art-trace')}${rect(701, 84, 84, 61, 'art-dark')}${rect(701, 255, 84, 61, 'art-dark')}${rect(1004, 84, 84, 61, 'art-dark')}${rect(1004, 255, 84, 61, 'art-dark')}${line('M743 145v110m303-110v110M785 114l58 55m-58 117 58-55m161-117-59 55m59 117-59-55')}${line('M800 162h146l83 21v34l-83 21H800l-50-38Z', 'art-structure')}${line('M822 172h78v56h-78Z', 'art-dark')}${circle(861, 200, 16)}${rect(1051, 151, 25, 98, 'art-carrier')}${rect(778, 159, 17, 82, 'art-carrier')}${text(714, 353, 'Open-wheel / plan view', 'art-small')}`}
     ${text(71, 388, 'Engineering illustration / team contribution', 'art-small')}`;
 }
 

@@ -8,7 +8,7 @@
   <title>Christian Nucifora / Work</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="preload" href="./fonts/ibm-plex-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261018-curated-rack-v1">
+  <link rel="stylesheet" href="./styles.css?v=20261021-audit-v2">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
   <script>document.documentElement.classList.add('portfolio-loading')</script>
   <style>.portfolio-loading .project-panel,.portfolio-loading .stage-heading,.portfolio-loading [data-collection-nav]:not([data-collection-nav=hall]){visibility:hidden}.unplaced-list{display:grid;margin-top:12px}.unplaced-list a{display:flex;align-items:center;min-height:44px;padding:8px 0;border-top:1px solid var(--line)}.project-description{white-space:pre-wrap}</style>
@@ -20,28 +20,41 @@
     <nav class="header-links" aria-label="Main navigation"><a class="overview-link" href="./index.html" data-collection-nav="hall">Datacenter</a><a href="./index.html?rack=software#software-index" data-collection-nav="software">Software</a><a href="./index.html?rack=hardware#hardware-index" data-collection-nav="hardware">Hardware</a><a href="./index.html?rack=experience#experience-index" data-collection-nav="experience">Experience</a><button type="button" id="show-help" aria-controls="keyboard-help">Help</button></nav>
   </header>
   <main class="workspace" id="main">
+    <section class="portfolio-introduction" aria-labelledby="directory-title">
+      <p class="directory-kicker">Christian Nucifora / Engineering + software</p>
+      <h2 id="directory-title">Engineering and software.</h2>
+      <p class="directory-introduction">I'm studying engineering and computer science at UQ, contributing to perception and electrical systems with UQ Racing, and building software alongside that.</p>
+    </section>
+    <div class="scene-error" id="scene-error" hidden role="status"><p>The 3D view isn't available right now.</p><p>You can read every project in the index.</p><button type="button" id="scene-retry">Retry 3D</button></div>
     <section class="stage" tabindex="0" role="group" aria-label="Interactive datacenter and project racks" aria-describedby="keyboard-instructions" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Enter Escape">
-      <div class="stage-heading"><h1 id="collection-title">Software projects</h1><p id="collection-subtitle">12 projects in a 24U rack</p></div>
       <canvas id="rack-canvas" aria-hidden="true"></canvas>
       <div class="scene-loading" id="scene-loading" role="status">Loading published work…</div>
-      <div class="scene-error" id="scene-error" hidden><p>The 3D view isn't available in this browser.</p><p>You can still read every project in the list.</p></div>
-      <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
-      <div class="stage-controls" role="group" aria-label="3D view controls">
+      <details class="stage-controls" id="view-controls">
+        <summary>View controls</summary>
+        <div class="view-controls-body" role="group" aria-label="3D view controls">
         <div class="view-switch"><button type="button" data-view="perspective" aria-pressed="true">Perspective</button><button type="button" data-view="front" aria-pressed="false">Front</button></div>
         <div class="zoom-controls" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div>
         <div class="view-utilities"><button class="reset-view" type="button" id="reset-view" aria-label="Reset rack and camera view">Reset view</button><label class="motion-toggle"><input id="reduce-motion" type="checkbox"><span>Reduce motion</span></label></div>
-      </div>
-      <div class="stage-caption"><p id="scene-hint">Click a unit to open its record.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
+        <div class="stage-caption"><p id="scene-hint">Click a unit to open its record.</p><p class="orbit-hint">Drag to turn. Scroll or pinch to zoom.</p></div>
+        </div>
+      </details>
+    </section>
+    <section class="selection-bar" id="selection-bar" aria-label="Selected project" hidden>
+      <div><strong id="selection-title"></strong><span id="selection-summary"></span></div>
+      <a class="project-page-link" id="selection-open" href="./project.html">Open project →</a>
     </section>
     <aside class="project-panel" aria-label="Work index and details">
       <div class="rack-tools">
+      <div class="stage-heading"><h1 id="collection-title">Software projects</h1><p id="collection-subtitle">12 projects in a 24U rack</p></div>
+      <div class="phase-label" id="phase-label" role="status" aria-live="polite"></div>
         <div class="rack-navigation" role="group" aria-label="Rack navigation">
           <button type="button" id="previous-rack" aria-label="Previous rack">←</button>
           <span id="current-rack">Software</span>
           <button type="button" id="next-rack" aria-label="Next rack">→</button>
           <button type="button" id="text-view" aria-pressed="false">Text view</button>
         </div>
-        <details id="keyboard-help" open>
+        <p class="keyboard-hint" aria-hidden="true"><span>← → racks</span><span>↑ ↓ projects</span><span>? help</span></p>
+        <details id="keyboard-help">
           <summary>Controls and keyboard shortcuts</summary>
           <div id="keyboard-instructions">
             <p><kbd>←</kbd> <kbd>→</kbd> change rack. <kbd>↑</kbd> <kbd>↓</kbd> choose a project. <kbd>Enter</kbd> opens it, then opens its full page. <kbd>Esc</kbd> closes help, returns a module, then returns to the rack.</p>
@@ -51,9 +64,6 @@
       </div>
       <p class="visually-hidden" id="navigation-status" role="status" aria-live="polite" aria-atomic="true"></p>
       <section class="collection-directory" id="collection-directory" tabindex="-1" aria-labelledby="directory-title">
-        <p class="directory-kicker">Christian Nucifora</p>
-        <h2 id="directory-title">Engineering and software.</h2>
-        <p class="directory-introduction">I'm studying engineering and computer science at UQ, contributing to perception and electrical systems with UQ Racing, and building software alongside that.</p>
         <nav class="collection-list" aria-label="Choose a rack">
           <a href="./index.html?rack=software#software-index"><span class="collection-number">01</span><span><strong>Software</strong><span>Applications, language tools and self-hosted infrastructure.</span></span><span aria-hidden="true">→</span></a>
           <a href="./index.html?rack=hardware#hardware-index"><span class="collection-number">02</span><span><strong>Hardware</strong><span>Vehicle engineering, perception and electrical systems.</span></span><span aria-hidden="true">→</span></a>
@@ -334,6 +344,6 @@
     </aside>
   </main>
   <noscript><style>.project-panel,.stage-heading,.scene-loading,.stage-controls,.phase-label,.stage-caption,.header-links [data-collection-nav]:not([data-collection-nav=hall]){display:none}.workspace{display:none}</style><p style="margin:36px;max-width:60ch">JavaScript is needed to load the current published portfolio. Enable JavaScript to read the work in the project index. The 3D view is optional.</p></noscript>
-  <script type="module" src="./app.js?v=20261018-curated-rack-v1"></script>
+  <script type="module" src="./app.js?v=20261021-audit-v2"></script>
 </body>
 </html>

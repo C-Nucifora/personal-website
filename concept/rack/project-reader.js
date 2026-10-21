@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261018-curated-rack-v1';
+import { renderProject } from './project-content.js?v=20261021-audit-v2';
 
 // Map the real document onto the four corners of the physical rack display.
 export function projectTransform(points, width, height) {
@@ -44,7 +44,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (!stylesheetPromise) stylesheetPromise = new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = './project.css?v=20261018-curated-rack-v1';
+      link.href = './project.css?v=20261021-audit-v2';
       link.onload = resolve;
       link.onerror = () => { link.remove(); stylesheetPromise = null; reject(new Error('Project styles could not load')); };
       document.head.append(link);
@@ -77,6 +77,15 @@ export function createProjectReader({ onReturn, onNavigate }) {
     reader.replaceChildren(...children);
     reader.scrollTop = 0;
     metadata = renderProject(reader, projectId, moduleId);
+    const preview = document.createElement('div');
+    preview.className = 'document-display-preview';
+    preview.setAttribute('aria-hidden', 'true');
+    const heading = document.createElement('p'); heading.className = 'display-title';
+    heading.textContent = reader.querySelector('#project-title').textContent || 'Project record';
+    const summary = document.createElement('p'); summary.className = 'display-summary';
+    summary.textContent = reader.querySelector('#project-category').textContent;
+    const action = document.createElement('span'); action.className = 'display-open'; action.textContent = 'Open project →';
+    preview.append(heading, summary, action); reader.append(preview);
     key = requestedKey;
     dimensions();
     return metadata;
@@ -85,6 +94,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (state === 'open' || state === 'expanding') return;
     if (!key || !points) { reader.hidden = true; return; }
     state = 'preview';
+    reader.dataset.display = 'preview';
     reader.hidden = false;
     position(points);
   }
@@ -93,6 +103,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     stopAnimation();
     const start = corners;
     state = 'expanding';
+    reader.dataset.display = 'document';
     reader.hidden = false;
     reader.classList.add('is-expanding');
     const target = [{ x: 0, y: 0 }, { x: innerWidth, y: 0 }, { x: innerWidth, y: innerHeight }, { x: 0, y: innerHeight }];
@@ -124,6 +135,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     reader.hidden = true;
     reader.inert = true;
     reader.classList.remove('is-open', 'is-expanding');
+    delete reader.dataset.display;
     corners = null;
     if (invalidate) { generation++; key = null; }
   }
@@ -136,6 +148,9 @@ export function createProjectReader({ onReturn, onNavigate }) {
       event.preventDefault();
       reader.querySelector('#project-content').focus({ preventScroll: true });
       reader.querySelector('#project-content').scrollIntoView({ block: 'start' });
+    } else if (link.getAttribute('href')?.startsWith('#')) {
+      const target = reader.querySelector(`#${CSS.escape(url.hash.slice(1))}`);
+      if (target) { event.preventDefault(); target.scrollIntoView({ block: 'start' }); }
     } else if (link.matches('[data-rack-link], .identity')) { event.preventDefault(); onReturn(); }
     else if (url.pathname.endsWith('/project.html')) { event.preventDefault(); onNavigate(url); }
   });
