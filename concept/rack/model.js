@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261018-curated-rack-v1';
+import { setFinishUVs } from './finishes.js?v=20261021-audit-v2';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261018-curated-rack-v1';
+import { softwareUnits } from './catalog.js?v=20261021-audit-v2';
 import { allUnits as bundledUnits } from './bundled-collections.js';
 import { hasModuleCarriers } from './rack-layout.js';
 
@@ -515,7 +515,8 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
 
     const original = bundledUnits.find(item => item.id === unit.id);
     const originalName = original?.faceTitle || original?.title;
-    const detailedFront = original && original.type === unit.type && original.u === unit.u && (unit.faceTitle || unit.title) === originalName && (unit.type !== 'compute' || hasModuleCarriers(unit));
+    const carrierFront = unit.id === 'm1-toolchain' || unit.id === 'personal-projects';
+    const detailedFront = original && original.type === unit.type && original.u === unit.u && (unit.faceTitle || unit.title) === originalName && (!carrierFront || hasModuleCarriers(unit));
     if (!detailedFront) {
       projectName(unit.faceTitle || unit.title, -1.8, 0, 3.6, Math.min(0.24, h * 0.48));
       if (unit.u > 1) {
@@ -552,31 +553,33 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       projectName('ARTIFACT PLATFORM', -1.19, -0.007, 1.25, 0.17);
     } else if (unit.type === 'engineering') {
       // Illustrative test enclosure, not a reproduction of a project circuit board.
-      projectName(unit.faceTitle || unit.title, -1.77, h / 2 - 0.22, 3.45, 0.25);
-      faceLabel('UQ RACING / TEAM ENGINEERING', -1.77, h / 2 - 0.4, 0.045);
-      display(-0.54, 0.14, 2.35, Math.min(1.45, h - 0.9), (g, x, py, w, ph) => {
-        g.text(unit.subtitle.toUpperCase(), x - w / 2 + 0.15, py + ph / 2 - 0.18, 0.068, '#d8d7d3');
-        g.line([[x - 0.92, py + 0.17], [x - 0.1, py + 0.17], [x - 0.1, py - 0.24], [x + 0.86, py - 0.24]], '#c8a487', 0.018);
+      projectName(unit.faceTitle || unit.title, -1.77, h / 2 - 0.19, 3.45, 0.21);
+      faceLabel('UQ RACING / TEAM ENGINEERING', -1.72, h / 2 - 0.39, 0.055);
+      display(-0.54, -0.14, 2.35, 0.78, (g, x, py, w, ph) => {
+        g.text(unit.subtitle.toUpperCase(), x - w / 2 + 0.12, py + ph / 2 - 0.1, 0.06, '#d8d7d3', 'left', 500, 2.1);
+        g.line([[x - 0.92, py + 0.08], [x - 0.1, py + 0.08], [x - 0.1, py - 0.16], [x + 0.86, py - 0.16]], '#c8a487', 0.018);
         for (const dx of [-0.73, 0.04, 0.75]) {
-          g.rect(x + dx, py - 0.04, 0.28, 0.25, '#6e717a', 0.02);
-          g.rect(x + dx, py - 0.04, 0.19, 0.15, '#202126', 0.01);
+          g.rect(x + dx, py - 0.035, 0.28, 0.19, '#6e717a', 0.02);
+          g.rect(x + dx, py - 0.035, 0.19, 0.12, '#202126', 0.01);
         }
-        g.text('ELECTRICAL SYSTEMS', x, py - ph / 2 + 0.14, 0.049, '#b5b1ab', 'center');
+        g.text('ELECTRICAL SYSTEMS', x, py - ph / 2 + 0.085, 0.049, '#b5b1ab', 'center');
       });
-      for (const py of [-0.39, 0.12, 0.63]) {
+      for (const py of [-0.36, 0.08]) {
         parts.rounded('rubber', [0.78, 0.34, 0.06], [1.25, py, FACE_Z + 0.08], 0.04, [0, 0, 0], 'plastic');
         for (const dx of [-0.18, 0, 0.18]) bnc(1.25 + dx, py);
       }
       handle(parts, -1.96, 0, h - 0.4, 'darkSilver');
       handle(parts, 1.96, 0, h - 0.4, 'darkSilver');
     } else if (unit.type === 'record') {
-      // Document drawers hold roles, education and explicitly reserved content.
-      projectName(unit.faceTitle || unit.title, -1.72, h / 2 - 0.18, 3.45, 0.24);
-      faceLabel(unit.subtitle, -1.68, h / 2 - 0.41, 0.065);
-      const pullY = -h / 2 + (unit.u === 2 ? 0.18 : 0.35);
-      parts.rounded('black', [2.55, 0.22, 0.06], [0, pullY, FACE_Z + 0.06], 0.04, [0, 0, 0], 'plastic');
-      parts.rounded('darkSilver', [1.9, 0.055, 0.12], [0, pullY - 0.01, FACE_Z + 0.11], 0.025);
-      if (unit.placeholder) faceLabel('SPACE RESERVED', 1.08, unit.u === 2 ? -0.23 : 0, 0.055, 'left', 500, 0.65);
+      // Compact document drawers give the role priority over its organisation.
+      const compact = unit.u === 1;
+      projectName(unit.faceTitle || unit.title, -1.72, compact ? 0.047 : h / 2 - 0.2, 3.45, compact ? 0.14 : 0.2);
+      faceLabel(unit.placeholder ? 'RESERVED / DETAILS TO COME' : unit.subtitle, -1.68, compact ? -0.09 : h / 2 - 0.42, compact ? 0.055 : 0.08, 'left', 500, 3.35);
+      if (!compact && !unit.placeholder) {
+        const pullY = -h / 2 + 0.14;
+        parts.rounded('black', [1.65, 0.13, 0.045], [0, pullY, FACE_Z + 0.05], 0.025, [0, 0, 0], 'plastic');
+        parts.rounded('darkSilver', [1.3, 0.045, 0.1], [0, pullY, FACE_Z + 0.095], 0.018);
+      }
     } else if (unit.type === 'instrument') {
       // Bench instrument function groups adapted into a 2U rack adapter.
       parts.rounded('rubber', [3.64, h - 0.09, 0.045], [0, 0, FACE_Z + 0.016], 0.045, [0, 0, 0], 'plastic');
@@ -679,7 +682,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       handle(parts, -1.88, -0.03, h - 0.36, 'darkSilver');
       handle(parts, 1.88, -0.03, h - 0.36, 'darkSilver');
     } else if (unit.id === 'personal-projects') {
-      // A closed eight-bay storage chassis keeps the smaller projects together.
+      // Each occupied storage bay is a closed sled on fixed guides. The spare stays blank.
       projectName('PERSONAL PROJECTS', -1.76, h / 2 - 0.18, 2.85, 0.205);
       faceLabel(`${unit.modules.length} PROJECTS`, 1.75, h / 2 - 0.18, 0.062, 'right');
       for (let drive = 0; drive < 8; drive++) {
@@ -688,16 +691,49 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
         const module = unit.modules[drive];
         cut(x, py, 0.865, 0.45, 0.018);
         parts.rounded('black', [0.887, 0.472, 0.08], [x, py, FACE_Z - 0.03], 0.023, [0, 0, 0], 'plastic');
-        parts.rounded(module ? 'darkSilver' : 'frame', [0.827, 0.414, 0.052], [x, py, FACE_Z + 0.008], 0.019);
-        parts.rounded('black', [0.705, 0.065, 0.025], [x, py - 0.13, FACE_Z + 0.048], 0.018, [0, 0, 0], 'plastic');
-        parts.rounded('rubber', [0.6, 0.035, 0.06], [x, py - 0.13, FACE_Z + 0.08], 0.012, [0, 0, 0], 'plastic');
-        parts.rounded(module ? 'indicator' : 'black', [0.038, 0.07, 0.027], [x + 0.365, py - 0.13, FACE_Z + 0.065], 0.008, [0, 0, 0], 'plastic');
-        screw(parts, x - 0.365, py + 0.14, FACE_Z + 0.055, 0.018);
-        paintCommands.push(g => {
-          g.rect(x + 0.015, py + 0.04, 0.68, 0.115, module ? '#d2d2d0' : '#3b3c3e', 0.008);
-          g.text(module?.title ?? 'SPARE', x + 0.015, py + 0.04, 0.079, module ? '#17181b' : '#c7c7c3', 'center', 700, 0, 0.62, '"IBM Plex Sans", Arial, sans-serif');
-          g.text(String(drive + 1).padStart(2, '0'), x - 0.25, py + 0.143, 0.035, '#d2d2d0');
-        });
+        if (!module) {
+          parts.rounded('frame', [0.827, 0.414, 0.052], [x, py, FACE_Z + 0.008], 0.019);
+          paintCommands.push(g => g.text('SPARE', x, py, 0.075, '#c7c7c3', 'center', 500));
+          continue;
+        }
+        for (const side of [-1, 1]) {
+          parts.box('darkSilver', [0.028, 0.035, 2.98], [x + side * 0.4, py - 0.17, FACE_Z - 1.49]);
+          parts.box('black', [0.028, 0.023, 2.98], [x + side * 0.4, py + 0.177, FACE_Z - 1.49], [0, 0, 0], 'plastic');
+        }
+        const sled = new THREE.Group();
+        sled.name = module.id;
+        sled.position.set(x, py, 0);
+        bay.add(sled);
+        const sledParts = batch(sled);
+        sledParts.rounded('darkSilver', [0.77, 0.32, 2.9], [0, 0, FACE_Z - 1.45], 0.008);
+        sledParts.rounded('darkSilver', [0.827, 0.414, 0.052], [0, 0, FACE_Z + 0.008], 0.019);
+        sledParts.box('rubber', [0.73, 0.27, 0.035], [0, 0, FACE_Z - 2.89], [0, 0, 0], 'plastic');
+        sledParts.rounded('black', [0.705, 0.065, 0.025], [0, -0.13, FACE_Z + 0.048], 0.018, [0, 0, 0], 'plastic');
+        sledParts.rounded('indicator', [0.038, 0.07, 0.027], [0.365, -0.13, FACE_Z + 0.065], 0.008, [0, 0, 0], 'plastic');
+        screw(sledParts, -0.365, 0.14, FACE_Z + 0.055, 0.018);
+        for (const side of [-1, 1]) sledParts.cylinder('bright', 0.018, 0.04, [side * 0.31, -0.13, FACE_Z + 0.077], [0, 0, Math.PI / 2], 12);
+        sledParts.finish();
+        const latch = new THREE.Group();
+        latch.position.set(0, -0.13, FACE_Z + 0.08);
+        sled.add(latch);
+        const latchParts = batch(latch);
+        latchParts.rounded('rubber', [0.6, 0.035, 0.06], [0, 0, 0], 0.012, [0, 0, 0], 'plastic');
+        latchParts.finish();
+        texturePlane(sled, 0.82, 0.4, [0, 0, FACE_Z + 0.036], g => {
+          g.rect(0.015, 0.04, 0.68, 0.115, '#d2d2d0', 0.008);
+          g.text(module.title, 0.015, 0.04, 0.079, '#17181b', 'center', 700, 0, 0.62, '"IBM Plex Sans", Arial, sans-serif');
+          g.text(String(drive + 1).padStart(2, '0'), -0.25, 0.143, 0.035, '#d2d2d0');
+        }, [0, 0, 0], 512);
+        const targetGeometry = new THREE.BoxGeometry(0.827, 0.414, 0.18);
+        geometries.add(targetGeometry);
+        const targetMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        allMaterials.push(targetMaterial);
+        const hitTarget = new THREE.Mesh(targetGeometry, targetMaterial);
+        hitTarget.position.set(0, 0, FACE_Z + 0.075);
+        hitTarget.userData = { index: drive, projectIndex: index, moduleId: module.id };
+        sled.add(hitTarget);
+        moduleAssemblies.push({ projectIndex: index, index: drive, moduleId: module.id, group: sled, hitTarget, latch });
+        moduleTargets.push(hitTarget);
       }
       handle(parts, -1.94, 0, h - 0.29, 'darkSilver');
       handle(parts, 1.94, 0, h - 0.29, 'darkSilver');
@@ -728,20 +764,20 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
       for (let row = 0; row < 2; row++) button(1.05 + row * 0.47, -0.035, 0.09, 0.07, row ? 'orange' : 'cream');
     } else if (unit.type === 'display') {
       // SmartView Duo is a pair of 3U monitor windows with almost no front controls.
-      for (let screen = 0; screen < 2; screen++) display(-0.88 + screen * 1.76, 0.015, 1.61, 0.87, (g, x, py, w, ph) => {
+      for (let screen = 0; screen < 2; screen++) display(-0.88 + screen * 1.76, -0.1, 1.61, 0.75, (g, x, py, w, ph) => {
         g.rect(x, py, w - 0.015, ph - 0.015, '#1d1d20', 0.005);
         if (!screen) {
-          g.text('ISLET', x - 0.68, py + 0.312, 0.068, '#e0ddd7');
-          g.line([[x - 0.7, py + 0.195], [x + 0.7, py + 0.195]], '#626267', 0.009);
-          g.rect(x, py + 0.191, 0.57, 0.16, '#070709', 0.05);
-          g.rect(x + 0.203, py + 0.2, 0.023, 0.023, '#404044', 0.01);
-          g.text('MACOS / TOP EDGE', x, py - 0.29, 0.041, '#aaa7a1', 'center');
+          g.text('ISLET', x - 0.68, py + 0.27, 0.068, '#e0ddd7');
+          g.line([[x - 0.7, py + 0.165], [x + 0.7, py + 0.165]], '#626267', 0.009);
+          g.rect(x, py + 0.161, 0.57, 0.14, '#070709', 0.05);
+          g.rect(x + 0.203, py + 0.17, 0.023, 0.023, '#404044', 0.01);
+          g.text('MACOS / TOP EDGE', x, py - 0.27, 0.041, '#aaa7a1', 'center');
           g.rect(x, py - 0.055, 1.22, 0.24, '#333336', 0.05);
           g.text('TIMERS  /  MEDIA', x, py - 0.05, 0.061, '#d2cec5', 'center');
         } else {
-          g.text('FILES', x - 0.67, py + 0.31, 0.056, '#d9d6cf');
+          g.text('FILES', x - 0.67, py + 0.27, 0.056, '#d9d6cf');
           for (let row = 0; row < 3; row++) {
-            const ry = py + 0.13 - row * 0.18;
+            const ry = py + 0.11 - row * 0.16;
             g.rect(x - 0.54, ry, 0.16, 0.12, '#9b9690', 0.014);
             g.rect(x + 0.035, ry + 0.024, 0.76 - row * 0.13, 0.023, '#c2bdb4', 0.004);
             g.rect(x - 0.125, ry - 0.03, 0.44, 0.014, '#737278', 0.004);
@@ -749,7 +785,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
           g.text('DRAG / DROP', x + 0.67, py - 0.32, 0.041, '#aaa7a1', 'right');
         }
       });
-      projectName('ISLET / MACOS', -1.74, -0.505, 2.02, 0.14);
+      projectName('ISLET / MACOS', -1.74, 0.445, 2.02, 0.18);
       parts.rounded('black', [0.23, 0.026, 0.012], [0, 0.516, FACE_Z + 0.041], 0.008, [0, 0, 0], 'plastic');
     } else if (unit.type === 'console') {
       // Closed KVM drawer: a broad pull bar and latch replace the implausible front LCD.

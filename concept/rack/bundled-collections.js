@@ -1,4 +1,4 @@
-import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261018-curated-rack-v1';
+import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261021-audit-v2';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 
@@ -8,7 +8,7 @@ const hardwareUnits = [
     title: 'UQ Racing Autonomous Systems',
     faceTitle: 'UQR Autonomous',
     subtitle: 'Perception + electrical systems',
-    u: 8,
+    u: 4,
     type: 'engineering',
     summary: 'Perception and electrical work within UQ Racing\'s autonomous program.',
     description: 'Christian has contributed substantially to perception and broader electrical work across both UQ Racing cars, as part of the team. This record focuses on the autonomous program.',
@@ -23,7 +23,7 @@ const hardwareUnits = [
     title: 'UQ Racing Electric Vehicle Systems',
     faceTitle: 'UQR Electric Vehicle',
     subtitle: 'Vehicle electrical systems',
-    u: 8,
+    u: 4,
     type: 'engineering',
     summary: 'Electrical engineering within UQ Racing\'s electric vehicle program.',
     description: 'Christian has contributed substantially to perception and broader electrical work across both UQ Racing cars, as part of the team. This record focuses on the electric vehicle program.',
@@ -37,7 +37,7 @@ const hardwareUnits = [
     id: 'hardware-project-placeholder',
     title: 'Hardware project',
     subtitle: 'Project details to come',
-    u: 8,
+    u: 1,
     type: 'record',
     placeholder: true,
     summary: 'A space for a hardware project and its build record.',
@@ -51,9 +51,9 @@ const experienceUnits = [
   {
     id: 'experience-uqr',
     title: 'Electrical Systems Engineer',
-    faceTitle: 'UQ Racing',
+    faceTitle: 'Electrical Systems Engineer',
     subtitle: 'UQ Racing',
-    u: 6,
+    u: 2,
     type: 'record',
     summary: 'Electrical Systems Engineer at UQ Racing.',
     description: 'Part-time at UQ Racing, contributing to perception and broader electrical work across both cars as part of the team.',
@@ -70,9 +70,9 @@ const experienceUnits = [
   {
     id: 'experience-dataannotation',
     title: 'Software Engineer',
-    faceTitle: 'DataAnnotation',
+    faceTitle: 'Software Engineer',
     subtitle: 'DataAnnotation',
-    u: 4,
+    u: 2,
     type: 'record',
     summary: 'Contract Software Engineer at DataAnnotation.',
     description: 'A remote contract software engineering role based in Brisbane.',
@@ -89,9 +89,9 @@ const experienceUnits = [
   {
     id: 'experience-st-leos',
     title: 'IT Assistant',
-    faceTitle: 'St Leo\'s College',
+    faceTitle: 'IT Assistant',
     subtitle: 'St Leo\'s College',
-    u: 4,
+    u: 2,
     type: 'record',
     summary: 'IT Assistant at St Leo\'s College within The University of Queensland.',
     description: 'Provided Level 1 technical support to the college team and residents, including after-hours assistance and day-to-day troubleshooting.',
@@ -108,9 +108,9 @@ const experienceUnits = [
   {
     id: 'experience-uq-study',
     title: 'Engineering + Computer Science',
-    faceTitle: 'University of Queensland',
+    faceTitle: 'Engineering + Computer Science',
     subtitle: 'The University of Queensland',
-    u: 6,
+    u: 2,
     type: 'record',
     summary: 'Studying a Bachelor of Engineering and Bachelor of Computer Science at The University of Queensland.',
     description: 'A combined BE / BCS with Electrical and Electronics Engineering as the listed field of study. The degree is in progress, with July 2029 as the expected completion date.',
@@ -129,7 +129,7 @@ const experienceUnits = [
     title: 'St Augustine\'s College, Cairns',
     faceTitle: 'St Augustine\'s College',
     subtitle: 'Education',
-    u: 2,
+    u: 1,
     type: 'record',
     summary: 'Attended St Augustine\'s College in Cairns.',
     description: 'Education at St Augustine\'s College, Cairns, from January 2018 to November 2023.',
@@ -142,7 +142,7 @@ const experienceUnits = [
     id: 'experience-story-placeholder',
     title: 'Your story',
     subtitle: 'Personal introduction to come',
-    u: 2,
+    u: 1,
     type: 'record',
     placeholder: true,
     summary: 'A space for the story behind the work.',

@@ -1,16 +1,16 @@
 import * as THREE from './vendor/three.module.js';
-import { loadSurfaceFinishes } from './finishes.js?v=20261018-curated-rack-v1';
+import { loadSurfaceFinishes } from './finishes.js?v=20261021-audit-v2';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261018-curated-rack-v1';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261021-audit-v2';
 import { siteSettings, usesBundledPortfolio } from './site-data.js';
-import { collections } from './collections.js?v=20261018-curated-rack-v1';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261018-curated-rack-v1';
-import { stepSpring } from './motion.js?v=20261018-curated-rack-v1';
+import { collections } from './collections.js?v=20261021-audit-v2';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261021-audit-v2';
+import { stepSpring } from './motion.js?v=20261021-audit-v2';
 
 const BACKGROUND = usesBundledPortfolio ? '#121212' : siteSettings.appearance.background;
 const MAX_DRAWING_PIXELS = 6500000;
 
-export async function createRackScene({ canvas, finish = 'realistic', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
+export async function createRackScene({ canvas, finish = 'realistic', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {}, onContextRestored = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
   let units = collection.units;
   const mode = 'rack';
@@ -36,6 +36,8 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   renderer.toneMappingExposure = siteSettings.appearance.exposure;
   renderer.shadowMap.enabled = siteSettings.appearance.shadows;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BACKGROUND);
   const camera = new THREE.PerspectiveCamera(64, 1, 0.5, 110);
@@ -94,6 +96,11 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   const tallestHeight = Math.max(...models.map(built => built.height));
   for (const built of models) built.rack.position.y = (built.height - tallestHeight) / 2;
   const motionStates = models.map(built => ({ bays: built.bays.map(() => 0), modules: built.moduleAssemblies?.map(() => 0) ?? [] }));
+  // Camera movement leaves the light's shadow map unchanged; track every moving caster.
+  const shadowStates = models.flatMap(built => [built.rack, ...built.bays, ...built.interiors,
+    ...(built.railAssemblies ?? []).map(item => item.intermediate),
+    ...(built.moduleAssemblies ?? []).flatMap(item => [item.group, item.latch]),
+  ]).map(object => ({ object, matrix: new THREE.Matrix4(), visible: null }));
   const cameraVelocity = new THREE.Vector3();
   const targetVelocity = new THREE.Vector3();
   let motion = motionStates[collections.indexOf(collection)];
@@ -150,6 +157,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   let lastWidth = 0;
   let lastHeight = 0;
   let lastPixelRatio = 0;
+  let interacting = false;
   let reducedMotion = siteSettings.appearance.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let pointerDown = null;
   const activePointers = new Set();
@@ -176,10 +184,10 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     return corners;
   }
   function rackPose() {
-    const direction = worldDirection(view === 'front' ? new THREE.Vector3(0.002, 0.085, 1) : new THREE.Vector3(0.22, 0.15, 1));
+    const direction = worldDirection(view === 'front' ? new THREE.Vector3(0.002, 0.055, 1) : new THREE.Vector3(0.035, 0.09, 1));
     const target = worldPoint(new THREE.Vector3(0, -0.02, 0.38));
-    const corners = cornersOf([-2.5, -model.height / 2 - 0.25, -2.45], [2.5, model.height / 2 + 0.02, 2.65]).map(worldPoint);
-    return fitPose(target, direction, corners, 1.04);
+    const corners = cornersOf([-2.5, -model.height / 2 - 0.12, FACE_Z - 0.08], [2.5, model.height / 2 + 0.02, FACE_Z + 0.12]).map(worldPoint);
+    return fitPose(target, direction, corners, 1.035);
   }
   function overviewPose() { return rackPose(); }
   function projectPose(index) {
@@ -260,7 +268,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   function beginNext(now) {
     const next = stages.shift();
     if (!next) { activeStage = null; return; }
-    activeStage = { ...next, lastAt: now, elapsed: 0 };
+    activeStage = { ...next, startedAt: now, lastAt: now, elapsed: 0 };
     if (next.modulePhase) emitModule(next.modulePhase, next.moduleId);
     emit(next.phase, next.index);
   }
@@ -275,8 +283,8 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       return next;
     }
     for (const axis of ['x', 'y', 'z']) {
-      const position = advance(camera.position[axis], cameraVelocity[axis], stage.position[axis], stage.entry || stage.zoom ? 14 : 9, 0.003, 0.015);
-      const target = advance(controls.target[axis], targetVelocity[axis], stage.target[axis], stage.entry || stage.zoom ? 15 : 10, 0.003, 0.015);
+      const position = advance(camera.position[axis], cameraVelocity[axis], stage.position[axis], stage.entry || stage.zoom ? 23 : 20, 0.003, 0.015);
+      const target = advance(controls.target[axis], targetVelocity[axis], stage.target[axis], stage.entry || stage.zoom ? 24 : 22, 0.003, 0.015);
       camera.position[axis] = position.value;
       cameraVelocity[axis] = position.velocity;
       controls.target[axis] = target.value;
@@ -285,14 +293,14 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     }
     camera.lookAt(controls.target);
     bays.forEach((bay, index) => {
-      const next = advance(bay.position.z, motion.bays[index], stage.slides[index], 10, 0.0025, 0.02, 0, EXTRACTION);
+      const next = advance(bay.position.z, motion.bays[index], stage.slides[index], 20, 0.0025, 0.02, 0, EXTRACTION);
       bay.position.z = next.value;
       motion.bays[index] = next.velocity;
       mechanicsSettled &&= next.settled;
       interiors[index].visible = true;
     });
     moduleAssemblies.forEach((item, index) => {
-      const next = advance(item.group.position.z, motion.modules[index], stage.moduleSlides[index], 16, 0.0025, 0.02, 0, 1.35);
+      const next = advance(item.group.position.z, motion.modules[index], stage.moduleSlides[index], 24, 0.0025, 0.02, 0, 1.35);
       item.group.position.z = next.value;
       motion.modules[index] = next.velocity;
       mechanicsSettled &&= next.settled;
@@ -305,6 +313,14 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   function drawScene() {
     try {
       models.forEach(built => built.updateMechanisms?.());
+      for (const state of shadowStates) {
+        state.object.updateMatrix();
+        if (state.visible !== state.object.visible || !state.matrix.equals(state.object.matrix)) {
+          renderer.shadowMap.needsUpdate = true;
+          state.matrix.copy(state.object.matrix);
+          state.visible = state.object.visible;
+        }
+      }
       renderer.render(scene, camera);
       publishProjectScreen();
       return true;
@@ -327,8 +343,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       const dt = THREE.MathUtils.clamp((now - activeStage.lastAt) / 1000, 0, 0.05);
       activeStage.lastAt = Math.max(activeStage.lastAt, now);
       activeStage.elapsed += dt;
-      const deadline = Math.max(1, activeStage.duration / 1000 * 2.5);
-      const snap = reducedMotion || activeStage.duration === 0 || activeStage.elapsed >= deadline;
+      const snap = reducedMotion || activeStage.duration === 0 || now - activeStage.startedAt >= activeStage.duration;
       if (!applyStage(activeStage, dt, snap)) break;
       const finishedPhase = activeStage.phase;
       const preservePose = Boolean(activeStage.zoom);
@@ -342,6 +357,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
         if (finishedPhase === 'returning' && selected === null) controls.update();
       }
     }
+    updateDrawingRatio();
     if (!drawScene()) return;
     if (finishedEntry && pendingEntry === finishedEntry && !disposed && !contextLost) {
       pendingEntry = null;
@@ -370,7 +386,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       emitModule('closed', null);
       return;
     }
-    queueStage('project', 380, { position: current.position, target: current.target }, current.slides, owner, { modulePhase: 'returning', moduleId: assembly.moduleId });
+    queueStage('project', 220, { position: current.position, target: current.target }, current.slides, owner, { modulePhase: 'returning', moduleId: assembly.moduleId });
   }
   function inspectModule(moduleId) {
     if (selected === null || (phase !== 'project' && phase !== 'entering')) return;
@@ -392,7 +408,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     queueModuleReturn(current);
     if (next !== null) {
       const moduleSlides = moduleAssemblies.map(item => item === assembly ? 1.35 : 0);
-      queueStage('project', 560, modulePose(next), current.slides, selected, { moduleSlides, modulePhase: 'extracting', moduleId: next });
+      queueStage('project', 480, modulePose(next), current.slides, selected, { moduleSlides, modulePhase: 'extracting', moduleId: next });
     } else if (stages.length) {
       const last = stages[stages.length - 1];
       const pose = projectPose(selected);
@@ -454,7 +470,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     stages = [];
     activeStage = null;
     clearHover();
-    queueStage('entering', 520, pose, current.slides, index, { moduleSlides: current.moduleSlides, entry });
+    queueStage('entering', 500, pose, current.slides, index, { moduleSlides: current.moduleSlides, entry });
     beginNext(performance.now());
     if (reducedMotion) {
       applyStage(activeStage, 0, true);
@@ -487,14 +503,12 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     queueModuleReturn(current);
     const hasSlide = current.slides.some((position) => position > 0.005);
     const cameraAway = current.position.distanceTo(overview.position) > 0.02 || current.target.distanceTo(overview.target) > 0.02;
-    if (cameraAway || hasSlide) queueStage('returning', 480, overview, bays.map(() => 0), previous);
+    if (cameraAway || hasSlide) queueStage('returning', next === null ? 600 : 260, overview, bays.map(() => 0), previous);
     if (next !== null) {
       const slides = bays.map(() => 0);
       slides[next] = EXTRACTION;
       const focus = projectPose(next);
-      const approach = { position: overview.position.clone().lerp(focus.position, 0.28), target: overview.target.clone().lerp(focus.target, 0.28) };
-      queueStage('extracting', 600, approach, slides, next, { follow: true });
-      queueStage('focusing', 700, focus, slides, next);
+      queueStage('extracting', cameraAway || hasSlide ? 640 : 780, focus, slides, next);
     }
     if (!stages.length) { emit('overview'); requestRender(); return; }
     beginNext(performance.now());
@@ -509,21 +523,29 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       return { position: overview.position.lerp(focus.position, 0.28), target: overview.target.lerp(focus.target, 0.28) };
     }
     if (stage.modulePhase) return stage.modulePhase === 'extracting' ? modulePose(stage.moduleId) : projectPose(stage.index);
-    return stage.phase === 'focusing' ? projectPose(stage.index) : overviewPose();
+    return stage.phase === 'focusing' || stage.phase === 'extracting' ? projectPose(stage.index) : overviewPose();
+  }
+  function updateDrawingRatio() {
+    if (!lastWidth || !lastHeight) return;
+    const restingRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2);
+    const desired = activeStage || stages.length || interacting ? Math.min(window.devicePixelRatio || 1, 1.5) : restingRatio;
+    const pixelRatio = Math.min(desired, Math.sqrt(MAX_DRAWING_PIXELS / (lastWidth * lastHeight)), maxBufferSize / lastWidth, maxBufferSize / lastHeight);
+    if (pixelRatio !== lastPixelRatio) {
+      lastPixelRatio = pixelRatio;
+      renderer.setDrawingBufferSize(lastWidth, lastHeight, pixelRatio);
+    }
   }
   function resize() {
     if (disposed || contextLost) return;
     const rect = canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
-    // Supersample low-density displays without allocating an unbounded high-DPI framebuffer.
-    const pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2, Math.sqrt(MAX_DRAWING_PIXELS / (width * height)), maxBufferSize / width, maxBufferSize / height);
     const sizeChanged = width !== lastWidth || height !== lastHeight;
-    if (!sizeChanged && pixelRatio === lastPixelRatio) return;
     lastWidth = width;
     lastHeight = height;
-    lastPixelRatio = pixelRatio;
-    renderer.setDrawingBufferSize(width, height, pixelRatio);
+    // Restore the 1.5 density floor at rest; use device density up to 1.5 while moving.
+    if (sizeChanged) lastPixelRatio = 0;
+    updateDrawingRatio();
     if (!sizeChanged) { requestRender(); return; }
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -576,7 +598,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       if (modulePhase === 'extracting' || modulePhase === 'returning') return;
       const link = hitAt(event, [...projectLinkTargets.filter(target => target.userData.index === selected), ...projectScreens.filter(item => item.index === selected).map(item => item.mesh)]);
       const module = hitData(event, moduleAssemblies.filter(item => item.projectIndex === selected).map(item => item.hitTarget));
-      canvas.style.cursor = link === selected || module ? 'pointer' : 'grab';
+      canvas.style.cursor = link === selected || module || hitAt(event) === selected ? 'pointer' : 'grab';
       return;
     }
     if (phase !== 'overview') return;
@@ -610,7 +632,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       if (module) {
         if (selectedModule === module.moduleId && modulePhase === 'open') onEntryRequest(selected, module.moduleId);
         else onModuleSelect(module.moduleId);
-      }
+      } else if (hitAt(event) === selected) onEntryRequest(selected, selectedModule);
     }
   }
   function pointerCancel(event) { activePointers.delete(event.pointerId); pointerDown = null; clearHover(); }
@@ -620,7 +642,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
     } else {
-      if (activeStage && hiddenAt !== null) activeStage.lastAt = performance.now();
+      if (activeStage && hiddenAt !== null) { activeStage.startedAt += performance.now() - hiddenAt; activeStage.lastAt = performance.now(); }
       hiddenAt = null;
       requestRender();
     }
@@ -646,14 +668,23 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     activeStage = null;
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
-    onError(new Error('The 3D graphics context was interrupted. Reload to restore the rack.'));
+    const error = new Error('The 3D graphics context was interrupted.');
+    error.code = 'CONTEXT_LOST';
+    onProjectScreen(null);
+    onError(error);
   }
+  function contextRestore() { if (!disposed) onContextRestored(); }
+  function controlStart() { interacting = true; requestRender(); }
+  function controlEnd() { interacting = false; requestRender(); }
   canvas.addEventListener('pointermove', pointerMove);
   canvas.addEventListener('pointerdown', pointerStart);
   canvas.addEventListener('pointerup', pointerEnd);
   canvas.addEventListener('pointercancel', pointerCancel);
   canvas.addEventListener('pointerleave', clearHover);
   canvas.addEventListener('webglcontextlost', contextLoss);
+  canvas.addEventListener('webglcontextrestored', contextRestore);
+  controls.addEventListener('start', controlStart);
+  controls.addEventListener('end', controlEnd);
   document.addEventListener('visibilitychange', visibilityChange);
   controls.addEventListener('change', requestRender);
   resize();
@@ -668,6 +699,8 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     resizeObserver.disconnect();
     pixelRatioQuery.removeEventListener('change', pixelRatioChange);
     controls.removeEventListener('change', requestRender);
+    controls.removeEventListener('start', controlStart);
+    controls.removeEventListener('end', controlEnd);
     controls.dispose();
     canvas.removeEventListener('pointermove', pointerMove);
     canvas.removeEventListener('pointerdown', pointerStart);
@@ -675,6 +708,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     canvas.removeEventListener('pointercancel', pointerCancel);
     canvas.removeEventListener('pointerleave', clearHover);
     canvas.removeEventListener('webglcontextlost', contextLoss);
+    canvas.removeEventListener('webglcontextrestored', contextRestore);
     document.removeEventListener('visibilitychange', visibilityChange);
     models.forEach(item => item.dispose());
     datacenter.dispose();
@@ -704,6 +738,28 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
 
   return {
     select,
+    restoreState(index, moduleId = null) {
+      if (disposed || contextLost) return;
+      pendingEntry = null;
+      stages = [];
+      activeStage = null;
+      selected = Number.isInteger(index) && units[index] ? index : null;
+      const assembly = selected === null ? null : moduleAssemblies.find(item => item.projectIndex === selected && item.moduleId === moduleId);
+      selectedModule = assembly?.moduleId ?? null;
+      bays.forEach((bay, position) => { bay.position.z = position === selected ? EXTRACTION : 0; });
+      moduleAssemblies.forEach(item => { item.group.position.z = item === assembly ? 1.35 : 0; });
+      motion.bays.fill(0);
+      motion.modules.fill(0);
+      cameraVelocity.set(0, 0, 0);
+      targetVelocity.set(0, 0, 0);
+      const pose = selected === null ? overviewPose() : inspectionPose();
+      camera.position.copy(pose.position);
+      controls.target.copy(pose.target);
+      camera.lookAt(pose.target);
+      emitModule(selectedModule ? 'open' : 'closed', selectedModule);
+      emit(selected === null ? 'overview' : 'project', selected);
+      requestRender();
+    },
     inspectModule,
     setCollection,
     enterProject,
@@ -768,7 +824,7 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
         const point = target.getWorldPosition(new THREE.Vector3()).project(camera);
         return { id: collections[index].id, pageX: rect.left + (point.x + 1) * lastWidth / 2, pageY: rect.top + (1 - point.y) * lastHeight / 2, visible: Math.abs(point.x) <= 1 && Math.abs(point.y) <= 1 && point.z >= -1 && point.z <= 1 };
       });
-      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, screenCenters, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { surfaces: surfaces.getState(), samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
+      return { selectedModule, modulePhase, moduleCenters, pendingFrames: Boolean(frame || activeStage || stages.length), mode, collectionId: collection.id, rackCenters, datacenter: datacenter.stats, phase, selected, hovered, view, reducedMotion, toneMapping: renderer.toneMapping, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, totalU: model.totalU, units: units.map(unit => ({ id: unit.id, u: unit.u, type: unit.type })), frontCenters, projectLinks, screenCenters, distance: controls.getDistance(), zoomLimits: [controls.minDistance, controls.maxDistance], slides: bays.map(bay => Number(bay.position.z.toFixed(3))), camera: camera.position.toArray().map(value => Number(value.toFixed(3))), size: [lastWidth, lastHeight], quality: { moving: Boolean(activeStage || stages.length || interacting), surfaces: surfaces.getState(), samples, pixelRatio: lastPixelRatio, drawingBuffer: [canvas.width, canvas.height], maxPixels: MAX_DRAWING_PIXELS }, contextLost };
     },
     dispose: disposeScene,
   };
