@@ -22,6 +22,7 @@ function status() {
   $('#save').disabled = state.local || state.busy || !dirty();
   $('#publish').disabled = state.local || state.busy || dirty();
   $('#history').disabled = state.local || state.busy;
+  for (const id of ['save', 'publish', 'history']) $(`#${id}`).title = state.local ? 'Unavailable in local preview. Export JSON to keep your changes.' : '';
   $('#sign-out').disabled = state.busy;
   $('.arrangement').inert = state.busy;
   $('.editor-column').inert = state.busy;
@@ -44,7 +45,11 @@ function select(label, path, options) { return `<label>${escape(label)}<select d
 function controls(path, index, count, title = 'item') { return `<div class="repeat-controls"><button data-array="${path}" data-index="${index}" data-op="up" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escape(title)} up">↑</button><button data-array="${path}" data-index="${index}" data-op="down" ${index === count - 1 ? 'disabled' : ''} aria-label="Move ${escape(title)} down">↓</button><button data-array="${path}" data-index="${index}" data-op="remove" class="danger" aria-label="Remove ${escape(title)}">Remove</button></div>`; }
 function listEditor(path, kind, title, row) {
   const list = get(path);
-  return `<fieldset><legend>${title}</legend>${list.map((item, index) => `<div class="repeat-item"><div class="repeat-heading"><h3>${escape(item.title || item.label || `${title.slice(0, -1)} ${index + 1}`)}</h3>${controls(path, index, list.length, item.title || title)}</div>${row(`${path}.${index}`, item, index)}</div>`).join('')}<button data-add="${kind}" data-array="${path}">+ Add ${escape(kind)}</button></fieldset>`;
+  return `<fieldset><legend>${title}</legend>${list.map((item, index) => {
+    const label = escape(item.title || item.label || `${title.slice(0, -1)} ${index + 1}`);
+    const content = `<div class="repeat-heading">${kind === 'module' ? '' : `<h3>${label}</h3>`}${controls(path, index, list.length, item.title || title)}</div>${row(`${path}.${index}`, item, index)}`;
+    return kind === 'module' ? `<details class="repeat-item module-editor"><summary>${label}</summary>${content}</details>` : `<div class="repeat-item">${content}</div>`;
+  }).join('')}<button data-add="${kind}" data-array="${path}">+ Add ${escape(kind)}</button></fieldset>`;
 }
 function linkFields(path) { return `<div class="field-grid">${field('Label', `${path}.label`)}${field('URL', `${path}.url`, 'url', { placeholder: 'https:// or mailto:' })}</div>`; }
 function imageFields(path) { return `${field('Image URL or local asset path', `${path}.url`, 'text', { placeholder: 'https://… or /assets/…' })}<div class="field-grid">${field('Alternative text', `${path}.alt`)}${field('Caption', `${path}.caption`)}</div>`; }
@@ -70,6 +75,14 @@ function sectionEditor(path, section, index) {
   if (section.type === 'links') content += listEditor(`${path}.links`, 'link', 'Links', linkFields);
   return `<div class="repeat-item"><div class="repeat-heading"><h3>${index + 1}. ${escape(section.type)}</h3>${controls(`${projectPath()}.page.sections`, index, project().page.sections.length, 'section')}</div>${field('Section ID', `${path}.id`)}${content}</div>`;
 }
+function bundleWarning(item) {
+  const parents = state.config.projects.filter(parent => parent.modules.some(module => module.projectId === item.id));
+  const children = item.modules.map(module => state.config.projects.find(child => child.id === module.projectId)).filter(child => child?.rackUnit.placement);
+  const messages = [];
+  if (item.rackUnit.placement && parents.length) messages.push(`This project is placed separately and linked inside ${parents.map(parent => parent.title).join(', ')}. Both routes will be visible.`);
+  if (children.length) messages.push(`These linked projects also have separate rack units: ${children.map(child => child.title).join(', ')}.`);
+  return messages.length ? `<p class="bundle-warning">${escape(messages.join(' '))} Edit Nested modules to remove a bundle link if you only want the separate unit.</p>` : '';
+}
 function renderProject() {
   const item = project();
   if (!item) return '<p class="empty">Create a project to begin. Each project owns its equipment unit and reading page.</p>';
@@ -77,7 +90,7 @@ function renderProject() {
   return `<div class="editor-intro"><div><h2>${escape(item.title)}</h2><p>${escape(item.id)}</p></div><button data-action="preview-page">Preview page</button></div>
     <div class="check-row">${field('Published project', `${path}.published`, 'checkbox')}${field('Placeholder content', `${path}.placeholder`, 'checkbox')}</div><p class="help">Published projects appear on the live site after publishing this draft. Placement only controls whether their equipment appears in a rack.</p>
     <fieldset><legend>Equipment & position</legend><div class="field-grid three">${field('Height in U', `${path}.rackUnit.heightU`, 'number', { min: 1, max: 48, step: 1 })}${select('Model type', `${path}.rackUnit.type`, RACK_TYPES)}${field('Face label', `${path}.rackUnit.faceTitle`)}</div><p class="placement-status">${placement ? `Placed at ${escape(placement.rackId)} U${String(placement.startU).padStart(2, '0')}–U${String(placement.startU + unit.heightU - 1).padStart(2, '0')}` : 'Unplaced · Still available as a published reading page'}</p><div class="placement-fields"><label>Rack<select id="placement-rack">${state.config.racks.map((rack) => `<option value="${escape(rack.id)}" ${rack.id === placement?.rackId ? 'selected' : ''}>${escape(rack.label)}</option>`).join('')}</select></label><label>Bottom U<input id="placement-u" type="number" min="1" max="48" value="${placement?.startU ?? 1}"></label></div><div class="inline-actions"><button data-action="place" ${state.config.racks.length ? '' : 'disabled'}>Set position</button><button data-action="unplace" ${placement ? '' : 'disabled'}>Remove from rack</button><button data-action="move-up" ${placement ? '' : 'disabled'}>↑ 1U</button><button data-action="move-down" ${placement ? '' : 'disabled'}>↓ 1U</button></div><p class="help">A unit occupies its bottom U and the positions above it. Overlaps and out-of-rack moves are rejected.</p></fieldset>
-    <fieldset><legend>Project record</legend><label>Project ID / page URL<input value="${escape(item.id)}" data-project-id="${state.selected}" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>${field('Title', `${path}.title`)}${field('Subtitle', `${path}.subtitle`)}${field('Summary', `${path}.summary`, 'textarea', { rows: 3 })}${field('Description', `${path}.description`, 'textarea', { rows: 7 })}<div class="field-grid">${field('Source URL', `${path}.sourceUrl`, 'url')}${field('Source link label', `${path}.sourceLabel`)}</div><label>Stack, one entry per line<textarea data-path="${path}.stack" data-lines="true" rows="3">${escape(item.stack.join('\n'))}</textarea></label></fieldset>
+    ${bundleWarning(item)}<fieldset><legend>Project record</legend><label>Project ID / page URL<input value="${escape(item.id)}" data-project-id="${state.selected}" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>${field('Title', `${path}.title`)}${field('Subtitle', `${path}.subtitle`)}${field('Summary', `${path}.summary`, 'textarea', { rows: 3 })}${field('Description', `${path}.description`, 'textarea', { rows: 7 })}<div class="field-grid">${field('Source URL', `${path}.sourceUrl`, 'url')}${field('Source link label', `${path}.sourceLabel`)}</div><label>Stack, one entry per line<textarea data-path="${path}.stack" data-lines="true" rows="3">${escape(item.stack.join('\n'))}</textarea></label></fieldset>
     ${listEditor(`${path}.facts`, 'fact', 'Facts', (p) => `<div class="field-grid">${field('Label', `${p}.label`)}${field('Value', `${p}.value`)}</div>`)}
     ${listEditor(`${path}.modules`, 'module', 'Nested modules', (p) => `<div class="field-grid">${field('Module ID', `${p}.id`)}${field('Group', `${p}.group`)}</div>${field('Title', `${p}.title`)}${field('Description', `${p}.description`, 'textarea', { rows: 3 })}${field('Source URL', `${p}.sourceUrl`, 'url')}${select('Linked project page', `${p}.projectId`, [['', 'No linked project'], ...state.config.projects.filter(project => project.id !== item.id).map(project => [project.id, project.title])])}`)}
     <fieldset><legend>Reading page appearance</legend><div class="field-grid three">${field('Background', `${path}.page.theme.background`, 'color')}${field('Text', `${path}.page.theme.text`, 'color')}${field('Accent', `${path}.page.theme.accent`, 'color')}</div><div class="field-grid">${select('Font', `${path}.page.theme.font`, [['sans', 'Plex sans'], ['serif', 'Serif'], ['mono', 'Plex mono']])}${select('Layout', `${path}.page.theme.layout`, ['standard', 'wide', 'editorial'])}</div></fieldset>
@@ -133,14 +146,43 @@ async function signOut() {
   state.busy = true; status();
   try { const { csrfToken } = await api('/api/auth/csrf'); const response = await fetch('/api/auth/signout', { method: 'POST', body: new URLSearchParams({ csrfToken, callbackUrl: location.href }), credentials: 'same-origin' }); if (!response.ok) throw new Error('Sign-out failed. Please retry.'); state.baseline = JSON.stringify(state.config); location.reload(); } catch (error) { report(error); } finally { state.busy = false; status(); }
 }
-function previewPage() {
-  const item = project(); const target = $('#page-preview'); const theme = item.page.theme;
-  target.style.backgroundColor = theme.background; target.style.color = theme.text; target.style.fontFamily = theme.font === 'mono' ? 'PlexMono, monospace' : theme.font === 'serif' ? 'Georgia, serif' : 'Plex, sans-serif';
-  const image = (i) => safeUrl(i.url, true) ? `<figure><img src="${escape(safeUrl(i.url, true))}" alt="${escape(i.alt)}" loading="lazy"><figcaption>${escape(i.caption)}</figcaption></figure>` : '<p>Image URL missing or invalid.</p>';
-  target.innerHTML = `<p class="preview-label">Unsaved page preview · ${escape(theme.layout)} layout</p><h1>${escape(item.title)}</h1><p>${escape(item.subtitle)}</p><p>${escape(item.summary)}</p><p>${escape(item.description)}</p>${item.page.sections.map((s) => { if (s.type === 'image') return image(s); const heading = s.title ? `<h2>${escape(s.title)}</h2>` : ''; if (s.type === 'text') return `${heading}<p>${escape(s.body)}</p>`; if (s.type === 'code') return `${heading}<pre><code>${escape(s.code)}</code></pre>`; if (s.type === 'gallery') return `${heading}<div class="preview-gallery">${s.images.map(image).join('')}</div>`; return `${heading}<ul>${s.links.map((link) => `<li><a href="${escape(safeUrl(link.url))}" target="_blank" rel="noopener noreferrer">${escape(link.label)}</a></li>`).join('')}</ul>`; }).join('')}`;
-  target.querySelectorAll('a').forEach((link) => { link.style.color = theme.accent; });
+let previewRequest = 0;
+async function previewPage() {
+  const request = ++previewRequest;
+  let config;
+  try { config = validatePortfolio(clone(state.config)); } catch (error) { report(error); return; }
+  const item = config.projects[state.selected];
+  const target = $('#page-preview');
+  target.replaceChildren();
+  const label = document.createElement('p'); label.className = 'preview-label'; label.textContent = 'Unsaved draft · Actual reading page';
+  const plate = document.createElement('div'); plate.className = 'equipment-preview';
+  const face = document.createElement('strong'); face.textContent = item.rackUnit.faceTitle || item.title;
+  const caption = document.createElement('small'); caption.textContent = `${item.rackUnit.heightU}U · Front label · Schematic preview`;
+  plate.append(face, caption);
+  const loading = document.createElement('p'); loading.textContent = 'Preparing page preview…';
+  target.append(label, plate, loading);
   $('#preview-dialog').showModal();
+  try {
+    const [response, { renderProject: renderPage }] = await Promise.all([fetch('./project.html'), import('./project-content.js?v=20261021-audit-v2')]);
+    if (!response.ok) throw new Error('The page template could not load.');
+    const template = new DOMParser().parseFromString(await response.text(), 'text/html');
+    template.querySelectorAll('script').forEach(node => node.remove());
+    const base = template.createElement('base'); base.href = new URL('./', location.href).href; template.head.prepend(base);
+    if (request !== previewRequest || !$('#preview-dialog').open) return;
+    const frame = document.createElement('iframe'); frame.title = `Draft page for ${item.title}`; frame.className = 'draft-page-frame';
+    frame.addEventListener('load', () => {
+      if (request !== previewRequest || !frame.contentDocument) return;
+      const allUnits = config.projects.map(project => ({ ...project, u: project.rackUnit.heightU, type: project.rackUnit.type, faceTitle: project.rackUnit.faceTitle || project.title, startU: project.rackUnit.placement?.startU ?? null }));
+      const collections = config.racks.map(rack => ({ ...rack, units: allUnits.filter(unit => unit.rackUnit.placement?.rackId === rack.id).sort((a, b) => b.startU - a.startU) }));
+      renderPage(frame.contentDocument, item.id, null, { allUnits, collections, siteSettings: config.settings, usesBundledPortfolio: false });
+      frame.contentDocument.addEventListener('click', event => { if (event.target.closest('a')) event.preventDefault(); });
+      loading.remove();
+    }, { once: true });
+    frame.srcdoc = '<!doctype html>' + template.documentElement.outerHTML;
+    target.append(frame);
+  } catch (error) { loading.textContent = error.message || 'Page preview could not load.'; }
 }
+
 function showHistory() {
   $('#history-list').innerHTML = state.history.length ? state.history.map((entry) => `<div class="history-row"><div><p>Revision ${escape(entry.revision ?? entry.id)}${(entry.revision ?? entry.id) === state.publishedRevision ? ' · Published' : ''}</p><small>${escape(entry.createdAt || entry.created_at || entry.timestamp || '')}${entry.message ? ` · ${escape(entry.message)}` : ''}</small></div><button data-restore="${escape(entry.revision ?? entry.id)}">Restore draft</button></div>`).join('') : '<p class="empty">No previous revisions.</p>';
   $('#history-dialog').showModal();
