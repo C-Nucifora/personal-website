@@ -1,6 +1,6 @@
-import { allUnits as bundledUnits } from './bundled-collections.js';
-import { collections, allUnits } from './collections.js?v=20261021-audit-v2';
-import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js';
+import { allUnits as bundledUnits } from './bundled-collections.js?v=20261022-round2-v2';
+import { collections, allUnits } from './collections.js?v=20261022-round2-v2';
+import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js?v=20261022-round2-v2';
 
 export function element(tag, text = '', className = '') {
   const node = document.createElement(tag);
@@ -109,7 +109,7 @@ export function buildPublicIndex() {
       if (unit.placeholder) article.append(element('p', 'Placeholder · Details to come', 'placeholder-note'));
       article.append(element('p', unit.summary, 'project-summary'));
       const actions = element('div', '', 'project-actions');
-      const page = element('a', 'Open project page →', 'project-page-link');
+      const page = element('a', unit.type === 'record' && rack.id === 'experience' ? 'Open record →' : 'Open project page →', 'project-page-link');
       page.href = `./project.html?project=${encodeURIComponent(unit.id)}`;
       actions.append(page);
       if (unit.sourceUrl) {
@@ -137,11 +137,19 @@ export function buildPublicIndex() {
             target.append(summary); modules.append(target);
           }
           for (const tool of unit.modules.filter(tool => group === null || tool.group === group)) {
+            const row = element('div', '', 'module-record');
             const link = element('a', '', 'module-link');
-            link.href = tool.projectId ? `./project.html?project=${encodeURIComponent(tool.projectId)}` : tool.sourceUrl || `./project.html?project=${encodeURIComponent(unit.id)}&module=${encodeURIComponent(tool.id)}`;
-            if (!tool.projectId && tool.sourceUrl) { link.target = '_blank'; link.rel = 'noreferrer'; }
-            link.append(element('strong', tool.title), element('span', tool.description));
-            target.append(link);
+            link.dataset.moduleId = tool.id;
+            link.href = tool.projectId ? `./project.html?project=${encodeURIComponent(tool.projectId)}` : `./project.html?project=${encodeURIComponent(unit.id)}&module=${encodeURIComponent(tool.id)}`;
+            link.append(element('strong', tool.title), element('span', tool.description), element('i', 'Read →'));
+            row.append(link);
+            if (tool.sourceUrl) {
+              const source = element('a', 'Source ↗', 'module-source');
+              source.href = tool.sourceUrl; source.target = '_blank'; source.rel = 'noreferrer';
+              source.setAttribute('aria-label', `Source for ${tool.title}`);
+              row.append(source);
+            }
+            target.append(row);
           }
         }
         article.append(modules);

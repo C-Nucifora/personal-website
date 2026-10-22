@@ -1,5 +1,5 @@
-import { validatePortfolio, RACK_TYPES, DEFAULT_THEME } from './schema.js';
-import { createDefaultPortfolio } from './default-portfolio.js';
+import { validatePortfolio, RACK_TYPES, DEFAULT_THEME } from './schema.js?v=20261022-round2-v2';
+import { createDefaultPortfolio } from './default-portfolio.js?v=20261022-round2-v2';
 
 const $ = (selector) => document.querySelector(selector);
 const escape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -163,7 +163,7 @@ async function previewPage() {
   target.append(label, plate, loading);
   $('#preview-dialog').showModal();
   try {
-    const [response, { renderProject: renderPage }] = await Promise.all([fetch('./project.html'), import('./project-content.js?v=20261021-audit-v2')]);
+    const [response, { renderProject: renderPage }] = await Promise.all([fetch('./project.html'), import('./project-content.js?v=20261022-round2-v2')]);
     if (!response.ok) throw new Error('The page template could not load.');
     const template = new DOMParser().parseFromString(await response.text(), 'text/html');
     template.querySelectorAll('script').forEach(node => node.remove());

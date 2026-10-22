@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261021-audit-v2';
+import { renderProject } from './project-content.js?v=20261022-round2-v2';
 
 // Map the real document onto the four corners of the physical rack display.
 export function projectTransform(points, width, height) {
@@ -44,7 +44,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (!stylesheetPromise) stylesheetPromise = new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = './project.css?v=20261021-audit-v2';
+      link.href = './project.css?v=20261022-round2-v2';
       link.onload = resolve;
       link.onerror = () => { link.remove(); stylesheetPromise = null; reject(new Error('Project styles could not load')); };
       document.head.append(link);
@@ -52,13 +52,13 @@ export function createProjectReader({ onReturn, onNavigate }) {
     return Promise.all([templatePromise, stylesheetPromise]);
   }
   function dimensions() {
-    reader.style.width = `${window.innerWidth}px`;
-    reader.style.height = `${window.innerHeight}px`;
+    reader.style.width = `${state === 'preview' ? 640 : window.innerWidth}px`;
+    reader.style.height = `${state === 'preview' ? 320 : window.innerHeight}px`;
   }
   function position(points) {
     corners = points;
     dimensions();
-    const transform = projectTransform(points, window.innerWidth, window.innerHeight);
+    const transform = projectTransform(points, state === 'preview' ? 640 : window.innerWidth, state === 'preview' ? 320 : window.innerHeight);
     if (transform) reader.style.transform = transform;
   }
   function stopAnimation() {
@@ -84,7 +84,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     heading.textContent = reader.querySelector('#project-title').textContent || 'Project record';
     const summary = document.createElement('p'); summary.className = 'display-summary';
     summary.textContent = reader.querySelector('#project-category').textContent;
-    const action = document.createElement('span'); action.className = 'display-open'; action.textContent = 'Open project →';
+    const action = document.createElement('span'); action.className = 'display-open'; action.textContent = metadata.actionLabel;
     preview.append(heading, summary, action); reader.append(preview);
     key = requestedKey;
     dimensions();
@@ -104,6 +104,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     const start = corners;
     state = 'expanding';
     reader.dataset.display = 'document';
+    if (start) position(start);
     reader.hidden = false;
     reader.classList.add('is-expanding');
     const target = [{ x: 0, y: 0 }, { x: innerWidth, y: 0 }, { x: innerWidth, y: innerHeight }, { x: 0, y: innerHeight }];

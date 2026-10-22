@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261021-audit-v2';
+import { setFinishUVs } from './finishes.js?v=20261022-round2-v2';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261021-audit-v2';
-import { allUnits as bundledUnits } from './bundled-collections.js';
-import { hasModuleCarriers } from './rack-layout.js';
+import { softwareUnits } from './catalog.js?v=20261022-round2-v2';
+import { allUnits as bundledUnits } from './bundled-collections.js?v=20261022-round2-v2';
+import { hasModuleCarriers } from './rack-layout.js?v=20261022-round2-v2';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;
@@ -303,7 +303,7 @@ export function createRackModel(renderer, units = softwareUnits, label = 'Softwa
     text(`${String(index + 1).padStart(2, '0')} / ${unit.u}U`, -1.62, -0.23, 0.105);
     titleLines.forEach((line, lineIndex) => text(line, -1.62, titleLines.length === 1 ? -0.77 : -0.60 - lineIndex * 0.34, titleSize, 700, titleFamily));
     text(unit.subtitle, -1.62, -1.44, 0.105);
-    text('Open project ↗', -1.62, -1.68, 0.19, 700);
+    text(unit.type === 'record' && unit.rackUnit?.placement?.rackId === 'experience' ? 'Open record ↗' : 'Open project ↗', -1.62, -1.68, 0.19, 700);
     const map = new THREE.CanvasTexture(surface);
     map.colorSpace = THREE.SRGBColorSpace;
     const bumpMap = new THREE.CanvasTexture(relief);

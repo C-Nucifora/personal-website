@@ -212,7 +212,7 @@ const personalProjects = {
   u: 4,
   type: 'storage',
   summary: 'Smaller apps, self-hosted tools and utilities in one enclosure.',
-  description: 'Reconcile, this website and the smaller infrastructure and utility projects share one rack unit. Open this server to browse each project record and source.',
+  description: 'Reconcile, this website and the smaller infrastructure and utility projects share one rack unit. Browse the individual project records and their source below.',
   stack: [],
   facts: [{ label: 'Projects', value: '7 individual records' }],
   modules: personalProjectIds.map(id => {

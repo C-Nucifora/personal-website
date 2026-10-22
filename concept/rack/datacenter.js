@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261021-audit-v2';
+import { setFinishUVs } from './finishes.js?v=20261022-round2-v2';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js';
+import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js?v=20261022-round2-v2';
 
 export const RACK_SLOTS = portfolio.racks.map((rack, index) => ({ id: rack.id, label: rack.label, position: [(index - Math.floor(portfolio.racks.length / 2)) * 6, 0, 0] }));
 
@@ -202,7 +202,8 @@ export function createDatacenter({ floorY = -5.42, rackHeight = 10.4, surfaces =
       bay++;
     }
     box(recess, 0.22, height - 1.1, 0.24, x - 2.12, y, z + 2.58);
-    for (let run = 0; run < 3; run++) pipe(cable, 0.035, [x - 2.02 + run * 0.065, floorY + 1.4, z + 2.72], [x - 2.02 + run * 0.065, trayY - 0.2, z + 2.72]);
+    // Overhead drops meet the roof entry instead of hanging across the cabinet face.
+    for (let run = 0; run < 3; run++) pipe(cable, 0.035, [x - 2.02 + run * 0.065, top + 0.045, z + 0.6], [x - 2.02 + run * 0.065, trayY + 0.03, z + 0.6]);
   }
 
   // The content cabinets sit inside this row, with ordinary equipment on both sides.

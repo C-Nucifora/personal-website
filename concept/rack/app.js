@@ -1,11 +1,11 @@
-import { collections, allUnits } from "./collections.js?v=20261021-audit-v2";
+import { collections, allUnits } from "./collections.js?v=20261022-round2-v2";
 
-import { hasModuleCarriers } from './rack-layout.js';
-import { siteSettings, portfolio } from './site-data.js';
-import { buildPublicIndex } from './public-dom.js';
+import { hasModuleCarriers } from './rack-layout.js?v=20261022-round2-v2';
+import { siteSettings, portfolio } from './site-data.js?v=20261022-round2-v2';
+import { buildPublicIndex } from './public-dom.js?v=20261022-round2-v2';
 buildPublicIndex();
 
-import { createProjectReader } from "./project-reader.js?v=20261021-audit-v2";
+import { createProjectReader } from "./project-reader.js?v=20261022-round2-v2";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -142,6 +142,7 @@ function updateSelectionBar() {
   document.querySelector('#selection-summary').textContent = module?.group || `${unit.u}U · ${unit.subtitle}`;
   const link = document.querySelector('#selection-open');
   link.href = projectURL(unit, module);
+  link.textContent = unit.type === 'record' && unit.rackUnit.placement?.rackId === 'experience' ? 'Open record →' : 'Open project →';
   link.setAttribute('aria-label', `Open ${module?.title || unit.title}`);
 }
 
@@ -227,6 +228,7 @@ function followRoute() {
 }
 
 const loading = document.querySelector("#scene-loading");
+const canvas = document.querySelector('#rack-canvas');
 const hint = document.querySelector("#scene-hint");
 const phaseLabel = document.querySelector("#phase-label");
 const motionInput = document.querySelector("#reduce-motion");
@@ -234,6 +236,8 @@ const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
 let scene;
 let selected = null;
 let sceneFailed = false;
+let graphicsLost = false;
+let graphicsUnavailable = false;
 let userMotionChoice = null;
 let phase = "overview";
 let indexScroll = 0;
@@ -245,7 +249,8 @@ const moduleButtons = [];
 for (const unit of allUnits.filter(hasModuleCarriers)) {
   const article = [...document.querySelectorAll('[data-project-id]')].find(item => item.dataset.projectId === unit.id);
   for (const module of unit.modules) {
-    const link = [...(article?.querySelectorAll('.module-link') ?? [])].find(item => module.projectId ? new URL(item.href).searchParams.get('project') === module.projectId : item.href === module.sourceUrl);
+    const links = [...(article?.querySelectorAll('.module-link') ?? [])];
+    const link = links.find(item => item.dataset.moduleId === module.id) ?? links.find(item => module.projectId ? new URL(item.href).searchParams.get('project') === module.projectId : item.href === module.sourceUrl);
     if (!link) continue;
     const row = document.createElement('div');
     row.className = 'module-entry';
@@ -305,7 +310,9 @@ function showModuleState({ moduleId, phase: nextPhase }) {
   });
   if (module && !moduleInspector.hidden) {
     document.querySelector('#module-title').textContent = module.title;
-    document.querySelector('#module-group').textContent = module.group;
+    const group = document.querySelector('#module-group');
+    group.textContent = module.group || '';
+    group.hidden = !module.group;
     document.querySelector('#module-description').textContent = module.description;
     document.querySelector('#module-page').href = projectURL(unit, module);
     document.querySelector('#module-page').textContent = module.projectId ? 'Open project page →' : 'Read about this tool →';
@@ -469,6 +476,7 @@ function openProject(index, updateHistory = true, instant = false) {
 }
 
 function failScene(error) {
+  if (error?.code === 'CONTEXT_LOST') graphicsLost = true;
   if (!reading) cancelEntry();
   const removedFocus = moduleInspector.contains(document.activeElement) || moduleButtons.includes(document.activeElement) || stage.contains(document.activeElement);
   sceneFailed = true;
@@ -476,11 +484,13 @@ function failScene(error) {
   loading.hidden = true;
   document.body.classList.add('no-scene');
   const notice = document.querySelector('#scene-error');
-  notice.hidden = false;
+  notice.hidden = textView;
   document.querySelector('#rack-canvas').hidden = true;
-  notice.querySelector('p').textContent = !portfolio.racks.length ? 'No racks are currently published.' : error?.code === 'CONTEXT_LOST' ? 'The 3D view was interrupted.' : 'The 3D view could not start.';
-  notice.querySelectorAll('p')[1].textContent = 'Every project is available in the index. Retry 3D to restore your place.';
-  document.querySelector('#scene-retry').hidden = !portfolio.racks.length;
+  notice.querySelector('p').textContent = !portfolio.racks.length ? 'No racks are currently published.' : graphicsUnavailable ? "This browser can't show the 3D view." : graphicsLost ? 'The 3D view was interrupted.' : 'The 3D view could not start.';
+  notice.querySelectorAll('p')[1].textContent = graphicsUnavailable ? 'Every project is in the index below.' : graphicsLost ? 'Waiting for graphics to recover… Every project is available in the index.' : 'Every project is available in the index. Retry 3D to restore your place.';
+  const retry = document.querySelector('#scene-retry');
+  retry.hidden = !portfolio.racks.length || graphicsUnavailable;
+  retry.disabled = graphicsLost;
   hint.textContent = 'Use the project index to explore the work.';
   showPhase(selected === null ? 'overview' : 'project', selected);
   if (removedFocus) (selected !== null ? articles[selected].querySelector('h2') : document.querySelector(isHome ? '#collection-directory' : '#project-index')).focus({ preventScroll: true });
@@ -506,13 +516,19 @@ document.addEventListener("click", event => {
   } else if (link.matches("#back-to-rack")) {
     event.preventDefault();
     returnFromProject();
-  } else if (link.matches(".project-page-link")) {
+  } else if (link.matches(".project-page-link, .module-link")) {
     if (!scene || sceneFailed || textView) return;
     const url = new URL(link.href);
+    if (url.origin !== location.origin || !url.pathname.endsWith('/project.html')) return;
     const module = units[selected]?.modules.find(item => item.projectId === url.searchParams.get('project'));
     if (url.searchParams.get("project") !== units[selected]?.id && !module) return;
     event.preventDefault();
-    enterProject(module?.id ?? url.searchParams.get("module"), link.href);
+    const moduleId = module?.id ?? url.searchParams.get('module');
+    if (moduleId && selectedModule !== moduleId) {
+      writeRoute(selected, 'replace', moduleId);
+      scene.restoreState(selected, moduleId);
+    }
+    enterProject(moduleId, link.href);
   }
 });
 
@@ -544,7 +560,7 @@ document.querySelector(".skip-link").addEventListener("click", event => {
 function openHelp() {
   help.open = true;
   help.querySelector("summary").focus({ preventScroll: true });
-  help.scrollIntoView({ block: "nearest", behavior: instant || textView || motionInput.checked ? "instant" : "smooth" });
+  help.scrollIntoView({ block: "nearest", behavior: textView || motionInput.checked ? "instant" : "smooth" });
 }
 document.querySelector("#show-help").addEventListener("click", openHelp);
 document.addEventListener("keydown", event => {
@@ -609,6 +625,7 @@ function applyTextView() {
   button.setAttribute('aria-pressed', String(textView));
   button.textContent = textView ? 'Show 3D' : 'Text view';
   document.body.classList.toggle('text-view', textView);
+  document.querySelector('#scene-error').hidden = textView || !sceneFailed;
   applyMotionPreference();
   document.querySelectorAll('a.project-page-link, a.module-link, .unplaced-list a').forEach(link => {
     const url = new URL(link.getAttribute('href') || './project.html', location.href);
@@ -652,6 +669,7 @@ applyTextView();
 followRoute();
 
 async function startScene() {
+  if (graphicsLost) return;
   const request = ++sceneRequest;
   document.querySelector("#scene-retry").disabled = true;
   let creating = true;
@@ -661,8 +679,10 @@ async function startScene() {
   loading.hidden = false;
   try {
     if (!portfolio.racks.length) throw new Error('No racks are currently published');
+    graphicsUnavailable = !window.WebGL2RenderingContext || !canvas.getContext('webgl2', { antialias: true, alpha: false, powerPreference: 'high-performance' });
+    if (graphicsUnavailable) throw new Error('WebGL2 is unavailable');
     const [{ createRackScene }] = await Promise.all([
-      import("./scene.js?v=20261021-audit-v2"),
+      import("./scene.js?v=20261022-round2-v2"),
       Promise.allSettled([
         document.fonts.load('700 32px "IBM Plex Sans"'),
         document.fonts.load('700 32px "IBM Plex Mono"'),
@@ -671,7 +691,7 @@ async function startScene() {
     if (request !== sceneRequest) return;
     const created = await createRackScene({
       finish: new URLSearchParams(location.search).get("finish") === "simple" ? "simple" : "realistic",
-      canvas: document.querySelector("#rack-canvas"),
+      canvas,
       collectionId: collection.id,
       mode,
       onCollectionSelect: id => { if (request === sceneRequest) activateCollection(id, { focus: true }); },
@@ -701,8 +721,7 @@ async function startScene() {
         showPhase(nextPhase, index);
       },
       onReady: () => { if (request === sceneRequest) loading.hidden = true; },
-      onError: error => { if (request === sceneRequest) failScene(error); },
-      onContextRestored: () => { if (request === sceneRequest && !textView) startScene(); },
+      onError: error => { if (request === sceneRequest && !(graphicsLost && sceneFailed)) failScene(error); },
     });
     if (request !== sceneRequest) { created.dispose(); return; }
     scene = created;
@@ -724,10 +743,21 @@ async function startScene() {
     failScene(error);
     showPhase(selected === null ? "overview" : "project", selected);
   } finally {
-    if (request === sceneRequest) document.querySelector("#scene-retry").disabled = false;
+    if (request === sceneRequest) document.querySelector("#scene-retry").disabled = graphicsLost;
   }
 }
-document.querySelector("#scene-retry").addEventListener("click", () => { textView = false; try { sessionStorage.setItem('rack-view', '3d'); } catch {} applyTextView(); writeRoute(selected, 'replace'); startScene(); });
+canvas.addEventListener('webglcontextlost', event => {
+  event.preventDefault();
+  graphicsLost = true;
+  failScene(Object.assign(new Error('The 3D graphics context was interrupted.'), { code: 'CONTEXT_LOST' }));
+});
+canvas.addEventListener('webglcontextrestored', () => {
+  graphicsLost = false;
+  document.querySelector('#scene-retry').disabled = false;
+  // Let the renderer finish its own restoration before disposing and rebuilding it.
+  queueMicrotask(() => { if (sceneFailed && !textView) startScene(); });
+});
+document.querySelector("#scene-retry").addEventListener("click", () => { if (graphicsLost || graphicsUnavailable) return; textView = false; try { sessionStorage.setItem('rack-view', '3d'); } catch {} applyTextView(); writeRoute(selected, 'replace'); startScene(); });
 if (!textView) startScene();
 else loading.hidden = true;
 

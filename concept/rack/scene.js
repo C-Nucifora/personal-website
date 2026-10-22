@@ -1,16 +1,17 @@
 import * as THREE from './vendor/three.module.js';
-import { loadSurfaceFinishes } from './finishes.js?v=20261021-audit-v2';
+import { loadSurfaceFinishes } from './finishes.js?v=20261022-round2-v2';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261021-audit-v2';
-import { siteSettings, usesBundledPortfolio } from './site-data.js';
-import { collections } from './collections.js?v=20261021-audit-v2';
-import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261021-audit-v2';
-import { stepSpring } from './motion.js?v=20261021-audit-v2';
+import { createRackModel, FACE_Z, EXTRACTION } from './model.js?v=20261022-round2-v2';
+import { siteSettings, usesBundledPortfolio } from './site-data.js?v=20261022-round2-v2';
+import { collections } from './collections.js?v=20261022-round2-v2';
+import { createDatacenter, RACK_SLOTS } from './datacenter.js?v=20261022-round2-v2';
+import { stepSpring } from './motion.js?v=20261022-round2-v2';
 
 const BACKGROUND = usesBundledPortfolio ? '#121212' : siteSettings.appearance.background;
 const MAX_DRAWING_PIXELS = 6500000;
+const MOVING_DRAWING_PIXELS = 2500000;
 
-export async function createRackScene({ canvas, finish = 'realistic', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {}, onContextRestored = () => {} }) {
+export async function createRackScene({ canvas, finish = 'realistic', collectionId = 'software', onCollectionSelect = () => {}, onSelect = () => {}, onProjectOpen = () => {}, onEntryRequest = () => {}, onProjectScreen = () => {}, onModuleSelect = () => {}, onModuleOpen = () => {}, onModuleChange = () => {}, onHover = () => {}, onPhase = () => {}, onReady = () => {}, onError = () => {} }) {
   let collection = collections.find(item => item.id === collectionId) || collections[0];
   let units = collection.units;
   const mode = 'rack';
@@ -528,8 +529,10 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   function updateDrawingRatio() {
     if (!lastWidth || !lastHeight) return;
     const restingRatio = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2);
-    const desired = activeStage || stages.length || interacting ? Math.min(window.devicePixelRatio || 1, 1.5) : restingRatio;
-    const pixelRatio = Math.min(desired, Math.sqrt(MAX_DRAWING_PIXELS / (lastWidth * lastHeight)), maxBufferSize / lastWidth, maxBufferSize / lastHeight);
+    const moving = activeStage || stages.length || interacting;
+    const desired = moving ? Math.min(window.devicePixelRatio || 1, 1.5) : restingRatio;
+    const budget = moving ? MOVING_DRAWING_PIXELS : MAX_DRAWING_PIXELS;
+    const pixelRatio = Math.min(desired, Math.sqrt(budget / (lastWidth * lastHeight)), maxBufferSize / lastWidth, maxBufferSize / lastHeight);
     if (pixelRatio !== lastPixelRatio) {
       lastPixelRatio = pixelRatio;
       renderer.setDrawingBufferSize(lastWidth, lastHeight, pixelRatio);
@@ -673,7 +676,6 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     onProjectScreen(null);
     onError(error);
   }
-  function contextRestore() { if (!disposed) onContextRestored(); }
   function controlStart() { interacting = true; requestRender(); }
   function controlEnd() { interacting = false; requestRender(); }
   canvas.addEventListener('pointermove', pointerMove);
@@ -682,7 +684,6 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
   canvas.addEventListener('pointercancel', pointerCancel);
   canvas.addEventListener('pointerleave', clearHover);
   canvas.addEventListener('webglcontextlost', contextLoss);
-  canvas.addEventListener('webglcontextrestored', contextRestore);
   controls.addEventListener('start', controlStart);
   controls.addEventListener('end', controlEnd);
   document.addEventListener('visibilitychange', visibilityChange);
@@ -708,7 +709,6 @@ export async function createRackScene({ canvas, finish = 'realistic', collection
     canvas.removeEventListener('pointercancel', pointerCancel);
     canvas.removeEventListener('pointerleave', clearHover);
     canvas.removeEventListener('webglcontextlost', contextLoss);
-    canvas.removeEventListener('webglcontextrestored', contextRestore);
     document.removeEventListener('visibilitychange', visibilityChange);
     models.forEach(item => item.dispose());
     datacenter.dispose();

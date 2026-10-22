@@ -1,6 +1,6 @@
-import { collections, allUnits } from './collections.js?v=20261021-audit-v2';
-import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js';
-import { projectArt } from './project-art.js?v=20261021-audit-v2';
+import { collections, allUnits } from './collections.js?v=20261022-round2-v2';
+import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261022-round2-v2';
+import { projectArt } from './project-art.js?v=20261022-round2-v2';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -43,10 +43,8 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
       root.querySelector('.document-overview').append(parentLink);
     }
     const source = root.querySelector('#project-source');
-    if (module?.sourceUrl || unit.sourceUrl) source.href = module?.sourceUrl ?? unit.sourceUrl;
-    else source.hidden = true;
-    if (unit.sourceLabel) source.firstChild.textContent = `${unit.sourceLabel} `;
-    if (!unit.sourceLabel && unit.sourceUrl && !unit.sourceUrl.startsWith('https://github.com/')) source.firstChild.textContent = 'Source ';
+    // The summary strip links to the evidence section, which owns public source links.
+    source.hidden = true;
     const returnParams = new URLSearchParams();
     if (collection) returnParams.set('rack', collection.id);
     const carrier = module ?? (rackUnit !== unit ? bundle?.modules.find(item => item.projectId === unit.id) : null);
@@ -133,7 +131,7 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
       root.querySelector('#project-modules').hidden = false;
     }
     if (unit.id === 'personal-projects' && !module) renderTrayMap(root, unit, units, projectUrl);
-    renderSections(root, (unit.page?.sections ?? []).filter(item => item !== contributionSection));
+    renderSections(root, (unit.page?.sections ?? []).filter(item => item !== contributionSection), module?.sourceUrl || unit.sourceUrl);
     if (!bundled) applyPageTheme(root, unit.page.theme);
     root.querySelector('#project-article').hidden = false;
     fallback.hidden = true;
@@ -158,7 +156,7 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
     if (textView) for (const link of root.querySelectorAll('[data-rack-link], .identity, #project-fallback > a')) link.href = './index.html?view=text';
   }
 
-  return { title: `${module?.title ?? unit?.title ?? (projectId ? "Project not found" : "Projects")} / ${settings.intro.name}`, description: module?.description ?? unit?.summary ?? settings.intro.bio };
+  return { title: `${module?.title ?? unit?.title ?? (projectId ? "Project not found" : "Projects")} / ${settings.intro.name}`, description: module?.description ?? unit?.summary ?? settings.intro.bio, actionLabel: unit?.type === 'record' && collection?.id === 'experience' ? 'Open record →' : 'Open project →' };
 }
 
 function savedTextView() {
@@ -189,7 +187,9 @@ function renderRecord(root, unit, module, collection) {
     } else detail.textContent = value;
     row.append(detail); strip.append(row);
   }
-  root.querySelector('#project-contribution').textContent = contribution?.body || (collection?.id === 'hardware' ? unit.description : collection?.id === 'experience' ? unit.description : 'The individual contribution and any collaborators are not documented in this record.');
+  const contributionBody = contribution?.body?.trim() || (collection?.id === 'hardware' || collection?.id === 'experience' ? unit.description : '');
+  root.querySelector('.document-contribution').hidden = !contributionBody;
+  root.querySelector('#project-contribution').textContent = contributionBody;
   if (collection?.id === 'hardware') root.querySelector('#contribution-title').textContent = 'My contribution / team context';
   const hasScreenshots = sections.some(item => item.type === 'image' || item.type === 'gallery');
   const note = root.querySelector('#project-evidence-note');
@@ -199,15 +199,6 @@ function renderRecord(root, unit, module, collection) {
     const link = element('a', `${sourceLabel} ↗`);
     link.href = sourceUrl; link.target = '_blank'; link.rel = 'noreferrer';
     item.append(link); root.querySelector('#project-evidence-links').append(item);
-  }
-  for (const section of sections.filter(item => item.type === 'links')) {
-    for (const item of section.links) {
-      if (item.url === sourceUrl) continue;
-      const row = element('li'); const link = element('a', item.label);
-      link.href = item.url;
-      if (item.url.startsWith('https:')) { link.target = '_blank'; link.rel = 'noreferrer'; }
-      row.append(link); root.querySelector('#project-evidence-links').append(row);
-    }
   }
   return contribution;
 }
@@ -266,9 +257,10 @@ function applyPageTheme(root, theme) {
   host.querySelector('.project-document').dataset.layout = theme.layout;
 }
 
-function renderSections(root, sections) {
+function renderSections(root, sections, sourceUrl) {
   if (!sections.length) return;
   const content = element('div', '', 'document-sections');
+  const linkedSources = new Set(sourceUrl ? [sourceUrl] : []);
   const imageFigure = image => {
     const figure = element('figure', '', 'document-media');
     const img = element('img');
@@ -278,6 +270,12 @@ function renderSections(root, sections) {
     return figure;
   };
   for (const item of sections) {
+    const sectionLinks = item.type === 'links' ? item.links.filter(link => {
+      if (linkedSources.has(link.url)) return false;
+      linkedSources.add(link.url);
+      return true;
+    }) : null;
+    if (sectionLinks && !sectionLinks.length) continue;
     const section = element('section', '', `document-section section-${item.type}`);
     section.id = `section-${item.id}`;
     if (item.title) section.append(element('h2', item.title));
@@ -294,7 +292,7 @@ function renderSections(root, sections) {
     }
     if (item.type === 'links') {
       const links = element('ul', '', 'project-choice-list');
-      for (const itemLink of item.links) {
+      for (const itemLink of sectionLinks) {
         const row = element('li');
         const link = element('a', itemLink.label); link.href = itemLink.url;
         if (itemLink.url.startsWith('https:')) { link.target = '_blank'; link.rel = 'noreferrer'; }
@@ -304,5 +302,5 @@ function renderSections(root, sections) {
     }
     content.append(section);
   }
-  root.querySelector('.document-footer').before(content);
+  if (content.childElementCount) root.querySelector('.document-footer').before(content);
 }

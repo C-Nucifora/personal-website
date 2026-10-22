@@ -1,5 +1,5 @@
-import { createDefaultPortfolio } from './default-portfolio.js';
-import { DEFAULT_SETTINGS, publicPortfolio } from './schema.js';
+import { createDefaultPortfolio } from './default-portfolio.js?v=20261022-round2-v2';
+import { DEFAULT_SETTINGS, publicPortfolio } from './schema.js?v=20261022-round2-v2';
 
 async function loadPublished() {
   if (location.protocol === 'file:') return { config: createDefaultPortfolio(), bundled: true };
