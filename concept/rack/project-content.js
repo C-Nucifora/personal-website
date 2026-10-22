@@ -1,6 +1,6 @@
-import { collections, allUnits } from './collections.js?v=20261022-round2-v2';
-import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261022-round2-v2';
-import { projectArt } from './project-art.js?v=20261022-round2-v2';
+import { collections, allUnits } from './collections.js?v=20261022-reader-polish-v2';
+import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261022-reader-polish-v2';
+import { projectArt } from './project-art.js?v=20261022-reader-polish-v2';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);

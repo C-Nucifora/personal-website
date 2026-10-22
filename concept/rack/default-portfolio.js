@@ -1,5 +1,5 @@
-import { collections, unplacedSoftwareUnits } from './bundled-collections.js?v=20261022-round2-v2';
-import { DEFAULT_SETTINGS, DEFAULT_THEME, validatePortfolio } from './schema.js?v=20261022-round2-v2';
+import { collections, unplacedSoftwareUnits } from './bundled-collections.js?v=20261022-reader-polish-v2';
+import { DEFAULT_SETTINGS, DEFAULT_THEME, validatePortfolio } from './schema.js?v=20261022-reader-polish-v2';
 
 export function createDefaultPortfolio() {
   const projects = [];

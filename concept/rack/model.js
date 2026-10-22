@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261022-round2-v2';
+import { setFinishUVs } from './finishes.js?v=20261022-reader-polish-v2';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { softwareUnits } from './catalog.js?v=20261022-round2-v2';
-import { allUnits as bundledUnits } from './bundled-collections.js?v=20261022-round2-v2';
-import { hasModuleCarriers } from './rack-layout.js?v=20261022-round2-v2';
+import { softwareUnits } from './catalog.js?v=20261022-reader-polish-v2';
+import { allUnits as bundledUnits } from './bundled-collections.js?v=20261022-reader-polish-v2';
+import { hasModuleCarriers } from './rack-layout.js?v=20261022-reader-polish-v2';
 
 export const U = 0.4;
 export const FACE_Z = 2.31;

@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261022-round2-v2';
+import { renderProject } from './project-content.js?v=20261022-reader-polish-v2';
 
 // Map the real document onto the four corners of the physical rack display.
 export function projectTransform(points, width, height) {
@@ -17,7 +17,7 @@ export function projectTransform(points, width, height) {
 }
 
 export function createProjectReader({ onReturn, onNavigate }) {
-  const reader = document.createElement('section');
+  const reader = document.createElement('main');
   reader.className = 'project-reader project-page';
   reader.hidden = true;
   reader.inert = true;
@@ -44,7 +44,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (!stylesheetPromise) stylesheetPromise = new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = './project.css?v=20261022-round2-v2';
+      link.href = './project.css?v=20261022-reader-polish-v2';
       link.onload = resolve;
       link.onerror = () => { link.remove(); stylesheetPromise = null; reject(new Error('Project styles could not load')); };
       document.head.append(link);
@@ -73,7 +73,14 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (key === requestedKey) return metadata;
     const [template] = await assets();
     if (request !== generation) return null;
-    const children = [...template.body.children].filter(node => node.tagName !== 'SCRIPT').map(node => document.importNode(node, true));
+    const children = [...template.body.children].filter(node => node.tagName !== 'SCRIPT').map(node => {
+      const imported = document.importNode(node, true);
+      if (imported.tagName !== 'MAIN') return imported;
+      const content = document.createElement('div');
+      for (const { name, value } of imported.attributes) content.setAttribute(name, value);
+      content.append(...imported.childNodes);
+      return content;
+    });
     reader.replaceChildren(...children);
     reader.scrollTop = 0;
     metadata = renderProject(reader, projectId, moduleId);
@@ -82,6 +89,10 @@ export function createProjectReader({ onReturn, onNavigate }) {
     preview.setAttribute('aria-hidden', 'true');
     const heading = document.createElement('p'); heading.className = 'display-title';
     heading.textContent = reader.querySelector('#project-title').textContent || 'Project record';
+    const titleLines = heading.textContent.length <= 12 ? 1 : heading.textContent.length <= 24 ? 2 : 3;
+    const titleSize = [96, 72, 50][titleLines - 1];
+    heading.style.setProperty('--display-title-size', `${titleSize}px`);
+    heading.style.setProperty('--display-title-lines', titleLines);
     const summary = document.createElement('p'); summary.className = 'display-summary';
     summary.textContent = reader.querySelector('#project-category').textContent;
     const action = document.createElement('span'); action.className = 'display-open'; action.textContent = metadata.actionLabel;
