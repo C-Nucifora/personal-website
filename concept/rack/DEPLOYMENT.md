@@ -4,7 +4,7 @@ The production site is the rack portfolio in `concept/rack`. Vercel runs `npm ru
 
 ## Project settings
 
-Keep Root Directory at the repository root. `vercel.json` selects the Other framework, supplies the build command and sets `dist` as the output directory. Choose Node.js **24.x** in Build and Deployment settings. Vercel currently supports 24.x and 22.x; the repository has no `engines.node` override, so the dashboard setting determines the runtime. See [project configuration](https://vercel.com/docs/project-configuration/vercel-json) and [supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
+Keep Root Directory at the repository root. `vercel.json` selects the Other framework, supplies the build command and sets `dist` as the output directory. The root `package.json` pins `engines.node` to **24.x**, matching CI and selecting Vercel's build and function runtime. Keep Node.js **24.x** in Build and Deployment settings too. See [project configuration](https://vercel.com/docs/project-configuration/vercel-json) and [supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
 
 No connection, provisioning, push or deployment is part of the local build. When deployment is approved, import this repository using those settings. Deploying the public site does not require database or OAuth credentials. Without configured storage it uses the bundled portfolio; a configured storage outage displays an error rather than silently replacing published edits with bundled content.
 
@@ -16,7 +16,7 @@ Persistent administration needs a PostgreSQL database and GitHub OAuth credentia
 
 Set production credentials only in the Production environment. An administrative preview deployment needs its own matching `SITE_URL`, OAuth callback and isolated database. Do not point preview administration at the production database. GitHub's callback URL is `https://YOUR-DOMAIN/api/auth/callback/github`; the rewrite maps nested authentication paths to the single `api/auth.mjs` function.
 
-The functions import shared portfolio validation and bundled content from `concept/rack`. Their `includeFiles` list includes the three authored content maps as well as the seed's other dependencies. These explicit entries matter because Vercel's file tracer does not resolve the browser-version query strings in shared imports.
+The functions import shared portfolio validation and bundled content from `concept/rack`. Their `includeFiles` list includes the three authored content maps as well as the seed's other dependencies. These explicit entries matter because Vercel's file tracer does not resolve the browser-version query strings in shared imports. It also includes `concept/rack/package.json`, whose `type: module` declares these shared `.js` files as ES modules without changing the earlier application's root module type. The static build excludes this package metadata.
 
 ## Local checks
 

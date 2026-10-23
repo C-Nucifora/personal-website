@@ -2,6 +2,9 @@
   "name": "personal-website",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "bundle-source": "node scripts/bundle-source.mjs",
     "bundle-blog": "node scripts/bundle-blog.mjs",

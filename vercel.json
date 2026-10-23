@@ -60,7 +60,7 @@
   "functions": {
     "api/**/*.mjs": {
       "maxDuration": 30,
-      "includeFiles": "concept/rack/{bundled-collections,collections,catalog,schema,default-portfolio,software-content,experience-content,m1-content}.js"
+      "includeFiles": "concept/rack/{bundled-collections.js,collections.js,catalog.js,schema.js,default-portfolio.js,software-content.js,experience-content.js,m1-content.js,package.json}"
     }
   },
   "rewrites": [
