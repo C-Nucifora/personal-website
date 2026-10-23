@@ -1,6 +1,6 @@
-import { collections, allUnits } from './collections.js?v=20261022-reader-polish-v2';
-import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261022-reader-polish-v2';
-import { projectArt } from './project-art.js?v=20261022-reader-polish-v2';
+import { collections, allUnits } from './collections.js?v=20261023-content-v2';
+import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261023-content-v2';
+import { projectArt } from './project-art.js?v=20261023-content-v2';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -35,9 +35,9 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
     root.querySelector('#project-category').textContent = module ? `M1 Toolchain / ${module.group}` : unit.subtitle;
     root.querySelector('#project-title').textContent = module?.title ?? unit.title;
     root.querySelector('#project-summary').textContent = module?.description ?? unit.summary;
-    root.querySelector('#project-description').textContent = unit.description;
+    root.querySelector('#project-description').textContent = module?.description ?? unit.description;
     if (module) {
-      root.querySelector('#overview-title').textContent = 'Part of the M1 Toolchain';
+      root.querySelector('#overview-title').textContent = 'About this tool';
       const parentLink = element('a', 'Read about the full toolchain →', 'document-source');
       parentLink.href = projectUrl('m1-toolchain');
       root.querySelector('.document-overview').append(parentLink);
@@ -68,7 +68,7 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
     else if (collection?.id === 'experience') root.querySelector('#overview-title').textContent = 'Record';
     else if (collection?.id === 'hardware') root.querySelector('#overview-title').textContent = 'Team contribution';
     const contributionSection = renderRecord(root, unit, module, collection);
-    const stack = module ? [] : unit.stack;
+    const stack = module ? module.stack ?? [] : unit.stack;
     if (!stack.length) {
       root.querySelector('#project-stack-title').hidden = true;
       root.querySelector('#project-stack').hidden = true;
@@ -77,7 +77,7 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
     for (const technology of stack) {
       root.querySelector('#project-stack').append(element('li', technology));
     }
-    const facts = module ? [{ label: 'Bundle', value: 'M1 Toolchain' }, { label: 'Group', value: module.group }] : unit.facts;
+    const facts = module ? [...(module.facts ?? []), { label: 'Bundle', value: 'M1 Toolchain' }, { label: 'Group', value: module.group }] : unit.facts;
     for (const fact of facts) {
       const row = element('div');
       row.append(element('dt', fact.label), element('dd', fact.value));
@@ -131,8 +131,8 @@ export function renderProject(root, projectId, moduleId = null, data = {}) {
       root.querySelector('#project-modules').hidden = false;
     }
     if (unit.id === 'personal-projects' && !module) renderTrayMap(root, unit, units, projectUrl);
-    renderSections(root, (unit.page?.sections ?? []).filter(item => item !== contributionSection), module?.sourceUrl || unit.sourceUrl);
-    if (!bundled) applyPageTheme(root, unit.page.theme);
+    renderSections(root, ((module ?? unit).page?.sections ?? []).filter(item => item !== contributionSection), module?.sourceUrl || unit.sourceUrl);
+    if (module?.page?.theme || !bundled) applyPageTheme(root, module?.page?.theme ?? unit.page.theme);
     root.querySelector('#project-article').hidden = false;
     fallback.hidden = true;
   } else {
@@ -165,14 +165,15 @@ function savedTextView() {
 }
 
 function renderRecord(root, unit, module, collection) {
-  const fact = (...labels) => unit.facts.find(item => labels.some(label => item.label.toLowerCase() === label))?.value;
-  const sections = unit.page?.sections ?? [];
+  const record = module ?? unit;
+  const fact = (...labels) => (record.facts ?? []).find(item => labels.some(label => item.label.toLowerCase() === label))?.value;
+  const sections = record.page?.sections ?? [];
   const contribution = sections.find(item => item.type === 'text' && /^(what i did|my contribution|contribution|team context)$/i.test(item.title));
-  const role = fact('role', 'contribution') || (collection?.id === 'experience' ? unit.title : 'Not documented');
+  const role = fact('role', 'contribution') || (!module && collection?.id === 'experience' ? unit.title : 'Not documented');
   const started = fact('started');
   const completion = fact('expected completion');
   const dates = fact('period', 'dates') || (started ? `${started}${completion ? ` · Expected ${completion}` : ''}` : 'Not documented');
-  const status = fact('status') || (unit.placeholder ? 'Placeholder' : module?.id === 'm1-eval' || unit.id === 'wavelength' ? 'Experimental' : unit.id === 'mozaproxy' ? 'Compatibility validation ongoing' : 'Not documented');
+  const status = fact('status') || (!module && unit.placeholder ? 'Placeholder' : module?.id === 'm1-eval' || !module && unit.id === 'wavelength' ? 'Experimental' : !module && unit.id === 'mozaproxy' ? 'Compatibility validation ongoing' : 'Not documented');
   const sourceUrl = module?.sourceUrl || unit.sourceUrl;
   const sourceLabel = unit.sourceLabel || (sourceUrl?.startsWith('https://github.com/') ? 'Source repository' : 'Public source');
   const strip = root.querySelector('#project-record-strip');
@@ -187,7 +188,7 @@ function renderRecord(root, unit, module, collection) {
     } else detail.textContent = value;
     row.append(detail); strip.append(row);
   }
-  const contributionBody = contribution?.body?.trim() || (collection?.id === 'hardware' || collection?.id === 'experience' ? unit.description : '');
+  const contributionBody = contribution?.body?.trim() || (!module && (collection?.id === 'hardware' || collection?.id === 'experience') ? unit.description : '');
   root.querySelector('.document-contribution').hidden = !contributionBody;
   root.querySelector('#project-contribution').textContent = contributionBody;
   if (collection?.id === 'hardware') root.querySelector('#contribution-title').textContent = 'My contribution / team context';

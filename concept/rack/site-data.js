@@ -1,5 +1,5 @@
-import { createDefaultPortfolio } from './default-portfolio.js?v=20261022-reader-polish-v2';
-import { DEFAULT_SETTINGS, publicPortfolio } from './schema.js?v=20261022-reader-polish-v2';
+import { createDefaultPortfolio } from './default-portfolio.js?v=20261023-content-v2';
+import { DEFAULT_SETTINGS, publicPortfolio } from './schema.js?v=20261023-content-v2';
 
 async function loadPublished() {
   if (location.protocol === 'file:') return { config: createDefaultPortfolio(), bundled: true };

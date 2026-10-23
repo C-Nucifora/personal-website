@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import { setFinishUVs } from './finishes.js?v=20261022-reader-polish-v2';
+import { setFinishUVs } from './finishes.js?v=20261023-content-v2';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js?v=20261022-reader-polish-v2';
+import { portfolio, siteSettings, usesBundledPortfolio } from './site-data.js?v=20261023-content-v2';
 
 export const RACK_SLOTS = portfolio.racks.map((rack, index) => ({ id: rack.id, label: rack.label, position: [(index - Math.floor(portfolio.racks.length / 2)) * 6, 0, 0] }));
 

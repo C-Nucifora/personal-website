@@ -1,4 +1,4 @@
-import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261022-reader-polish-v2';
+import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261023-content-v2';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 
@@ -140,15 +140,17 @@ const experienceUnits = [
   },
   {
     id: 'experience-story-placeholder',
-    title: 'Your story',
-    subtitle: 'Personal introduction to come',
+    title: 'Engineering + software',
+    faceTitle: 'Engineering + software',
+    subtitle: 'Christian Nucifora',
     u: 1,
     type: 'record',
-    placeholder: true,
-    summary: 'A space for the story behind the work.',
-    description: 'A personal introduction will go here. This entry is a placeholder.',
+    summary: 'Engineering and computer science at UQ, with software projects and team work at UQ Racing.',
+    description: 'I study engineering and computer science at The University of Queensland and contribute to perception and electrical systems with UQ Racing.',
+    sourceUrl: linkedIn,
+    sourceLabel: 'LinkedIn profile',
     stack: [],
-    facts: [{ label: 'Status', value: 'Placeholder' }],
+    facts: [{ label: 'Status', value: 'Introduction' }],
   },
 ];
 

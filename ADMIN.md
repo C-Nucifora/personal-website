@@ -44,6 +44,8 @@ Free plans have usage and storage quotas. This implementation does not enable pa
 
 A nested module may set `projectId` to link to another complete project record. The editor offers a Linked project page selector. Linked records retain their own page theme, sections, sources and optional equipment placement. Renaming a project updates its incoming bundle references; deleting it removes those bundle entries. Unpublishing a child hides its entry in public bundles without removing it from the private draft. References to missing projects and self-references are rejected. The source defaults do not migrate or reset an existing database.
 
+M1 tools can own `facts`, `stack` and `page.sections`, with an optional `page.theme` override. Nested modules includes these editors and a Preview tool page action. Without a theme override the tool uses its parent's appearance. Missing fields in older configurations normalize to empty collections, preserving the existing tool routes and carrier placement. Source-backed content is part of the new default seed; existing database documents keep their authored values.
+
 Pages contain a theme and typed `text`, `image`, `gallery`, `code` or `links` sections. The format accepts plain text, safe links, hex colors and predefined fonts/layouts; it has no arbitrary HTML, CSS or JavaScript field.
 
 | Endpoint | Purpose |

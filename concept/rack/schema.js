@@ -62,6 +62,16 @@ export function validatePortfolio(input) {
     if (v.type === 'gallery') { keys(v, ['id', 'type', 'title', 'images'], path); return { ...common, title, images: array(v.images, `${path}.images`, 30).map((item, i) => image(item, `${path}.images[${i}]`)) }; }
     keys(v, ['id', 'type', 'title', 'links'], path); return { ...common, title, links: links(v.links, `${path}.links`) };
   };
+  const facts = (value, path) => array(value ?? [], path, 50).map((item, index) => { const p = `${path}[${index}]`; const v = keys(item, ['label', 'value'], p); return { label: text(v.label, `${p}.label`, 120, true), value: text(v.value, `${p}.value`, 2000) }; });
+  const stack = (value, path) => array(value ?? [], path, 50).map((item, index) => text(item, `${path}[${index}]`, 120, true));
+  const page = (value, path, inheritTheme = false) => {
+    const v = keys(value ?? {}, ['theme', 'sections'], path);
+    const sections = array(v.sections ?? [], `${path}.sections`, 80).map((item, index) => section(item, `${path}.sections[${index}]`));
+    unique(sections, `${path}.sections`);
+    if (inheritTheme && v.theme === undefined) return { sections };
+    const theme = keys(v.theme ?? {}, Object.keys(DEFAULT_THEME), `${path}.theme`);
+    return { theme: { background: color(theme.background, `${path}.theme.background`, DEFAULT_THEME.background), text: color(theme.text, `${path}.theme.text`, DEFAULT_THEME.text), accent: color(theme.accent, `${path}.theme.accent`, DEFAULT_THEME.accent), font: choice(theme.font, ['sans', 'serif', 'mono'], `${path}.theme.font`, DEFAULT_THEME.font), layout: choice(theme.layout, ['standard', 'wide', 'editorial'], `${path}.theme.layout`, DEFAULT_THEME.layout) }, sections };
+  };
   const root = keys(input, ['schemaVersion', 'settings', 'racks', 'projects'], 'config');
   if (root.schemaVersion !== 1) fail('schemaVersion', 'expected 1');
   const settings = keys(root.settings ?? {}, ['intro', 'socialLinks', 'appearance'], 'settings');
@@ -78,10 +88,13 @@ export function validatePortfolio(input) {
     const unit = keys(v.rackUnit, ['heightU', 'type', 'faceTitle', 'placement'], `${p}.rackUnit`);
     let placement = null;
     if (unit.placement !== null && unit.placement !== undefined) { const place = keys(unit.placement, ['rackId', 'startU'], `${p}.rackUnit.placement`); placement = { rackId: id(place.rackId, `${p}.rackUnit.placement.rackId`), startU: integer(place.startU, `${p}.rackUnit.placement.startU`, 1, 48) }; }
-    const page = keys(v.page ?? {}, ['theme', 'sections'], `${p}.page`); const theme = keys(page.theme ?? {}, Object.keys(DEFAULT_THEME), `${p}.page.theme`);
-    const sections = array(page.sections ?? [], `${p}.page.sections`, 80).map((s, n) => section(s, `${p}.page.sections[${n}]`)); unique(sections, `${p}.page.sections`);
-    const modules = array(v.modules ?? [], `${p}.modules`, 100).map((item, n) => { const mp = `${p}.modules[${n}]`; const m = keys(item, ['id', 'group', 'title', 'description', 'sourceUrl', 'projectId'], mp); return { ...(m.projectId !== undefined && m.projectId !== '' ? { projectId: id(m.projectId, `${mp}.projectId`) } : {}), id: moduleId(m.id, `${mp}.id`), group: text(m.group, `${mp}.group`, 120), title: text(m.title, `${mp}.title`, 200, true), description: text(m.description, `${mp}.description`, 5000), sourceUrl: url(m.sourceUrl, `${mp}.sourceUrl`) }; }); unique(modules, `${p}.modules`);
-    return { id: id(v.id, `${p}.id`), title: text(v.title, `${p}.title`, 200, true), subtitle: text(v.subtitle, `${p}.subtitle`, 300), summary: text(v.summary, `${p}.summary`, 2000), description: text(v.description, `${p}.description`, 30000), sourceUrl: url(v.sourceUrl, `${p}.sourceUrl`), sourceLabel: text(v.sourceLabel, `${p}.sourceLabel`, 120), stack: array(v.stack ?? [], `${p}.stack`, 50).map((s, n) => text(s, `${p}.stack[${n}]`, 120, true)), facts: array(v.facts ?? [], `${p}.facts`, 50).map((f, n) => { const fp = `${p}.facts[${n}]`; const fact = keys(f, ['label', 'value'], fp); return { label: text(fact.label, `${fp}.label`, 120, true), value: text(fact.value, `${fp}.value`, 2000) }; }), modules, placeholder: boolean(v.placeholder, `${p}.placeholder`), published: boolean(v.published, `${p}.published`), rackUnit: { heightU: integer(unit.heightU, `${p}.rackUnit.heightU`, 1, 48), type: choice(unit.type, RACK_TYPES, `${p}.rackUnit.type`), faceTitle: text(unit.faceTitle, `${p}.rackUnit.faceTitle`, 120), placement }, page: { theme: { background: color(theme.background, `${p}.page.theme.background`, DEFAULT_THEME.background), text: color(theme.text, `${p}.page.theme.text`, DEFAULT_THEME.text), accent: color(theme.accent, `${p}.page.theme.accent`, DEFAULT_THEME.accent), font: choice(theme.font, ['sans', 'serif', 'mono'], `${p}.page.theme.font`, DEFAULT_THEME.font), layout: choice(theme.layout, ['standard', 'wide', 'editorial'], `${p}.page.theme.layout`, DEFAULT_THEME.layout) }, sections } };
+    const modules = array(v.modules ?? [], `${p}.modules`, 100).map((item, n) => {
+      const mp = `${p}.modules[${n}]`;
+      const m = keys(item, ['id', 'group', 'title', 'description', 'sourceUrl', 'projectId', 'facts', 'stack', 'page'], mp);
+      return { ...(m.projectId !== undefined && m.projectId !== '' ? { projectId: id(m.projectId, `${mp}.projectId`) } : {}), id: moduleId(m.id, `${mp}.id`), group: text(m.group, `${mp}.group`, 120), title: text(m.title, `${mp}.title`, 200, true), description: text(m.description, `${mp}.description`, 5000), sourceUrl: url(m.sourceUrl, `${mp}.sourceUrl`), facts: facts(m.facts, `${mp}.facts`), stack: stack(m.stack, `${mp}.stack`), page: page(m.page, `${mp}.page`, true) };
+    });
+    unique(modules, `${p}.modules`);
+    return { id: id(v.id, `${p}.id`), title: text(v.title, `${p}.title`, 200, true), subtitle: text(v.subtitle, `${p}.subtitle`, 300), summary: text(v.summary, `${p}.summary`, 2000), description: text(v.description, `${p}.description`, 30000), sourceUrl: url(v.sourceUrl, `${p}.sourceUrl`), sourceLabel: text(v.sourceLabel, `${p}.sourceLabel`, 120), stack: stack(v.stack, `${p}.stack`), facts: facts(v.facts, `${p}.facts`), modules, placeholder: boolean(v.placeholder, `${p}.placeholder`), published: boolean(v.published, `${p}.published`), rackUnit: { heightU: integer(unit.heightU, `${p}.rackUnit.heightU`, 1, 48), type: choice(unit.type, RACK_TYPES, `${p}.rackUnit.type`), faceTitle: text(unit.faceTitle, `${p}.rackUnit.faceTitle`, 120), placement }, page: page(v.page, `${p}.page`) };
   });
   unique(result.projects, 'projects');
   for (const project of result.projects) for (const module of project.modules) {

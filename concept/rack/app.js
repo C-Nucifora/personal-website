@@ -1,11 +1,11 @@
-import { collections, allUnits } from "./collections.js?v=20261022-reader-polish-v2";
+import { collections, allUnits } from "./collections.js?v=20261023-content-v2";
 
-import { hasModuleCarriers } from './rack-layout.js?v=20261022-reader-polish-v2';
-import { siteSettings, portfolio } from './site-data.js?v=20261022-reader-polish-v2';
-import { buildPublicIndex } from './public-dom.js?v=20261022-reader-polish-v2';
+import { hasModuleCarriers } from './rack-layout.js?v=20261023-content-v2';
+import { siteSettings, portfolio } from './site-data.js?v=20261023-content-v2';
+import { buildPublicIndex } from './public-dom.js?v=20261023-content-v2';
 buildPublicIndex();
 
-import { createProjectReader } from "./project-reader.js?v=20261022-reader-polish-v2";
+import { createProjectReader } from "./project-reader.js?v=20261023-content-v2";
 
 const workspace = document.querySelector(".workspace");
 const projectPanel = document.querySelector(".project-panel");
@@ -682,7 +682,7 @@ async function startScene() {
     graphicsUnavailable = !window.WebGL2RenderingContext || !canvas.getContext('webgl2', { antialias: true, alpha: false, powerPreference: 'high-performance' });
     if (graphicsUnavailable) throw new Error('WebGL2 is unavailable');
     const [{ createRackScene }] = await Promise.all([
-      import("./scene.js?v=20261022-reader-polish-v2"),
+      import("./scene.js?v=20261023-content-v2"),
       Promise.allSettled([
         document.fonts.load('700 32px "IBM Plex Sans"'),
         document.fonts.load('700 32px "IBM Plex Mono"'),
