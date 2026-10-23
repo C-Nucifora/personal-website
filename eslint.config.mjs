@@ -11,8 +11,22 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "dist/**",
+    "concept/rack/vendor/**",
     "next-env.d.ts",
   ]),
+  {
+    files: ["concept/rack/*.js"],
+    // These browser modules are not Next.js modules. Rack units use the
+    // ordinary local name `module`; Next's CommonJS guard does not apply.
+    rules: { "@next/next/no-assign-module-variable": "off" },
+  },
+  {
+    files: ["concept/rack/*.js", "api/*.mjs", "server/*.mjs", "scripts/*.mjs"],
+    // TypeScript checks the earlier app; keep undefined names checked in
+    // the JavaScript that builds and serves the current rack portfolio.
+    rules: { "no-undef": "error" },
+  },
 ]);
 
 export default eslintConfig;

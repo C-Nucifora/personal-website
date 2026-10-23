@@ -33,7 +33,8 @@ The fifteen tool routes retain `project.html?project=m1-toolchain&module=<id>`. 
 One entry remains deliberately marked with `placeholder: true`:
 
 - `hardware-project-placeholder` reserves 1U for a hardware build. Replace its title, summary and description with the project's name, Christian's contribution and a factual build account. Add photographs or links only when supplied for this portfolio. Remove `placeholder` when the entry is complete.
-- `experience-story-placeholder` keeps its existing ID but is now a factual introduction titled Engineering + software. It is no longer a placeholder.
+
+The introduction titled Engineering + software retains its existing `experience-story-placeholder` ID for shared links. It now has factual authored content and is not a placeholder.
 
 Software work dates, individual feature ownership and specific hardware build evidence remain absent where the sources do not supply them. St Augustine's attendance is kept concise. The pages do not manufacture qualifications or case studies to fill those gaps.
 

@@ -11,10 +11,6 @@ const dirty = () => state.config && JSON.stringify(state.config) !== state.basel
 const project = () => state.config.projects[state.selected];
 const projectPath = () => `projects.${state.selected}`;
 const uid = (prefix) => `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
-const safeUrl = (value, image = false) => {
-  if (image && /^\/(?!\/)/.test(value) && !value.includes('..')) return value;
-  try { const url = new URL(value); return ['https:', ...(image ? [] : ['mailto:'])].includes(url.protocol) && !url.username && !url.password ? url.href : ''; } catch { return ''; }
-};
 function notice(message, error = false) { const node = $('#notice'); node.textContent = message; node.classList.toggle('error', error); node.hidden = !message; }
 function report(error) { notice(error.status === 409 ? 'A newer draft was saved elsewhere. Export your changes, reload this editor, then merge or import them before saving again.' : error.issues?.join(' · ') || error.message || 'The action failed. Your draft is still in this tab.', true); }
 function status() {
