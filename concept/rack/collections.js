@@ -1,4 +1,4 @@
-import { portfolio } from './site-data.js?v=20261023-content-v2';
+import { portfolio } from './site-data.js?v=20261023-content-v3';
 
 // All published records retain native routes, including units without a placement.
 export const allUnits = portfolio.projects.filter(project => project.published).map(project => ({

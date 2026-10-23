@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261023-content-v2';
+import { renderProject } from './project-content.js?v=20261023-content-v3';
 
 const params = new URLSearchParams(location.search);
 const record = renderProject(document, params.get('project'), params.get('module'));

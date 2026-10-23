@@ -1,9 +1,9 @@
-import { collections, unplacedSoftwareUnits } from './bundled-collections.js?v=20261023-content-v2';
-import { DEFAULT_SETTINGS, DEFAULT_THEME, validatePortfolio } from './schema.js?v=20261023-content-v2';
+import { collections, unplacedSoftwareUnits } from './bundled-collections.js?v=20261023-content-v3';
+import { DEFAULT_SETTINGS, DEFAULT_THEME, validatePortfolio } from './schema.js?v=20261023-content-v3';
 
-import { softwareContent } from './software-content.js?v=20261023-content-v2';
-import { experienceContent } from './experience-content.js?v=20261023-content-v2';
-import { m1Content } from './m1-content.js?v=20261023-content-v2';
+import { softwareContent } from './software-content.js?v=20261023-content-v3';
+import { experienceContent } from './experience-content.js?v=20261023-content-v3';
+import { m1Content } from './m1-content.js?v=20261023-content-v3';
 
 function withContent(project) {
   const content = softwareContent[project.id] ?? experienceContent[project.id];

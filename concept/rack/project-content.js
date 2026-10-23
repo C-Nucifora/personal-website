@@ -1,6 +1,6 @@
-import { collections, allUnits } from './collections.js?v=20261023-content-v2';
-import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261023-content-v2';
-import { projectArt } from './project-art.js?v=20261023-content-v2';
+import { collections, allUnits } from './collections.js?v=20261023-content-v3';
+import { siteSettings, usesBundledPortfolio, portfolioError } from './site-data.js?v=20261023-content-v3';
+import { projectArt } from './project-art.js?v=20261023-content-v3';
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -289,7 +289,11 @@ function renderSections(root, sections, sourceUrl) {
     }
     if (item.type === 'code') {
       if (item.language) section.append(element('p', item.language, 'document-category'));
-      const pre = element('pre'); pre.append(element('code', item.code)); section.append(pre);
+      const pre = element('pre');
+      pre.tabIndex = 0;
+      pre.setAttribute('role', 'region');
+      pre.setAttribute('aria-label', item.title.trim() || (item.language.trim() ? `${item.language.trim()} code example` : 'Code example'));
+      pre.append(element('code', item.code)); section.append(pre);
     }
     if (item.type === 'links') {
       const links = element('ul', '', 'project-choice-list');

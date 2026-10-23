@@ -1,4 +1,4 @@
-import { renderProject } from './project-content.js?v=20261023-content-v2';
+import { renderProject } from './project-content.js?v=20261023-content-v3';
 
 // Map the real document onto the four corners of the physical rack display.
 export function projectTransform(points, width, height) {
@@ -44,7 +44,7 @@ export function createProjectReader({ onReturn, onNavigate }) {
     if (!stylesheetPromise) stylesheetPromise = new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = './project.css?v=20261023-content-v2';
+      link.href = './project.css?v=20261023-content-v3';
       link.onload = resolve;
       link.onerror = () => { link.remove(); stylesheetPromise = null; reject(new Error('Project styles could not load')); };
       document.head.append(link);

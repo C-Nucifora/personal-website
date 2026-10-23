@@ -1,5 +1,5 @@
-import { validatePortfolio, RACK_TYPES, DEFAULT_THEME } from './schema.js?v=20261023-content-v2';
-import { createDefaultPortfolio } from './default-portfolio.js?v=20261023-content-v2';
+import { validatePortfolio, RACK_TYPES, DEFAULT_THEME } from './schema.js?v=20261023-content-v3';
+import { createDefaultPortfolio } from './default-portfolio.js?v=20261023-content-v3';
 
 const $ = (selector) => document.querySelector(selector);
 const escape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -183,7 +183,7 @@ async function previewPage(moduleId = null) {
   target.append(label, plate, loading);
   $('#preview-dialog').showModal();
   try {
-    const [response, { renderProject: renderPage }] = await Promise.all([fetch('./project.html'), import('./project-content.js?v=20261023-content-v2')]);
+    const [response, { renderProject: renderPage }] = await Promise.all([fetch('./project.html'), import('./project-content.js?v=20261023-content-v3')]);
     if (!response.ok) throw new Error('The page template could not load.');
     const template = new DOMParser().parseFromString(await response.text(), 'text/html');
     template.querySelectorAll('script').forEach(node => node.remove());

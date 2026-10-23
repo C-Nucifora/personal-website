@@ -1,4 +1,4 @@
-import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261023-content-v2';
+import { softwareUnits, softwareProjectRecords, personalProjectIds } from './catalog.js?v=20261023-content-v3';
 
 const linkedIn = 'https://www.linkedin.com/in/christian-nucifora-501432387/';
 

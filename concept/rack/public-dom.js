@@ -1,6 +1,6 @@
-import { allUnits as bundledUnits } from './bundled-collections.js?v=20261023-content-v2';
-import { collections, allUnits } from './collections.js?v=20261023-content-v2';
-import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js?v=20261023-content-v2';
+import { allUnits as bundledUnits } from './bundled-collections.js?v=20261023-content-v3';
+import { collections, allUnits } from './collections.js?v=20261023-content-v3';
+import { siteSettings, portfolioError, usesBundledPortfolio } from './site-data.js?v=20261023-content-v3';
 
 export function element(tag, text = '', className = '') {
   const node = document.createElement(tag);
