@@ -104,3 +104,7 @@ Verify each new theme passes contrast: `--fg` on `--bg-window` ≥ 4.5:1, `--acc
 Palettes to add in the post-launch pass: Catppuccin (Mocha + Latte), Gruvbox, Dracula, Nord, One Dark, Solarized (Dark + Light), Rosé Pine. Pull each from its canonical source rather than guessing hex values.
 
 > Note: hex values above are transcribed from the published Tokyo Night palettes and are close to canonical, but confirm against the current upstream theme before locking them, since palettes get minor revisions.
+
+## Publication contrast adjustment
+
+The shipped token files are the current colour values. Secondary text, accents and ANSI text have been adjusted within each palette to meet 4.5:1 against the page, window and elevated surfaces. The historical palette tables above describe the starting palettes. `lib/themes/contrast.test.ts` checks every shipped theme, including CRT. Decorative subtle tokens are not reading text.

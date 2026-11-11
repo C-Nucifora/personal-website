@@ -22,14 +22,11 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
-      # prebuild re-syncs projects from the GitHub API; the token avoids
-      # anonymous rate limits (falls back to the committed snapshot if it fails)
       - run: npm run build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npx playwright install --with-deps chromium
       - name: e2e against the static export
         run: |
-          (cd out && python3 -m http.server 3000 &)
+          (cd out && python3 -m http.server 3000 --bind 127.0.0.1 &)
           sleep 2
-          BASE=http://127.0.0.1:3000 node e2e/verify.mjs
+          BASE=http://127.0.0.1:3000 npm run e2e
+          BASE=http://127.0.0.1:3000 npm run e2e:publication

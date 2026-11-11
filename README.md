@@ -118,3 +118,12 @@ layer never loads — and the plain view is always one click away.
 
 Code is [MIT](LICENSE). Personal content (resume, blog posts, images) is not —
 it stays © Christian Nucifora.
+
+
+## Reviewing a release
+
+Run `npm run fetch-projects` only when intentionally refreshing the public project snapshot. Review the generated metadata and source diff before committing it. Builds use the committed snapshot and do not contact GitHub. The selection is an explicit allowlist in `data/projects-config.mjs`; infrastructure repositories must stay excluded even if they are public.
+
+For local checks, bind development with `npm run dev -- --hostname 127.0.0.1 --port 4317`. Serve the export with `python3 -m http.server 4318 --bind 127.0.0.1 --directory out`. Never serve the repository root or expose preview ports on a public VPS. Run the existing e2e suite and `BASE=http://127.0.0.1:4318 node e2e/publication.mjs`. `CHROMIUM_PATH` can select an existing local Chromium when the platform is newer than Playwright's installer supports.
+
+Publication still requires owner-approved content. Track remaining gates in `docs/qa/publication-checklist.md`; a successful build does not approve placeholder biographical or résumé claims.

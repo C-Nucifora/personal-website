@@ -6,16 +6,17 @@
     "bundle-source": "node scripts/bundle-source.mjs",
     "bundle-blog": "node scripts/bundle-blog.mjs",
     "fetch-projects": "node scripts/fetch-projects.mjs",
-    "predev": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
-    "prebuild": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
-    "dev": "next dev",
+    "predev": "node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
+    "prebuild": "node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
+    "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
-    "start": "next start",
+    "start": "python3 -m http.server 3000 --bind 127.0.0.1 --directory out",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "node e2e/verify.mjs"
+    "e2e": "node e2e/verify.mjs",
+    "e2e:publication": "node e2e/publication.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",

@@ -47,3 +47,6 @@ AGENTS.md
 
 # macOS/iCloud conflict copies ("name 2.ts")
 * [0-9].*
+
+# Private browser audit artifacts
+/.playwright-cli/

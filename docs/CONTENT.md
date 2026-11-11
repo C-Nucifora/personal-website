@@ -55,20 +55,16 @@ The `resume` command renders these in order: experience, education, skills, then
 
 ## `data/projects.ts` — fed from GitHub
 
-Projects are **synced from GitHub at build time**, not written by hand:
+Projects use reviewed, committed GitHub snapshots. Sync is manual:
 
-- `data/projects-config.mjs` — the curation knobs: `username`, `exclude`,
+- `data/projects-config.mjs` — the curation knobs: `username`, `include`, `exclude`,
   `featured` (order preserved), per-repo `overrides`, and how many commits to
   bundle for the `git log` egg.
-- `scripts/fetch-projects.mjs` (runs on `predev`/`prebuild`, or manually via
-  `npm run fetch-projects`) pulls each public, non-fork repo's metadata, real
-  README markdown, recent commits, and a curated source slice (one tarball
-  request per repo, filtered and capped by the `source` knobs in
-  projects-config) into `data/generated/github-projects.ts` and
+- `scripts/fetch-projects.mjs`, invoked with `npm run fetch-projects`, pulls only explicitly included public repositories. It resolves a commit SHA for each repository and reads metadata, README, recent commits and regular source blobs with response and file size limits. It never uses authentication or extracts archives. Review the generated diff before accepting it. This writes snapshots into `data/generated/github-projects.ts` and
   `data/generated/github-sources.ts`. The snapshots are committed so offline
-  builds and tests work; a failed fetch keeps the last good snapshot.
+  builds and tests work; a failed fetch keeps the last good snapshot. Development and production builds never refresh these snapshots automatically.
 - Source slices ship as a **lazy chunk** grafted into the virtual filesystem
-  just after boot (each repo keeps its real layout — Cargo.toml at the root,
+  on first entering Projects or accessing a project source path from another shell (each repo keeps its real layout — Cargo.toml at the root,
   its own src/), so browsing code never weighs down first paint.
 - `data/projects.ts` maps that onto the `Project` interface and appends
   `terminal-portfolio` (this site — its curated source is bundled locally via

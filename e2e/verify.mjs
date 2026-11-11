@@ -1,9 +1,11 @@
 /**
  * End-to-end verification of the FLOW.md interaction model.
  * Run against a server of the static export (or `next dev`):
- *   npm run build && (cd out && python3 -m http.server 3000) & BASE=http://127.0.0.1:3000 node e2e/verify.mjs
+ *   npm run build && (cd out && python3 -m http.server 3000 --bind 127.0.0.1) & BASE=http://127.0.0.1:3000 node e2e/verify.mjs
  */
 import { chromium, devices } from "playwright";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const BASE = process.env.BASE || "http://127.0.0.1:3000";
 const EMAIL = "cgnucifora@proton.me";
@@ -13,7 +15,7 @@ const ok = (n, c, extra = "") => results.push({ n, pass: !!c, extra });
 const ANIM = 650; // click → type-on (≤250ms) → beat → execute, with margin
 
 async function main() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage();
   const errors = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -22,7 +24,7 @@ async function main() {
   // textContent, not innerText: panes hidden with visibility (and text under
   // CSS text-transform) must still be inspectable.
   const paneText = (key) =>
-    page.$eval(`[data-window="${key}"]`, (e) => e.textContent ?? "").catch(() => "");
+    page.$eval(`[data-window="${key}"]`, (e) => { const copy = e.cloneNode(true); copy.querySelectorAll('[role="status"]').forEach((status) => status.remove()); return copy.textContent ?? ""; }).catch(() => "");
   const activeInput = (key) => page.locator(`[data-window="${key}"] input`);
   const run = async (key, cmd) => {
     await activeInput(key).fill(cmd);
@@ -47,7 +49,7 @@ async function main() {
   ok("MOTD: neofetch card", /Host/.test(lobby) && /Shell/.test(lobby));
   ok("MOTD: clickable try hints", lobby.includes("try:") && lobby.includes("cd about"));
   ok("MOTD: human nav sentence", lobby.includes("No command line needed"));
-  await page.screenshot({ path: "/tmp/e2e-lobby.png" });
+  await page.screenshot({ path: process.env.SCREENSHOT || join(tmpdir(), "portfolio-e2e-lobby.png") });
 
   // ---- ls is a clickable menu (§3.1)
   await run("lobby", "ls");
@@ -125,7 +127,7 @@ async function main() {
   await run("help", "theme dracula");
   ok("theme command applies", (await page.getAttribute("html", "data-theme")) === "dracula");
   await page.selectOption("select", "nord");
-  await page.waitForTimeout(ANIM);
+  await page.waitForFunction(() => document.documentElement.dataset.theme === "nord");
   ok("dropdown echoes the command", (await paneText("help")).includes("theme nord"));
   ok("dropdown applies the theme", (await page.getAttribute("html", "data-theme")) === "nord");
 
