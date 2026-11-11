@@ -13,7 +13,7 @@ import type { AppState, WindowKey } from "@/lib/terminal/types";
 function NormalLine({ text, pos }: { text: string; pos: number }) {
   const at = Math.min(pos, Math.max(0, text.length - 1));
   return (
-    <span className="whitespace-pre font-mono text-sm text-fg">
+    <span className="max-w-full overflow-x-auto whitespace-pre font-mono text-sm text-fg">
       {text.slice(0, at)}
       <span className="bg-[var(--accent)] text-[var(--bg-window)]">
         {text[at] ?? " "}
@@ -60,10 +60,9 @@ export function Prompt({ windowKey, paneId }: PromptProps) {
     store.dispatch({ type: "set-input", windowKey, text, cursorPos: pos });
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (mode !== "INSERT") {
-      e.preventDefault();
-      return;
-    }
+    if (e.nativeEvent.isComposing || e.metaKey) return;
+    if (e.key === "Tab" && (e.shiftKey || !value.trim() || mode !== "INSERT")) return;
+    if (mode !== "INSERT") return;
     if (e.key === "Escape") {
       // INSERT → NORMAL; the cursor steps left, like vim (§6.1).
       e.preventDefault();
@@ -107,6 +106,7 @@ export function Prompt({ windowKey, paneId }: PromptProps) {
       return;
     }
     if (e.key === "c" && e.ctrlKey) {
+      if (window.getSelection()?.toString() || inputRef.current?.selectionStart !== inputRef.current?.selectionEnd) return;
       e.preventDefault();
       setInput("", 0);
       return;
@@ -114,7 +114,7 @@ export function Prompt({ windowKey, paneId }: PromptProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <PromptLabel path={cwd} />
       {mode === "NORMAL" ? (
         <NormalLine text={value} pos={cursorPos} />
@@ -136,7 +136,7 @@ export function Prompt({ windowKey, paneId }: PromptProps) {
           autoCorrect="off"
           spellCheck={false}
           enterKeyHint="send"
-          className="min-w-0 flex-1 border-none bg-transparent font-mono text-sm text-fg caret-[var(--accent)] outline-none"
+          className="min-w-[8ch] flex-1 border-none bg-transparent font-mono text-base sm:text-sm text-fg caret-[var(--accent)] outline-none"
         />
       )}
     </div>

@@ -35,7 +35,7 @@ export function TabBar() {
                   "focus-visible:outline-2",
                   isActive
                     ? "border-b-2 border-b-accent bg-window text-accent"
-                    : "text-fg/75 hover:bg-window/70 hover:text-fg",
+                    : "text-muted hover:bg-window/70 hover:text-fg",
                 ].join(" ")}
               >
                 <span className={isActive ? "text-muted" : ""}>{i + 1}:</span>

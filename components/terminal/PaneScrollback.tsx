@@ -13,8 +13,8 @@ interface PaneScrollbackProps {
 
 /**
  * A pane's scrollback. Command lines echo with the prompt as it looked when
- * they ran; output lines render their node. role="log" + polite live region
- * per the accessibility non-negotiables.
+ * they ran; output lines render their node. Only the short completion status is live;
+ * reading a whole document stays under the visitor's control.
  */
 export function PaneScrollback({ windowKey, paneId }: PaneScrollbackProps) {
   const lines = useTerminalStore(
@@ -22,6 +22,8 @@ export function PaneScrollback({ windowKey, paneId }: PaneScrollbackProps) {
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const lastCommandId = useRef<number | null>(null);
+  const wasAtBottom = useRef(true);
+  const autoTop = useRef<number | null>(null);
   const [unseen, setUnseen] = useState(false);
 
   const scrollContainer = () =>
@@ -40,29 +42,30 @@ export function PaneScrollback({ windowKey, paneId }: PaneScrollbackProps) {
     const lastCmd = [...lines].reverse().find((l) => l.command !== null);
     if (!lastCmd || lastCmd.id === lastCommandId.current) return;
     lastCommandId.current = lastCmd.id;
-    if (atBottom()) {
+    if (wasAtBottom.current) {
       containerRef.current
         ?.querySelector(`[data-entry-id="${lastCmd.id}"]`)
         ?.scrollIntoView({ block: "start" });
+      autoTop.current = scrollContainer()?.scrollTop ?? null;
       return;
     }
     const id = requestAnimationFrame(() => setUnseen(true));
     return () => cancelAnimationFrame(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines]);
 
-  // Reaching the bottom (by any means) clears the pill.
+  // Remember the position before output grows. Measuring after append would
+  // mistake a long response for a visitor who deliberately scrolled upward.
   useEffect(() => {
-    if (!unseen) return;
     const el = scrollContainer();
     if (!el) return;
     const onScroll = () => {
-      if (atBottom()) setUnseen(false);
+      wasAtBottom.current = atBottom() || el.scrollTop === autoTop.current;
+      if (wasAtBottom.current) setUnseen(false);
     };
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unseen]);
+  }, []);
 
   const jumpToBottom = () => {
     const el = scrollContainer();
@@ -71,7 +74,8 @@ export function PaneScrollback({ windowKey, paneId }: PaneScrollbackProps) {
   };
 
   return (
-    <div ref={containerRef} role="log" aria-live="polite" className="space-y-4">
+    <div ref={containerRef} role="log" aria-live="off" className="space-y-4">
+      <span className="sr-only" role="status" aria-live="polite">{lines.findLast((line) => line.command !== null)?.command?.slice(0, 80)}{lines.length ? ". Output is available in the terminal content." : ""}</span>
       {lines.map((line) =>
         line.command !== null ? (
           <div key={line.id} data-entry-id={line.id} className="scroll-mt-2">

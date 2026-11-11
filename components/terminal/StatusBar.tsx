@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { profile } from "@/data/profile";
 import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
-import { activePane } from "@/lib/terminal/reducer";
+import { windowForPath } from "@/lib/vfs/path";
+import { activePane, getPane } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import { runClick } from "@/lib/terminal/run-click";
+import { focusActivePrompt } from "@/lib/terminal/focus";
 
 function modeLabel(mode: string, pendingPrefix: boolean, view: string): string {
   if (pendingPrefix) return "^B";
@@ -19,6 +21,7 @@ function modeLabel(mode: string, pendingPrefix: boolean, view: string): string {
  * a transient notice) · clock · help hint. Also the channel for confirms.
  */
 export function StatusBar() {
+  const savedCwds = useTerminalStore((s) => ACTIVE_WINDOW_IDS.map((id) => getPane(s, id).cwd).join("\n")).split("\n");
   const active = useTerminalStore((s) => s.activeWindow);
   const mode = useTerminalStore((s) => activePane(s).mode);
   const view = useTerminalStore((s) => activePane(s).view);
@@ -58,25 +61,25 @@ export function StatusBar() {
   return (
     <div
       data-status-bar
-      className="flex items-center gap-3 border-t border-border bg-elevated px-2 py-1 font-mono text-[11px] text-muted"
+      className="relative flex items-center gap-3 border-t border-border bg-elevated px-2 py-1 font-mono text-[11px] text-muted"
     >
       <span className="hidden shrink-0 sm:inline">
         visitor@{profile.username}
       </span>
 
-      <ul className="flex shrink-0 items-center gap-1" aria-hidden="true">
+      <ul className="hidden shrink-0 items-center gap-1 lg:flex" aria-hidden="true">
         {ACTIVE_WINDOW_IDS.map((id, i) => (
           <li key={id}>
             <button
               type="button"
               tabIndex={-1}
-              onClick={() => runClick(`cd ~/${id}`)}
+              onClick={() => runClick(`cd ${windowForPath(savedCwds[i]) === id ? savedCwds[i] : `~/${id}`}`)}
               className={[
                 "cursor-pointer px-1",
-                id === active ? "bg-selection text-fg" : "text-fg/70 hover:text-fg",
+                id === active ? "bg-selection text-fg" : "text-muted hover:text-fg",
               ].join(" ")}
             >
-              {i + 1}:{id.slice(0, 3)}
+              {i + 1}:{id}
             </button>
           </li>
         ))}
@@ -102,11 +105,20 @@ export function StatusBar() {
         {middle}
       </span>
 
+      {confirm && <div className="absolute bottom-full right-2 flex gap-2 rounded border border-border bg-elevated px-2 shadow-lg">
+        <button type="button" className="min-h-11 px-2 text-accent" onClick={() => {
+          if (confirm.kind === "openUrl") window.open(confirm.payload, "_blank", "noopener,noreferrer");
+          else if (active) store.dispatch({ type: "close-pane", window: active, paneId: confirm.payload });
+          store.dispatch({ type: "set-confirm", confirm: null });
+          focusActivePrompt();
+        }}>Confirm</button>
+        <button type="button" className="min-h-11 px-2" onClick={() => store.dispatch({ type: "set-confirm", confirm: null })}>Cancel</button>
+      </div>}
       <span className="hidden shrink-0 sm:inline">{time}</span>
       <button
         type="button"
         onClick={() => runClick("help")}
-        className="shrink-0 cursor-pointer text-fg/70 hover:text-accent"
+        className="shrink-0 cursor-pointer text-muted hover:text-accent"
       >
         ? help
       </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { projectLanguage } from "@/lib/highlight/languages";
 import { useEffect, useRef, useState } from "react";
 import { EditorState } from "@codemirror/state";
 import {
@@ -42,7 +43,7 @@ function languageExtension(language: VfsLanguage) {
     case "markdown":
       return [markdown()];
     default:
-      return [];
+      return projectLanguage(language) ? [projectLanguage(language)!] : [];
   }
 }
 
@@ -195,7 +196,7 @@ export default function VimViewerImpl({
             },
             ".cm-gutters": {
               backgroundColor: "transparent",
-              color: "var(--fg-subtle)",
+              color: "var(--fg-muted)",
               border: "none",
             },
             ".cm-activeLine": { backgroundColor: "var(--bg-selection)" },
@@ -280,7 +281,7 @@ export default function VimViewerImpl({
       navigator.clipboard?.writeText(text).catch(() => {});
     };
     view.dom.addEventListener("keydown", onKeyDown);
-    view.focus();
+    if (window.matchMedia?.("(pointer: fine)").matches) view.focus();
 
     return () => {
       intelCancelled = true;
@@ -306,7 +307,7 @@ export default function VimViewerImpl({
             type="button"
             aria-label="Dismiss hint"
             onClick={() => setHintDismissed(true)}
-            className="cursor-pointer px-1 hover:text-fg"
+            className="min-h-11 min-w-11 shrink-0 cursor-pointer px-1 hover:text-fg"
           >
             ✕
           </button>
@@ -318,7 +319,7 @@ export default function VimViewerImpl({
         aria-label="Close file"
         title=":q"
         onClick={close}
-        className="absolute right-2 top-8 z-10 cursor-pointer rounded border border-border bg-elevated px-1.5 font-mono text-xs text-muted hover:text-error"
+        className="absolute bottom-8 right-2 z-10 min-h-11 min-w-11 cursor-pointer rounded border border-border bg-elevated px-1.5 font-mono text-xs text-muted hover:text-error"
       >
         ✕
       </button>
@@ -336,7 +337,7 @@ export default function VimViewerImpl({
       )}
 
       <div className="flex items-center gap-3 border-t border-border bg-elevated px-3 py-1 font-mono text-xs text-muted">
-        <span className="text-fg">{fileName}</span>
+        <span className="min-w-0 flex-1 truncate text-fg" title={fileName}>{fileName}</span>
         <span className="text-warning">[RO]</span>
         <span className="ml-auto">
           {pos.line}:{pos.col}

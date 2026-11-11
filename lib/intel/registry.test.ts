@@ -60,3 +60,12 @@ describe("provider registry", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 });
+
+test("failed initialization terminates the worker and allows a later retry", async () => {
+  const failed = loopbackWorker({ init: () => { throw new Error("failed init"); } });
+  makeWorker = () => failed;
+  await expect(providerFor("typescript", "~/projects/retry", {})).resolves.toBeNull();
+  expect(failed.terminate).toHaveBeenCalledOnce();
+  makeWorker = () => loopbackWorker({ init: () => true });
+  await expect(providerFor("typescript", "~/projects/retry", {})).resolves.not.toBeNull();
+});

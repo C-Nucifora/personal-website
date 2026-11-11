@@ -8,23 +8,23 @@ export const gruvbox: Theme = {
   "--bg-selection": "#504945", // bg2
 
   "--fg": "#ebdbb2", // fg1
-  "--fg-muted": "#928374", // gray
+  "--fg-muted": "#aba094", // gray
   "--fg-subtle": "#665c54", // bg3
 
   "--border": "#504945",
 
-  "--accent": "#83a598", // blue
+  "--accent": "#89a99d", // blue
   "--accent-hover": "#9bbcae",
   "--success": "#b8bb26", // green
   "--warning": "#fabd2f", // yellow
-  "--error": "#fb4934", // red
+  "--error": "#f97d6e", // red
   "--info": "#8ec07c", // aqua
 
-  "--ansi-red": "#fb4934",
+  "--ansi-red": "#f97d6e",
   "--ansi-green": "#b8bb26",
   "--ansi-yellow": "#fabd2f",
-  "--ansi-blue": "#83a598",
-  "--ansi-magenta": "#d3869b", // purple
+  "--ansi-blue": "#89a99d",
+  "--ansi-magenta": "#d58ea1", // purple
   "--ansi-cyan": "#8ec07c", // aqua
 
   "--focus-ring": "#fabd2f",

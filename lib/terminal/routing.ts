@@ -15,7 +15,10 @@
  */
 import { ACTIVE_WINDOW_IDS, type WindowId } from "@/lib/vfs/types";
 import { ensureWindowDisplayed } from "./executor";
+import { WINDOW_META } from "@/lib/window-meta";
+import { profile } from "@/data/profile";
 import { store } from "./store";
+import { focusActivePrompt } from "./focus";
 
 declare global {
   interface Window {
@@ -41,6 +44,7 @@ export function initRouting(): () => void {
     const w = store.getState().activeWindow;
     if (w === lastWindow) return;
     lastWindow = w;
+    document.title = w ? WINDOW_META[w].title : `${profile.name} | Portfolio`;
     if (!applying && window.location.pathname !== pathForWindow(w)) {
       // Native pushState — bypasses Next's history patch (see header).
       History.prototype.pushState.call(window.history, {}, "", pathForWindow(w));
@@ -53,6 +57,7 @@ export function initRouting(): () => void {
     store.dispatch({ type: "switch-window", window: w });
     ensureWindowDisplayed();
     applying = false;
+    focusActivePrompt();
   };
   // Real page loads route through the init-script interceptor; the plain
   // popstate listener is the fallback for environments without it (tests).

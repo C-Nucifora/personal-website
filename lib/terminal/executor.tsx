@@ -11,6 +11,7 @@ import {
 } from "@/lib/commands/registry";
 import { listDir, readFile, resolveNode } from "@/lib/vfs/tree";
 import { resolvePath } from "@/lib/vfs/path";
+import { loadProjectSources, projectSourcesLoaded } from "@/lib/vfs/project-sources";
 import { ErrorLine } from "@/components/content/messages";
 import { CmdLink } from "@/components/terminal/output/CmdLink";
 import { activeWindowKey, getPane } from "./reducer";
@@ -78,7 +79,11 @@ export function ensureWindowDisplayed(): void {
   executeCommand(AUTO_DISPLAY[win], { source: "auto", windowKey: win });
 }
 
-export function executeCommand(line: string, opts: ExecOptions): void {
+export function executeCommand(line: string, opts: ExecOptions): void | Promise<void> {
+  if (line.length > 4096) {
+    store.dispatch({ type: "append-line", windowKey: opts.windowKey ?? activeWindowKey(store.getState()), command: null, node: <ErrorLine>command too long: limit is 4096 characters</ErrorLine> });
+    return;
+  }
   const trimmed = line.trim();
   if (!trimmed) return;
 
@@ -127,6 +132,31 @@ export function executeCommand(line: string, opts: ExecOptions): void {
     return;
   }
 
+  const [name, ...args] = cmdLine.split(/\s+/);
+  const mod = resolveCommand(name);
+  const pane = getPane(startState, windowKey);
+  const sourcePath = args.find((arg) => !arg.startsWith("-")) ?? "";
+  const targetPath = resolvePath(pane.cwd, sourcePath);
+  const projectSlug = targetPath.startsWith("~/projects/") ? targetPath.split("/")[2] : "";
+  if (!projectSourcesLoaded() && mod && ["cat", "vim", "ls", "tree", "cd"].includes(mod.meta.name) &&
+      projectSlug && projectSlug !== "terminal-portfolio" && resolveNode(`~/projects/${projectSlug}`)?.kind === "dir" &&
+      (!resolveNode(targetPath) || ["ls", "tree"].includes(mod.meta.name))) {
+    store.dispatch({ type: "set-notice", text: "Loading project sources…", until: Date.now() + 5000 });
+    return loadProjectSources().then(() => {
+      const current = getPane(store.getState(), windowKey);
+      // Do not apply a delayed command to a different pane or working directory.
+      if (current.id !== pane.id || current.cwd !== pane.cwd) {
+        store.dispatch({ type: "set-notice", text: "Project sources loaded. Run the command again in your current shell.", until: Date.now() + 5000 });
+        return;
+      }
+      return executeCommand(cmdLine, { ...opts, windowKey });
+    }).catch(() => {
+      store.dispatch({ type: "append-line", windowKey, command: cmdLine, cwd: pane.cwd, node: null });
+      store.dispatch({ type: "append-line", windowKey, command: null, node: <ErrorLine>Source unavailable offline. Try the command again when connected.</ErrorLine> });
+      store.dispatch({ type: "history-append", line: cmdLine });
+    });
+  }
+
   // Echo first — typed and clicked sessions read identically in scrollback.
   store.dispatch({
     type: "append-line",
@@ -135,9 +165,6 @@ export function executeCommand(line: string, opts: ExecOptions): void {
     cwd: getPane(store.getState(), windowKey).cwd,
     node: null,
   });
-
-  const [name, ...args] = cmdLine.split(/\s+/);
-  const mod = resolveCommand(name);
 
   let cleared = false;
   const ctx: CommandContext = {

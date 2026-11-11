@@ -7,6 +7,7 @@
 import { activeWindowKey, getPane } from "./reducer";
 import { executeCommand } from "./executor";
 import { setRunClickImpl } from "./run-click";
+import { focusActivePrompt } from "./focus";
 import { store } from "./store";
 import type { WindowKey } from "./types";
 
@@ -34,6 +35,7 @@ function execute(anim: Animation): void {
     cursorPos: anim.stash.length,
   });
   store.dispatch({ type: "set-animating", animating: null });
+  focusActivePrompt();
 }
 
 /** Complete a running animation instantly (skip rule — keypress or click). */
@@ -53,6 +55,7 @@ function prefersReducedMotion(): boolean {
 export function animateClick(cmd: string): void {
   // Never queue: a click during an animation completes it first (§5).
   finishAnimation();
+  store.dispatch({ type: "set-pending-prefix", pending: false });
 
   const windowKey = activeWindowKey(store.getState());
   const pane = getPane(store.getState(), windowKey);
@@ -65,6 +68,7 @@ export function animateClick(cmd: string): void {
   if (prefersReducedMotion()) {
     // The echo is the teaching tool; the animation is garnish.
     executeCommand(cmd, { source: "click", windowKey });
+    focusActivePrompt();
     return;
   }
 

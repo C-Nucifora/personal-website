@@ -20,7 +20,7 @@ export function ThemeSwitcher() {
       <select
         value={themeId}
         onChange={(e) => runClick(`theme ${e.target.value}`)}
-        className="cursor-pointer rounded border border-border bg-elevated px-2 py-1 font-mono text-xs text-fg transition-colors hover:border-accent/60 focus-visible:outline-2"
+        className="min-h-11 max-w-[8.5rem] cursor-pointer rounded border border-border bg-elevated px-2 py-1 font-mono text-xs text-fg transition-colors hover:border-accent/60 focus-visible:outline-2"
       >
         {themes.map((t) => (
           <option key={t.id} value={t.id}>

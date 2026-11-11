@@ -14,7 +14,7 @@ export interface WindowMeta {
 export const WINDOW_META: Record<WindowId, WindowMeta> = {
   about: {
     title: `About — ${profile.name}`,
-    description: `Who ${profile.name} is — background, interests, and the tools he uses.`,
+    description: `Who ${profile.name} is — background, interests, and tools and software.`,
   },
   projects: {
     title: `Projects — ${profile.name}`,

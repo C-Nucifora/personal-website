@@ -15,11 +15,13 @@ import { getThemeEnv } from "./env";
 import { printBindingCheatsheet } from "./cheatsheet";
 import { getScroller, LINE_PX } from "./scroll-registry";
 import { store } from "./store";
+import { focusActivePrompt } from "./focus";
 import type { Direction, WindowKey } from "./types";
 
 function switchWindow(target: WindowId | null): void {
   store.dispatch({ type: "switch-window", window: target });
   ensureWindowDisplayed();
+  focusActivePrompt();
 }
 
 function cycleWindow(delta: 1 | -1): void {
@@ -100,10 +102,12 @@ function handlePrefixKey(key: string): void {
     const w = state.windows[win];
     if (key === "o") {
       store.dispatch({ type: "cycle-pane", window: win });
+      focusActivePrompt();
       return;
     }
     if (key in DIRECTION_KEYS) {
       store.dispatch({ type: "focus-direction", window: win, dir: DIRECTION_KEYS[key] });
+      focusActivePrompt();
       return;
     }
     if (key === "z") {
@@ -129,6 +133,8 @@ function handlePrefixKey(key: string): void {
 
 /** Keys while the Ctrl+b w picker is open. */
 function handlePickerKey(e: KeyboardEvent): void {
+  if (e.key === "Tab") { e.stopPropagation(); return; }
+  if (!["j", "k", "ArrowDown", "ArrowUp", "Enter", "Escape", "q", "w", ...ACTIVE_WINDOW_IDS.map((_, i) => String(i + 1))].includes(e.key)) { if (e.key.length === 1) e.preventDefault(); return; }
   const picker = store.getState().picker!;
   e.preventDefault();
   if (e.key === "j" || e.key === "ArrowDown") {
@@ -184,6 +190,7 @@ function handleCopyKey(e: KeyboardEvent, windowKey: WindowKey): void {
   const page = el ? el.clientHeight : 0;
 
   if (e.ctrlKey) {
+    if (!["d", "u", "f", "b"].includes(e.key)) return;
     e.preventDefault();
     if (e.key === "d") return scrollBy(page / 2);
     if (e.key === "u") return scrollBy(-page / 2);
@@ -192,6 +199,7 @@ function handleCopyKey(e: KeyboardEvent, windowKey: WindowKey): void {
     return;
   }
 
+  if (e.key === "Tab") return;
   e.preventDefault();
   const key = e.key;
 
@@ -308,31 +316,58 @@ function watchKonami(key: string): void {
 export function initKeyboard(): () => void {
   const onKeyDown = (e: KeyboardEvent) => {
     // Hands off the browser's keys (§6.4).
-    if (e.metaKey) return;
-    if (e.ctrlKey && ["t", "w", "n"].includes(e.key.toLowerCase())) return;
-    if (/^F\d+$/.test(e.key)) return;
+    if (e.metaKey || (e.ctrlKey && ["t", "w", "n"].includes(e.key.toLowerCase())) || /^F\d+$/.test(e.key)) {
+      if (store.getState().pendingPrefix) store.dispatch({ type: "set-pending-prefix", pending: false });
+      return;
+    }
+    if (["Shift", "Control", "Alt", "Meta", "CapsLock", "AltGraph", "Dead"].includes(e.key)) return;
 
     // Plain view showing: the terminal is hidden, keys belong to the page.
     if (document.documentElement.getAttribute("data-view") === "plain") return;
+
+    const earlyState = store.getState();
+    const terminalTarget = e.target instanceof Element && e.target.closest("[data-terminal-root]");
+    if (terminalTarget && !e.ctrlKey && !e.altKey && (earlyState.animating || earlyState.overlay)) {
+      if (earlyState.animating) finishAnimation();
+      if (earlyState.overlay) store.dispatch({ type: "set-overlay", overlay: null });
+      e.stopPropagation();
+      if (e.key !== "Tab") e.preventDefault();
+      return;
+    }
+    if (earlyState.pendingPrefix && ((e.ctrlKey && e.key.toLowerCase() !== "b") || e.altKey)) {
+      store.dispatch({ type: "set-pending-prefix", pending: false });
+      return;
+    }
+    const target = e.target instanceof Element ? e.target : null;
+    if (earlyState.picker && e.key === "Escape") {
+      e.preventDefault();
+      store.dispatch({ type: "set-picker", picker: null });
+      focusActivePrompt();
+      return;
+    }
+    // Controls and page links keep native keys. Only a focused shell/editor
+    // owns terminal bindings; body events support the initial lobby focus.
+    if (target && target !== document.body && target !== document.documentElement &&
+        !target.closest("[data-pane-scroll], .cm-editor")) return;
+    if (target?.closest("button, a, select, textarea") && !target.closest(".cm-editor")) return;
+    if (e.isComposing || e.altKey) return;
+    if (e.ctrlKey) {
+      const key = e.key.toLowerCase();
+      const pane = activePane(store.getState());
+      const handled = key === "b" ||
+        (key === "l" && pane.mode === "INSERT" && target?.matches("input")) ||
+        (key === "r" && pane.mode === "NORMAL") ||
+        (["u", "d", "f"].includes(key) && pane.mode === "COPY");
+      if (!handled) return;
+    }
 
     if (!e.ctrlKey && !e.altKey) watchKonami(e.key);
 
     const state = store.getState();
 
-    // Any input dismisses a full-pane overlay (clock, sl, …).
-    if (state.overlay) {
-      e.preventDefault();
-      e.stopPropagation();
-      store.dispatch({ type: "set-overlay", overlay: null });
-      return;
-    }
-
-    // A keypress during a click animation completes it instantly (§5).
-    if (state.animating) {
-      e.preventDefault();
-      finishAnimation();
-      return;
-    }
+    // Body-targeted events are used before the initial prompt gains focus.
+    if (state.overlay) { e.preventDefault(); store.dispatch({ type: "set-overlay", overlay: null }); return; }
+    if (state.animating) { e.preventDefault(); finishAnimation(); return; }
 
     // Window picker swallows navigation keys while open.
     if (state.picker) {
@@ -353,6 +388,7 @@ export function initKeyboard(): () => void {
           });
         }
         store.dispatch({ type: "set-confirm", confirm: null });
+        focusActivePrompt();
         e.preventDefault();
         return;
       }
@@ -361,6 +397,7 @@ export function initKeyboard(): () => void {
         e.preventDefault();
         return;
       }
+      store.dispatch({ type: "set-confirm", confirm: null });
       return;
     }
 
@@ -374,6 +411,7 @@ export function initKeyboard(): () => void {
     }
 
     if (state.pendingPrefix) {
+      if (e.key === "Tab") { store.dispatch({ type: "set-pending-prefix", pending: false }); e.stopPropagation(); return; }
       e.preventDefault();
       e.stopPropagation();
       if (e.key === "Escape") {

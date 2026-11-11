@@ -17,7 +17,7 @@ export function SitePage({ initialWindow = null }: { initialWindow?: WindowId | 
       </div>
 
       <div className="static-fallback mx-auto w-full max-w-[880px] px-3 py-5 sm:px-4 sm:py-10">
-        <StaticContent />
+        <StaticContent initialWindow={initialWindow} />
 
         <footer className="mt-6 text-center font-mono text-xs text-muted">
           {profile.name} · {stripTodo(profile.role)} · built as a terminal

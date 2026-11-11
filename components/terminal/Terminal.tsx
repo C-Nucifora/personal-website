@@ -1,5 +1,6 @@
 "use client";
 
+import { profile } from "@/data/profile";
 import { useEffect, useRef } from "react";
 import { TitleBar } from "./TitleBar";
 import { TabBar } from "./TabBar";
@@ -14,7 +15,8 @@ import { Disintegration } from "@/components/effects/Disintegration";
 import { MatrixRain } from "@/components/effects/MatrixRain";
 import { store } from "@/lib/terminal/store";
 import { executeCommand } from "@/lib/terminal/executor";
-import { graftProjectSources } from "@/lib/vfs/tree";
+import { focusActivePrompt } from "@/lib/terminal/focus";
+import { loadProjectSources } from "@/lib/vfs/project-sources";
 import { initIdle } from "@/lib/terminal/idle";
 import { initKeyboard } from "@/lib/terminal/keyboard";
 import { initRouting } from "@/lib/terminal/routing";
@@ -60,16 +62,29 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     if (initialWindow) {
       executeCommand(`cd ~/${initialWindow}`, { source: "auto", windowKey: initialWindow });
     }
+    focusActivePrompt();
 
-    // GitHub source slices arrive as their own chunk, off the critical path.
-    import("@/data/generated/github-sources").then((m) =>
-      graftProjectSources(m.githubSources),
-    );
+    // Fetch source only once someone explores projects, including deep links.
+    let sourcesRequested = false;
+    let sourcesFailed = false;
+    const loadSources = () => {
+      if (store.getState().activeWindow !== "projects") sourcesFailed = false;
+      if (sourcesRequested || sourcesFailed || store.getState().activeWindow !== "projects" || document.documentElement.getAttribute("data-view") === "plain") return;
+      sourcesRequested = true;
+      loadProjectSources().then(disposeSources).catch(() => {
+        sourcesRequested = false;
+        sourcesFailed = true;
+        store.dispatch({ type: "set-notice", text: "Source unavailable offline. Project summaries are still available.", until: Date.now() + 5000 });
+      });
+    };
+    const disposeSources = store.subscribe(loadSources);
+    loadSources();
 
     const disposeKeyboard = initKeyboard();
     const disposeRouting = initRouting();
     const disposeIdle = initIdle();
     return () => {
+      disposeSources();
       disposeKeyboard();
       disposeRouting();
       disposeIdle();
@@ -81,6 +96,7 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
 
   return (
     <div data-terminal-root className="relative flex h-dvh flex-col bg-window">
+      <h1 className="sr-only">{profile.name}, portfolio</h1>
       <TitleBar />
       <TabBar />
       <WelcomeStrip />

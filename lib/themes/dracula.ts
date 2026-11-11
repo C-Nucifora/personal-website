@@ -8,7 +8,7 @@ export const dracula: Theme = {
   "--bg-selection": "#44475a", // current line
 
   "--fg": "#f8f8f2", // foreground
-  "--fg-muted": "#6272a4", // comment
+  "--fg-muted": "#95a0c0", // comment
   "--fg-subtle": "#424450",
 
   "--border": "#343746",
@@ -17,10 +17,10 @@ export const dracula: Theme = {
   "--accent-hover": "#caa9fa",
   "--success": "#50fa7b", // green
   "--warning": "#ffb86c", // orange
-  "--error": "#ff5555", // red
+  "--error": "#fd7777", // red
   "--info": "#8be9fd", // cyan
 
-  "--ansi-red": "#ff5555",
+  "--ansi-red": "#fd7777",
   "--ansi-green": "#50fa7b",
   "--ansi-yellow": "#f1fa8c",
   "--ansi-blue": "#bd93f9", // Dracula has no distinct blue; uses purple

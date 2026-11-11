@@ -4,6 +4,7 @@ import { ACTIVE_WINDOW_IDS } from "@/lib/vfs/types";
 import { ensureWindowDisplayed } from "@/lib/terminal/executor";
 import { store } from "@/lib/terminal/store";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
+import { focusActivePrompt } from "@/lib/terminal/focus";
 
 /** Ctrl+b w: the tmux window picker — j/k + Enter, or click (§7.2). */
 export function WindowPicker() {
@@ -15,6 +16,7 @@ export function WindowPicker() {
     store.dispatch({ type: "set-picker", picker: null });
     store.dispatch({ type: "switch-window", window: ACTIVE_WINDOW_IDS[index] });
     ensureWindowDisplayed();
+    focusActivePrompt();
   };
 
   return (
@@ -38,7 +40,7 @@ export function WindowPicker() {
                 i === picker.index ? "bg-selection text-accent" : "text-fg hover:bg-selection/50",
               ].join(" ")}
             >
-              <span className="text-subtle">({i + 1})</span>
+              <span className="text-muted">({i + 1})</span>
               {id}
               {id === active && <span className="ml-auto text-xs text-muted">active</span>}
             </button>

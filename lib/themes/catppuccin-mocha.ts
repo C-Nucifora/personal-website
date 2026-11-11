@@ -8,7 +8,7 @@ export const catppuccinMocha: Theme = {
   "--bg-selection": "#45475a", // surface1
 
   "--fg": "#cdd6f4", // text
-  "--fg-muted": "#7f849c", // overlay1
+  "--fg-muted": "#979bae", // overlay1
   "--fg-subtle": "#585b70", // surface2
 
   "--border": "#313244",

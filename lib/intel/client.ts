@@ -13,7 +13,12 @@ export async function createWorkerProvider(
   files: Record<string, string>,
 ): Promise<IntelProvider> {
   const client = createWorkerClient(worker);
-  await client.request("init", [files], INIT_TIMEOUT_MS);
+  try {
+    await client.request("init", [files], INIT_TIMEOUT_MS);
+  } catch (error) {
+    client.terminate();
+    throw error;
+  }
   return {
     hover: (path, offset) =>
       client.request<IntelHover | null>("hover", [path, offset]).catch(() => null),

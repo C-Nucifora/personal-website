@@ -23,6 +23,7 @@ interface AppState {
   mode: "INSERT" | "NORMAL" | "COPY";
   pendingPrefix: boolean;            // true after Ctrl+b, awaiting next key
   animating: boolean;                // a click-triggered command is being typed
+  history: string[];                 // shared numbered history across all shells
 }
 
 interface WindowState {
@@ -35,7 +36,6 @@ interface PaneState {
   cwd: string;                       // virtual filesystem path
   inputBuffer: string;
   cursorPos: number;
-  commandHistory: string[];
   historyIndex: number | null;
   scrollback: OutputLine[];
   scrollOffset: number;              // 0 = pinned to bottom
@@ -45,7 +45,7 @@ interface PaneState {
 }
 ```
 
-Each pane is an independent shell session: its own cwd, history, and scrollback. All panes share the one virtual filesystem.
+Each pane keeps its own cwd, input draft, history cursor and scrollback. Command history is shared across windows and panes, as approved by the owner for publication polish. Up/Down, normal-mode j/k, `history` and `!{n}` all use that one shared sequence. All panes share the one virtual filesystem.
 
 ---
 
@@ -89,6 +89,7 @@ The `help` command (§9) prints the quick inline cheatsheet and ends with a clic
 | `cd` between subdirs of same window | updates | unchanged |
 | `Ctrl+b 2` / `Ctrl+b n` / `Ctrl+b p` | restores that window's last cwd | switches |
 | Click tab | restores that window's last cwd | switches (via animated command, §5) |
+| Click tab when its saved cwd is outside the window, such as `~` | uses the window root | switches via `cd ~/<window>`; tmux can still restore the lobby cwd |
 | `cd ~` or `cd /` | sets cwd to `~` | stays on current window; status bar shows `~` |
 
 Window switching never resets a window's cwd. If the user was deep in `~/projects/foo/src` and switches to resume and back, they return to `~/projects/foo/src`. The animated command for a tab click into a previously-visited window is therefore `cd <that window's saved cwd>`, not the window root.
@@ -114,7 +115,7 @@ The novice can complete every site goal (read about, browse projects, view/downl
 ### 3.2 Power user flow
 
 1. **Land.** Same MOTD. Power users recognize the prompt and start typing.
-2. `ls` → see the five directories → `cd projects && ls` → `cat <project>/README.md`.
+2. `ls` → see the five directories → `cd projects`, then `ls` → `cat <project>/README.md`.
 3. `Esc` enters NORMAL mode for vim-grammar line editing (§6). `j`/`k` walk command history.
 4. `Ctrl+b [` enters COPY mode to scroll long output with vim motions (§6.3).
 5. `Ctrl+b n/p/1-4/w` for window movement; in projects, `Ctrl+b %` and `"` to split panes and browse source side-by-side (§7, §8).
@@ -181,7 +182,7 @@ Three modes. The status bar always displays the current one.
 
 ### 6.1 INSERT (default)
 
-Plain terminal typing. `Enter` executes, `↑`/`↓` walk history (arrow keys work in INSERT as a familiarity affordance), `Ctrl+c` cancels the current line, `Ctrl+l` clears, `Tab` autocompletes paths and command names. `Esc` → NORMAL.
+Plain terminal typing. `Enter` executes, `↑`/`↓` walk history (arrow keys work in INSERT as a familiarity affordance), `Ctrl+c` cancels the current line, `Ctrl+l` clears while the prompt is focused, `Tab` autocompletes paths and command names when the buffer is non-empty. With an empty buffer, Tab moves focus; Shift+Tab always moves focus backward. `Esc` → NORMAL.
 
 ### 6.2 NORMAL (command-line editing)
 
@@ -309,7 +310,7 @@ All commands echo into scrollback whether typed or click-animated.
 | `neofetch` | reprints the landing block (§4) with live uptime and current theme |
 | `whoami` | one-line bio, link to about |
 | `open <url>` | new tab after status-bar confirm |
-| `history` | numbered history; `!{n}` re-runs |
+| `history` | shared numbered command history across all windows and panes; `!{n}` re-runs |
 | `theme [name]` | per THEMES.md; no arg lists themes |
 | `plain` | switch to the plain website view; the title-bar button and welcome strip run it (§3.4) |
 | `mail` | jump to the contact form (configured) or print the email (not) |

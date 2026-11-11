@@ -20,6 +20,20 @@ afterEach(() => {
 });
 
 describe("tmux prefix (FLOW §7.2)", () => {
+  test("Escape closes the picker after Tab reaches a picker button", () => {
+    press("b", { ctrlKey: true });
+    press("w");
+    const dialog = document.createElement("div");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-label", "Window picker");
+    const button = document.createElement("button");
+    dialog.append(button);
+    document.body.append(dialog);
+    button.focus();
+    button.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(store.getState().picker).toBe(null);
+    dialog.remove();
+  });
   test("Ctrl+b arms the prefix, a digit jumps to that window", () => {
     press("b", { ctrlKey: true });
     expect(store.getState().pendingPrefix).toBe(true);
@@ -59,6 +73,15 @@ describe("tmux prefix (FLOW §7.2)", () => {
 });
 
 describe("pending confirms", () => {
+  test("starting another command cancels the pending confirmation", () => {
+    const open = vi.fn();
+    vi.stubGlobal("open", open);
+    store.dispatch({ type: "set-confirm", confirm: { kind: "openUrl", payload: "https://example.com" } });
+    press("h");
+    press("y");
+    expect(store.getState().pendingConfirm).toBe(null);
+    expect(open).not.toHaveBeenCalled();
+  });
   test("y opens the confirmed url in a new tab", () => {
     const open = vi.fn();
     vi.stubGlobal("open", open);
@@ -322,10 +345,10 @@ describe("animation skip", () => {
 });
 
 describe("Ctrl+l", () => {
-  test("clears the active pane", () => {
+  test("preserves the browser address shortcut", () => {
     store.dispatch({ type: "append-line", windowKey: "lobby", command: "x", node: null });
     press("l", { ctrlKey: true });
-    expect(store.getState().lobby.panes[0].scrollback).toHaveLength(0);
+    expect(store.getState().lobby.panes[0].scrollback).toHaveLength(1);
   });
 });
 
@@ -336,4 +359,43 @@ describe("plain view (recruiter mode)", () => {
     expect(store.getState().pendingPrefix).toBe(false);
     document.documentElement.removeAttribute("data-view");
   });
+});
+
+describe("native browser controls", () => {
+  test("theme controls and links do not arm tmux", () => {
+    const select = document.createElement("select");
+    document.body.append(select);
+    const event = new KeyboardEvent("keydown", { key: "b", ctrlKey: true, bubbles: true, cancelable: true });
+    select.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(store.getState().pendingPrefix).toBe(false);
+    select.remove();
+  });
+
+  test("copy mode preserves clipboard shortcuts and tab focus", () => {
+    store.dispatch({ type: "set-mode", windowKey: "lobby", mode: "COPY" });
+    for (const key of ["c", "v", "x", "a", "l", "r"]) {
+      const event = new KeyboardEvent("keydown", { key, ctrlKey: true, bubbles: true, cancelable: true });
+      window.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    const tab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+    window.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(false);
+  });
+});
+
+test("modifier keydown preserves tmux prefix before a shifted binding", () => {
+  press("b", { ctrlKey: true });
+  press("Shift", { shiftKey: true });
+  expect(store.getState().pendingPrefix).toBe(true);
+  press("?", { shiftKey: true });
+  expect(store.getState().pendingPrefix).toBe(false);
+  expect(store.getState().lobby.panes[0].scrollback.length).toBeGreaterThan(0);
+});
+
+test("a native shortcut cancels a pending prefix without swallowing the next key", () => {
+  press("b", { ctrlKey: true });
+  press("f", { ctrlKey: true });
+  expect(store.getState().pendingPrefix).toBe(false);
 });

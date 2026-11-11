@@ -80,7 +80,7 @@ equivalent somewhere in the interface.
 
 | Command | What it does |
 |---|---|
-| \`clear\` | clear the screen |
+| \`clear\` | clear the screen while the prompt is focused |
 | \`history\` | numbered command history; \`!{n}\` re-runs entry n |
 | \`help\` | quick cheatsheet |
 | \`neofetch\` | reprint the landing banner |
@@ -104,9 +104,11 @@ there because it's home.
 |---|---|
 | \`Enter\` | run the command |
 | \`↑\` / \`↓\` | walk command history |
-| \`Tab\` | autocomplete commands and paths |
+| \`Tab\` | complete non-empty commands and paths; empty prompt moves focus |
 | \`Ctrl+c\` | cancel the current line |
-| \`Ctrl+l\` | clear the screen |
+| \`Ctrl+l\` | clear the screen while the prompt is focused |
+
+Shift+Tab always moves focus backward. Browser copy, paste, zoom and tab shortcuts stay available.
 
 ## Tier 2 — vi line editing
 

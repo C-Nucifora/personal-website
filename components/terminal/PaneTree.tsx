@@ -55,6 +55,9 @@ function PaneView({
   return (
     <div
       data-pane-scroll
+      tabIndex={0}
+      role="region"
+      aria-label="Terminal content"
       data-pane-id={paneId}
       ref={(el) => registerScroller(`${windowKey}:${paneId}`, el)}
       onClick={onClick}

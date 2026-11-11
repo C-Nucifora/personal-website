@@ -2,6 +2,8 @@ import { profile } from "@/data/profile";
 import { stripTodo } from "@/lib/strip-todo";
 import { BackToTerminal } from "@/components/ui/BackToTerminal";
 import { blogPosts } from "@/data/generated/blog";
+import type { WindowId } from "@/lib/vfs/types";
+import { Uses } from "./Uses";
 import { About } from "./About";
 import { BlogPosts } from "./BlogPosts";
 import { ContactForm } from "./ContactForm";
@@ -26,7 +28,16 @@ function Section({ id, title, children }: { id: string; title: string; children:
  * hidden by CSS only once the interactive Terminal has mounted. Renders the
  * same content components the terminal uses, so nothing drifts.
  */
-export function StaticContent() {
+export function StaticContent({ initialWindow = null }: { initialWindow?: WindowId | null }) {
+  const sections = [
+    { id: "about", content: <><About /><h3 className="font-mono text-base text-accent">Tools</h3><Uses /></> },
+    { id: "projects", content: <Projects /> },
+    { id: "resume", content: <Resume /> },
+    { id: "contact", content: <><Socials /><ContactForm /></> },
+    { id: "help", content: <div className="space-y-3 font-sans text-fg"><p>Use the section links to browse this page. You can read projects and contact me without typing commands.</p><p>In the terminal, click a tab to switch windows. Click a printed directory or file to explore it. Type help for the command reference.</p><p>Tab completes a partially typed command. With an empty prompt, Tab and Shift+Tab move keyboard focus. Escape enters normal mode. In a source viewer, use the close button or type :q to return to the shell.</p></div> },
+    ...(blogPosts.length ? [{ id: "blog", content: <BlogPosts /> }] : []),
+  ];
+  if (initialWindow) sections.sort((a, b) => Number(b.id === initialWindow) - Number(a.id === initialWindow));
   return (
     <div className="static-fallback overflow-hidden rounded-xl border border-border bg-window shadow-[0_24px_60px_-12px_var(--shadow)]">
       <div className="space-y-10 px-5 py-8 sm:px-8 sm:py-10">
@@ -45,28 +56,10 @@ export function StaticContent() {
           </div>
         </header>
 
-        <Section id="about" title="about">
-          <About />
-        </Section>
-
-        <Section id="resume" title="resume">
-          <Resume />
-        </Section>
-
-        <Section id="projects" title="projects">
-          <Projects />
-        </Section>
-
-        <Section id="contact" title="contact">
-          <Socials />
-          <ContactForm />
-        </Section>
-
-        {blogPosts.length > 0 && (
-          <Section id="blog" title="blog">
-            <BlogPosts />
-          </Section>
-        )}
+        <nav aria-label="Plain view sections" className="flex flex-wrap gap-3 font-mono text-sm">
+          {sections.map(({ id }) => <a key={id} href={`#${id}`}>{id}</a>)}
+        </nav>
+        {sections.map(({ id, content }) => <Section key={id} id={id} title={id}>{content}</Section>)}
       </div>
     </div>
   );

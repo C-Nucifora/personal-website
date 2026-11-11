@@ -6,6 +6,7 @@ import { getPane } from "./reducer";
 import { store } from "./store";
 import { executeCommand } from "./executor";
 import { registerThemeEnv } from "./env";
+import { readFile } from "@/lib/vfs/tree";
 
 function scrollback(windowKey: "lobby" | "about" | "projects" = "lobby") {
   return windowKey === "lobby"
@@ -23,6 +24,15 @@ beforeEach(() => {
 });
 
 describe("echo + output shape", () => {
+  test("an absolute remote source path loads and reads from the lobby", async () => {
+    await executeCommand("cat ~/projects/m1-core/Cargo.toml", { source: "typed" });
+    expect(store.getState().activeWindow).toBe(null);
+    expect(store.getState().history.at(-1)).toBe("cat ~/projects/m1-core/Cargo.toml");
+    expect(readFile("~/projects/m1-core/Cargo.toml")?.raw).toContain("[package]");
+    renderLast();
+    expect(screen.queryByText(/no such file or directory/)).toBe(null);
+    expect(scrollback()).toHaveLength(2);
+  });
   test("a command echoes first, output follows as its own line", () => {
     executeCommand("pwd", { source: "typed" });
     const sb = scrollback();
@@ -266,4 +276,14 @@ describe("theme", () => {
     executeCommand("theme dracula", { source: "typed" });
     expect(current).toBe("dracula");
   });
+});
+
+
+test("oversized pasted commands produce a bounded error", () => {
+  store.reset(null);
+  executeCommand("echo " + "x".repeat(5000), { source: "typed" });
+  const lines = store.getState().lobby.panes[0].scrollback;
+  expect(lines).toHaveLength(1);
+  expect(lines[0].command).toBeNull();
+  expect(store.getState().history).toEqual(["vim resume.md"]);
 });

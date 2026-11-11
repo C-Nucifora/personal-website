@@ -8,7 +8,7 @@ export const tokyoNight: Theme = {
   "--bg-selection": "#283457",
 
   "--fg": "#c0caf5",
-  "--fg-muted": "#565f89",
+  "--fg-muted": "#8389a7",
   "--fg-subtle": "#3b4261",
 
   "--border": "#292e42",

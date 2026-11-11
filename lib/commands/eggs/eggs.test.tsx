@@ -38,8 +38,8 @@ describe("sudo", () => {
 describe("rm", () => {
   test("content files are protected", () => {
     executeCommand("cd ~/resume", { source: "typed" });
-    expect(out("rm resume.pdf")).toContain(
-      "rm: cannot remove 'resume.pdf': Protected by recruiters union",
+    expect(out("rm resume.md")).toContain(
+      "rm: cannot remove 'resume.md': Protected by recruiters union",
     );
   });
   test("rm -rf / hits the authentic failsafe", () => {

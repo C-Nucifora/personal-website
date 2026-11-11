@@ -1,3 +1,6 @@
+import { focusActivePrompt } from "./terminal/focus";
+import { store } from "./terminal/store";
+
 /**
  * Plain view (recruiter mode). The `plain` command, the title-bar button,
  * and `?plain=1` all funnel here; the attribute drives the same CSS pair
@@ -16,6 +19,15 @@ export function applyViewMode(mode: ViewMode): void {
 /** An explicit visitor choice: reflect it and persist it. */
 export function setViewMode(mode: ViewMode): void {
   applyViewMode(mode);
+  const url = new URL(window.location.href);
+  url.searchParams.delete("plain");
+  History.prototype.replaceState.call(window.history, window.history.state, "", url);
+  if (mode === "plain") {
+    document.getElementById("main")?.focus({ preventScroll: true });
+    const section = store.getState().activeWindow;
+    if (section) document.querySelector(`.static-fallback #${section}`)?.scrollIntoView({ block: "start" });
+  }
+  else focusActivePrompt();
   try {
     localStorage.setItem(VIEW_STORAGE_KEY, mode);
   } catch {

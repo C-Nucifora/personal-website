@@ -33,7 +33,7 @@ export function CodeBlock({ raw, language }: CodeBlockProps) {
       <code>
         {rows.map((row, i) => (
           <div key={i}>
-            <span className="mr-4 inline-block w-8 select-none text-right text-subtle">
+            <span className="mr-4 inline-block w-8 select-none text-right text-muted">
               {i + 1}
             </span>
             {row.length === 1 && row[0] === "" ? " " : row}

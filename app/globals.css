@@ -17,7 +17,7 @@
   --bg-selection: #283457;
 
   --fg: #c0caf5;
-  --fg-muted: #565f89;
+  --fg-muted: #8389a7;
   --fg-subtle: #3b4261;
 
   --border: #292e42;
@@ -245,7 +245,7 @@ html:not([data-js-ready="true"]) .back-to-terminal {
 }
 .tok-meta,
 .tok-processingInstruction {
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
 }
 .tok-heading {
   color: var(--accent);
@@ -435,4 +435,31 @@ html:not([data-js-ready="true"]) .back-to-terminal {
     background: #fff;
     color: #000;
   }
+}
+
+/* Long commands and repository names must not widen a 320px viewport. */
+html:not([data-js-ready="true"]) .print-button { display: none; }
+[data-welcome-strip] { flex-shrink: 0; }
+@media (max-height: 400px) {
+  [data-welcome-strip] { display: none; }
+}
+[data-pane-scroll], .static-fallback { overflow-wrap: anywhere; }
+[data-title-bar], [data-status-bar] { flex-shrink: 0; }
+@media (max-width: 480px) {
+  [data-title-bar] > p { display: none; }
+  [data-title-bar] > div:last-child { margin-left: auto; gap: .375rem; }
+  [data-title-bar] select { max-width: 7rem; }
+  [data-status-bar] { gap: .5rem; }
+}
+@media print {
+  :root {
+    --bg: #fff !important; --bg-window: #fff !important; --bg-elevated: #fff !important;
+    --fg: #111 !important; --fg-muted: #333 !important; --accent: #111 !important;
+    --fg-subtle: #666 !important; --border: #ccc !important; --bg-selection: #eee !important;
+    --ansi-blue: #111 !important; --ansi-green: #111 !important; --ansi-magenta: #111 !important;
+    --ansi-yellow: #111 !important; --ansi-cyan: #111 !important; --ansi-red: #111 !important;
+  }
+  .static-fallback { border: 0; box-shadow: none; }
+  .static-fallback nav, .static-fallback button, footer, .skip-link,
+  .static-fallback section[id]:not(#resume), .static-fallback header p { display: none !important; }
 }

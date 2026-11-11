@@ -8,7 +8,7 @@ export const nord: Theme = {
   "--bg-selection": "#434c5e", // nord2
 
   "--fg": "#d8dee9", // nord4
-  "--fg-muted": "#7b88a1", // brightened comment grey
+  "--fg-muted": "#a6aebe", // brightened comment grey
   "--fg-subtle": "#4c566a", // nord3
 
   "--border": "#3b4252",
@@ -17,14 +17,14 @@ export const nord: Theme = {
   "--accent-hover": "#9fd0de",
   "--success": "#a3be8c", // nord14
   "--warning": "#ebcb8b", // nord13
-  "--error": "#bf616a", // nord11
+  "--error": "#d6a1a6", // nord11
   "--info": "#88c0d0",
 
-  "--ansi-red": "#bf616a",
+  "--ansi-red": "#d6a1a6",
   "--ansi-green": "#a3be8c",
   "--ansi-yellow": "#ebcb8b",
-  "--ansi-blue": "#81a1c1", // nord9
-  "--ansi-magenta": "#b48ead", // nord15
+  "--ansi-blue": "#97b1cb", // nord9
+  "--ansi-magenta": "#c2a5bd", // nord15
   "--ansi-cyan": "#8fbcbb", // nord7
 
   "--focus-ring": "#88c0d0",

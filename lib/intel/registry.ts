@@ -40,6 +40,7 @@ export function providerFor(
       }
     })();
     cache.set(key, entry);
+    void entry.then((provider) => { if (!provider && cache.get(key) === entry) cache.delete(key); });
   }
   return entry;
 }

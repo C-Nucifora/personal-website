@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/ui/SkipLink";
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
@@ -91,9 +92,7 @@ export default function RootLayout({
     >
       <body>
         {/* First focusable on every page: jump past the chrome to content. */}
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
+        <SkipLink />
         {/* Apply the saved theme before first paint to avoid a colour flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
         <script

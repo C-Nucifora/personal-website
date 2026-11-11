@@ -213,3 +213,13 @@ describe("editor offset (intel gd, spec 2026-06-12)", () => {
     expect(getPane(s, "about").editorOffset).toBeNull();
   });
 });
+
+test("windows share history while preserving separate drafts and history cursors", () => {
+  let state = freshState();
+  state = reduce(state, { type: "history-append", line: "echo shared" });
+  state = reduce(state, { type: "set-input", windowKey: "projects", text: "draft", cursorPos: 5 });
+  state = reduce(state, { type: "history-walk", windowKey: "resume", direction: -1 });
+  expect(getPane(state, "resume").inputBuffer).toBe("echo shared");
+  expect(getPane(state, "projects").inputBuffer).toBe("draft");
+  expect(getPane(state, "projects").historyIndex).toBeNull();
+});

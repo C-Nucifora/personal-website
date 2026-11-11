@@ -43,12 +43,13 @@ export function WelcomeStrip() {
 
   return (
     <div
+      data-welcome-strip
       role="note"
       aria-label="Welcome"
       className="flex items-center justify-between gap-3 border-b border-border bg-accent/10 px-3 py-1.5"
     >
       <p className="font-sans text-sm text-fg">
-        New to terminals? Click the tabs above to browse — or{" "}
+        New to terminals? Click the tabs above to browse, or{" "}
         <button
           type="button"
           onClick={() => runClick("plain")}
@@ -62,7 +63,7 @@ export function WelcomeStrip() {
         type="button"
         aria-label="Dismiss welcome message"
         onClick={dismiss}
-        className="cursor-pointer px-1 font-mono text-sm text-muted transition-colors hover:text-fg focus-visible:outline-2"
+        className="min-h-11 min-w-11 shrink-0 cursor-pointer px-1 font-mono text-sm text-muted transition-colors hover:text-fg focus-visible:outline-2"
       >
         ✕
       </button>

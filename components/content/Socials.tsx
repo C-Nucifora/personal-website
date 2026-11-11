@@ -23,7 +23,7 @@ export function Socials() {
                 <span className="w-24 shrink-0 font-medium text-fg group-hover:text-accent">
                   {s.label}
                 </span>
-                <span className="truncate font-mono text-sm text-muted">{s.handle}</span>
+                <span className="break-all font-mono text-sm text-muted">{s.handle}</span>
                 {external && (
                   <Icon
                     name="external"

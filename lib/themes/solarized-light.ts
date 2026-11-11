@@ -7,25 +7,25 @@ export const solarizedLight: Theme = {
   "--bg-elevated": "#eee8d5", // base2
   "--bg-selection": "#d9d2bb",
 
-  "--fg": "#586e75", // base01
-  "--fg-muted": "#7c8f8f",
+  "--fg": "#50646a", // base01
+  "--fg-muted": "#576363",
   "--fg-subtle": "#93a1a1", // base1
 
   "--border": "#d8d2bc",
 
-  "--accent": "#268bd2", // blue
-  "--accent-hover": "#1a6fad",
-  "--success": "#5b6e00", // darkened green for contrast on light
-  "--warning": "#b58900", // yellow
-  "--error": "#dc322f", // red
-  "--info": "#1c8c82", // cyan (darkened for >=3:1 on the light surface)
+  "--accent": "#1f6596", // blue
+  "--accent-hover": "#19659c",
+  "--success": "#576801", // darkened green for contrast on light
+  "--warning": "#785d06", // yellow
+  "--error": "#b52c29", // red
+  "--info": "#196c65", // cyan (darkened for >=3:1 on the light surface)
 
-  "--ansi-red": "#dc322f",
-  "--ansi-green": "#728000",
-  "--ansi-yellow": "#b58900",
-  "--ansi-blue": "#268bd2",
-  "--ansi-magenta": "#d33682",
-  "--ansi-cyan": "#2aa198",
+  "--ansi-red": "#b52c29",
+  "--ansi-green": "#5c6604",
+  "--ansi-yellow": "#785d06",
+  "--ansi-blue": "#1f6596",
+  "--ansi-magenta": "#ac2f6b",
+  "--ansi-cyan": "#216c66",
 
   "--focus-ring": "#268bd2",
   "--shadow": "rgba(0,0,0,0.12)",

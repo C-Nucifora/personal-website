@@ -18,12 +18,12 @@ export const rosePine: Theme = {
   "--success": "#9ccfd8", // foam (palette's green slot)
   "--warning": "#f6c177", // gold
   "--error": "#eb6f92", // love
-  "--info": "#3e8fb0", // brightened pine
+  "--info": "#4995b4", // brightened pine
 
   "--ansi-red": "#eb6f92",
   "--ansi-green": "#9ccfd8",
   "--ansi-yellow": "#f6c177",
-  "--ansi-blue": "#3e8fb0",
+  "--ansi-blue": "#4995b4",
   "--ansi-magenta": "#c4a7e7", // iris
   "--ansi-cyan": "#ebbcba", // rose
 
