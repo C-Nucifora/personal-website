@@ -20,6 +20,9 @@ export const ACTIVE_WINDOW_IDS: readonly WindowId[] = blogPosts.length
 
 /** Languages the viewer/highlighter understands; "text" is the fallback. */
 export type VfsLanguage =
+  | "rust"
+  | "lua"
+  | "c"
   | "markdown"
   | "typescript"
   | "tsx"

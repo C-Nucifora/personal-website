@@ -3,11 +3,14 @@
  * dead links at build time (e.g. the resume PDF download button — see
  * public/README.md). Runs on predev/prebuild; the output is committed.
  */
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const hasResumePdf = existsSync(`${root}public/resume.pdf`);
+if (hasResumePdf && !readFileSync(`${root}public/resume.pdf`).subarray(0, 5).equals(Buffer.from("%PDF-"))) {
+  throw new Error("public/resume.pdf is not a PDF. Remove it or provide the real résumé.");
+}
 
 writeFileSync(
   `${root}data/generated/assets.ts`,

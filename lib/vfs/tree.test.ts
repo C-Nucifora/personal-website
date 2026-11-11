@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { projects } from "@/data/projects";
+import { hasResumePdf } from "@/data/generated/assets";
 import { experience } from "@/data/resume";
 import { now } from "@/data/now";
 import { listDir, readFile, resolveNode } from "./tree";
@@ -26,7 +27,7 @@ describe("window directories (FLOW §2)", () => {
 
   test("resume contains resume.md, resume.pdf and experience pages", () => {
     const names = (listDir("~/resume") ?? []).map((n) => n.name);
-    expect(names).toEqual(["resume.md", "resume.pdf", "experience"]);
+    expect(names).toEqual(["resume.md", ...(hasResumePdf ? ["resume.pdf"] : []), "experience"]);
     const pages = (listDir("~/resume/experience") ?? []).map((n) => n.name);
     expect(pages).toEqual(experience.map((e) => `${slugify(e.org)}.md`));
   });
@@ -60,7 +61,7 @@ describe("window directories (FLOW §2)", () => {
   });
 
   test("resume.pdf is a download", () => {
-    expect(readFile("~/resume/resume.pdf")?.download).toBe("/resume.pdf");
+    expect(readFile("~/resume/resume.pdf")?.download).toBe(hasResumePdf ? "/resume.pdf" : undefined);
   });
 
   test("contact contains contact.md", () => {

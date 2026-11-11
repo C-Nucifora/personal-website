@@ -14,9 +14,8 @@ export const profile = {
   ],
   resumePdf: "/resume.pdf", // place the actual PDF in /public
   email: "cgnucifora@proton.me",
-  // Your homelab dashboard. Set this to the real URL to enable the `homelab`
-  // command; leave the placeholder and the command explains how to configure it.
-  homelabUrl: "https://dashboard.christiannucifora.com",
+  // Keep private infrastructure off the public portfolio. Empty hides this link.
+  homelabUrl: "" as string,
   // Canonical site URL, used for SEO metadata, sitemap, and Open Graph.
   siteUrl: "https://christiannucifora.com",
   // Self-hosted Umami analytics (cookie-free page views). Fill both values

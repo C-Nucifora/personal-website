@@ -13,15 +13,9 @@ export interface Social {
 export const socials: Social[] = [
   {
     label: "GitHub",
-    handle: "@yourname",
-    url: "https://github.com/yourname",
+    handle: "@C-Nucifora",
+    url: "https://github.com/C-Nucifora",
     icon: "github",
-  },
-  {
-    label: "LinkedIn",
-    handle: "Christian Nucifora",
-    url: "https://www.linkedin.com/in/yourname",
-    icon: "linkedin",
   },
   {
     label: "Email",

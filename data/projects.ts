@@ -22,6 +22,7 @@ export interface Project {
   stack: string[]; // tags, colored via --ansi-* tokens
   liveUrl?: string; // shows a "Live" badge + link
   sourceUrl?: string; // shows a "Source" link
+  revision?: string; // public snapshot commit
   thumbnail?: string; // /public path, optional
   featured?: boolean;
   stars?: number; // GitHub stargazers
@@ -32,9 +33,10 @@ export interface Project {
   commits?: ProjectCommit[];
 }
 
-/** This site itself — not on GitHub (yet); its source is bundled locally. */
+/** This site, with its curated source bundled locally. */
 const thisSite: Project = {
   slug: "terminal-portfolio",
+  sourceUrl: "https://github.com/C-Nucifora/personal-website",
   title: "terminal-portfolio (this site)",
   pitch:
     "The site you're using right now: a tmux session over a virtual filesystem, with a vim line editor and a read-only vim viewer.",
@@ -45,12 +47,13 @@ const thisSite: Project = {
 };
 
 export const projects: Project[] = [
-  ...githubProjects.map((p) => ({
+  ...githubProjects.filter((p) => p.slug !== "personal-website").map((p) => ({
     slug: p.slug,
     title: p.title,
     pitch: p.pitch,
     stack: p.stack,
     sourceUrl: p.sourceUrl,
+    revision: p.revision,
     ...(p.liveUrl ? { liveUrl: p.liveUrl } : {}),
     featured: p.featured,
     stars: p.stars,

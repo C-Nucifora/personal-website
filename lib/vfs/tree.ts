@@ -6,6 +6,7 @@
 import { projects } from "@/data/projects";
 import { blogPosts } from "@/data/generated/blog";
 import { siteSource } from "@/data/generated/site-source";
+import { hasResumePdf } from "@/data/generated/assets";
 import { experience } from "@/data/resume";
 import { bashrc, nothingToSeeHere, vimrc } from "@/data/dotfiles";
 import { commandsMd, guideMd, keybindingsMd } from "@/data/help-docs";
@@ -40,6 +41,10 @@ function dir(name: string, children: VfsNode[], extra: Partial<VfsDir> = {}): Vf
 }
 
 const EXT_LANGUAGE: Record<string, VfsLanguage> = {
+  rs: "rust",
+  lua: "lua",
+  c: "c",
+  h: "c",
   ts: "typescript",
   tsx: "tsx",
   js: "javascript",
@@ -107,7 +112,7 @@ function buildHome(): VfsDir {
     ),
     dir("resume", [
       file("resume.md", resumeMd(), { render: "resume" }),
-      file("resume.pdf", resumePdfSummary(), { download: profile.resumePdf }),
+      ...(hasResumePdf ? [file("resume.pdf", resumePdfSummary(), { download: profile.resumePdf })] : []),
       dir(
         "experience",
         experience.map((e) => file(`${slugify(e.org)}.md`, experiencePageMd(e))),
@@ -166,7 +171,7 @@ export function listDir(path: string): VfsNode[] | null {
  * Mount lazily-loaded GitHub source slices into ~/projects/<slug>/, keeping
  * each repo's real layout (Cargo.toml at the root, its own src/ where it has
  * one). The chunk stays off the critical path; the terminal grafts it right
- * after boot (Terminal.tsx). Idempotent per slug.
+ * on Projects navigation or a source-path command. Idempotent per slug.
  */
 const grafted = new Set<string>();
 

@@ -4,6 +4,7 @@
  * raw text the vim viewer shows and `cat` falls back to.
  */
 import { stripTodo, stripTodoList } from "@/lib/strip-todo";
+import { hasResumePdf } from "@/data/generated/assets";
 import { profile } from "@/data/profile";
 import { socials } from "@/data/socials";
 import { now } from "@/data/now";
@@ -69,7 +70,8 @@ export function resumeMd(): string {
     "",
     ...skills.map((s) => `- **${s.group}:** ${stripTodoList(s.items).join(", ")}`),
     "",
-    `Per-role detail lives in [experience/](experience/). PDF: [resume.pdf](resume.pdf).`,
+    ...(experience.length ? ["Per-role detail lives in [experience/](experience/)."] : []),
+    ...(hasResumePdf ? ["PDF: [resume.pdf](resume.pdf)."] : []),
   ].join("\n");
 }
 
@@ -103,9 +105,9 @@ export function contactMd(): string {
     `The fastest way is email: [${profile.email}](mailto:${profile.email})`,
     "",
     ...rows,
-    `- **Homelab:** [dashboard](${profile.homelabUrl})`,
+    ...(profile.homelabUrl ? [`- **Homelab:** [dashboard](${profile.homelabUrl})`] : []),
     "",
-    "No forms, no funnels. A reply is usually quick.",
+    "You can reach me by email or GitHub.",
   ].join("\n");
 }
 

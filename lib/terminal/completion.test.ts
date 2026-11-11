@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { hasResumePdf } from "@/data/generated/assets";
 import { completeLine } from "./completion";
 
 describe("command completion (first token)", () => {
@@ -29,7 +30,7 @@ describe("path completion (later tokens)", () => {
   });
 
   test("completes relative to the cwd", () => {
-    expect(completeLine("cat res", "~/resume").text).toBe("cat resume.");
+    expect(completeLine("cat res", "~/resume").text).toBe(hasResumePdf ? "cat resume." : "cat resume.md ");
   });
 
   test("dot prefix reveals hidden files", () => {

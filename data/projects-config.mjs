@@ -6,6 +6,9 @@
 export const projectsConfig = {
   username: "C-Nucifora",
 
+  /** Deliberately public portfolio selection. New repositories require review. */
+  include: ["m1-core", "m1-lsp", "nvim-m1", "tree-sitter-m1"],
+
   /** Repo names to leave off the site entirely. */
   exclude: [],
 

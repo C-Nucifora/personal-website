@@ -64,7 +64,7 @@ const components: ComponentProps<typeof ReactMarkdown>["components"] = {
     </pre>
   ),
   table: ({ children }) => (
-    <table className="w-full border-collapse text-sm">{children}</table>
+    <div className="max-w-full overflow-x-auto"><table className="w-full border-collapse text-sm">{children}</table></div>
   ),
   th: ({ children }) => (
     <th className="border-b border-border px-2 py-1 text-left font-semibold text-accent">
@@ -78,10 +78,30 @@ const components: ComponentProps<typeof ReactMarkdown>["components"] = {
 };
 
 /** Rendered markdown for vfs files without a dedicated renderer. */
-export function Markdown({ source }: { source: string }) {
+export function Markdown({ source, repositoryUrl, revision = "HEAD" }: { source: string; repositoryUrl?: string; revision?: string }) {
+  const publicUrl = (href = "") => {
+    if (/^https?:\/\//i.test(href)) return href;
+    if (!repositoryUrl || !href || href.startsWith("#") || /^[a-z]+:/i.test(href)) return undefined;
+    return `${repositoryUrl}/blob/${revision}/${href.replace(/^\//, "")}`;
+  };
+  const renderedComponents = {
+    ...components,
+    ...(repositoryUrl ? {
+      a: ({ href, children }: ComponentProps<"a">) => {
+        const url = publicUrl(href);
+        return url ? <a href={url} target="_blank" rel="noopener noreferrer">{children}</a> : <span>{children}</span>;
+      },
+    } : {}),
+    // README badges and screenshots remain opt-in links, with no third-party
+    // image requests or broken repository-relative image URLs.
+    img: ({ src, alt }: ComponentProps<"img">) => {
+      const url = typeof src === "string" ? publicUrl(src) : undefined;
+      return url ? <a href={url} target="_blank" rel="noopener noreferrer">{alt || "View image"}</a> : <span>{alt}</span>;
+    },
+  };
   return (
-    <div className="max-w-prose space-y-3">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+    <div className="min-w-0 max-w-prose space-y-3 break-words">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={renderedComponents}>
         {source}
       </ReactMarkdown>
     </div>

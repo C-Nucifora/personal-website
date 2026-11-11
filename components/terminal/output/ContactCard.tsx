@@ -17,12 +17,12 @@ export function ContactCard() {
       </p>
       <Socials />
       <ContactForm />
-      <p className="text-sm text-muted">
+      {profile.homelabUrl && <p className="text-sm text-muted">
         Homelab dashboard:{" "}
         <a href={profile.homelabUrl} target="_blank" rel="noopener noreferrer">
           {profile.homelabUrl.replace(/^https?:\/\//, "")}
         </a>
-      </p>
+      </p>}
     </section>
   );
 }

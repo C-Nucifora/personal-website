@@ -86,7 +86,7 @@ export function ProjectReadme({ slug, raw }: ProjectReadmeProps) {
       </header>
 
       {project.readme ? (
-        <Markdown source={project.readme} />
+        <Markdown source={project.readme} repositoryUrl={project.sourceUrl} revision={project.revision} />
       ) : project.description ? (
         <p className="font-sans text-[15px] leading-relaxed text-fg">{project.description}</p>
       ) : null}

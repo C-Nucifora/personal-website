@@ -11,6 +11,7 @@ export interface GithubCommit {
 
 export interface GithubProject {
   slug: string;
+  revision: string;
   title: string;
   pitch: string;
   stack: string[];
@@ -26,6 +27,7 @@ export interface GithubProject {
 export const githubProjects: GithubProject[] = [
   {
     "slug": "m1-core",
+    "revision": "8454728afdfae83a6b30d37117cf12aa85490e87",
     "title": "m1-core",
     "pitch": "Core M1 language library (AST, parser, evaluator)",
     "stack": [
@@ -38,53 +40,54 @@ export const githubProjects: GithubProject[] = [
     "sourceUrl": "https://github.com/C-Nucifora/m1-core",
     "featured": true,
     "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# m1-core\n\nShared foundation for the [MoTeC M1](https://www.motec.com.au/) (`.m1scr`)\ntooling: CST access, syntax diagnostics, and comment-embedded annotations.\nDownstream tools (`m1-fmt`, `m1-lint`, `m1-typecheck`, `m1-lsp`) depend on this\ncrate and never import tree-sitter directly.\n\n## What it provides\n\n```rust\nlet cst = m1_core::parse(src);\nfor node in cst.root().children() {\n    match node.kind() {\n        m1_core::Kind::IfStatement => { /* ... */ }\n        _ => {}\n    }\n}\nlet diagnostics = cst.syntax_diagnostics();\n```\n\n- **CST access** — a typed tree (`Cst`/`Node` with `Kind`/`Field` enums\n  generated from the grammar), plus incremental reparse for editor-style\n  updates.\n- **Syntax diagnostics** — error/warning extraction with offset → line/column\n  conversion. Traversal is iterative, so pathologically deep input cannot\n  overflow the call stack.\n- **Annotations** — `@m1:` comment attributes, parsed once here and consumed\n  by every downstream tool (see below).\n- Small shared helpers the formatter and linter would otherwise duplicate,\n  such as operator classification.\n\nFull API documentation is in the rustdoc (`cargo doc --open`).\n\n## Layering: type inference lives in `m1-typecheck`\n\n`m1-core` deliberately exposes only *structural* CST access and **no type-query\nAPI on `Node`**. Asking \"what type does this expression resolve to?\" requires\nthe project symbol model (`.m1prj`/`.m1cfg`), which lives in the layer above\nthis crate, in `m1-typecheck`. Putting type inference here would invert that\ndependency.\n\n## Annotations (`// @m1:<kind>(args)`)\n\nComment-embedded attributes — the M1 analogue of Rust attributes /\n`// eslint-disable`. They ride inside ordinary comments, so they are valid M1\nand need no grammar change:\n\n```c\n// @m1:allow(L010, T030)        suppresses those diagnostics on the next statement\nFront Torque = 1; // @m1:safety-critical    trailing form attaches to this statement\n```\n\nA comment trailing a statement attaches to that statement; otherwise it\nattaches to the next one (so annotations stack on consecutive lines above\ntheir target). Each tool registers the annotation kinds it owns, and m1-core\nwarns on any `@m1:` kind no tool recognises.\n\n## Usage\n\nNot published to crates.io; consumed via a versioned git tag (the whole\ntoolchain uses this scheme). Pin the\n[latest release](https://github.com/C-Nucifora/m1-core/releases):\n\n```toml\n[dependencies]\nm1-core = { git = \"https://github.com/C-Nucifora/m1-core.git\", tag = \"v0.10.0\" }\n```\n\nThe grammar dependency (`tree-sitter-m1`) is itself a versioned git tag, so the\ncrate builds from a standalone clone.\n\n## Development\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`, on stable and on the MSRV. Releases are cut by\nbumping `version` in `Cargo.toml` on `main`; the tag is the deliverable\n(source-only — consumers build from the tag).\n\n`src/kind.rs` and `src/field.rs` are generated from the grammar; after a\n`tree-sitter-m1` bump, regenerate with `cargo run -p xtask -- gen-kinds`\n(freshness tests fail CI if the committed files are stale).\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
+    "pushedAt": "2026-11-11",
+    "readme": "# m1-core\n\nShared foundation for the [MoTeC M1](https://www.motec.com.au/) (`.m1scr`)\ntooling: CST access, syntax diagnostics, and comment-embedded annotations.\nDownstream tools (`m1-fmt`, `m1-lint`, `m1-typecheck`, `m1-lsp`) depend on this\ncrate and never import tree-sitter directly.\n\n## What it provides\n\n```rust\nlet cst = m1_core::parse(src);\nfor node in cst.root().children() {\n    match node.kind() {\n        m1_core::Kind::IfStatement => { /* ... */ }\n        _ => {}\n    }\n}\nlet diagnostics = cst.syntax_diagnostics();\n```\n\n- **CST access** — a typed tree (`Cst`/`Node` with `Kind`/`Field` enums\n  generated from the grammar), plus incremental reparse for editor-style\n  updates.\n- **Syntax diagnostics** — error/warning extraction with offset → line/column\n  conversion. Traversal is iterative, so pathologically deep input cannot\n  overflow the call stack.\n- **Annotations** — `@m1:` comment attributes, parsed once here and consumed\n  by every downstream tool (see below).\n- Small shared helpers the formatter and linter would otherwise duplicate,\n  such as operator classification.\n\nFull API documentation is in the rustdoc (`cargo doc --open`).\n\n## Layering: type inference lives in `m1-typecheck`\n\n`m1-core` deliberately exposes only *structural* CST access and **no type-query\nAPI on `Node`**. Asking \"what type does this expression resolve to?\" requires\nthe project symbol model (`.m1prj`/`.m1cfg`), which lives in the layer above\nthis crate, in `m1-typecheck`. Putting type inference here would invert that\ndependency.\n\n## Annotations (`// @m1:<kind>(args)`)\n\nComment-embedded attributes — the M1 analogue of Rust attributes /\n`// eslint-disable`. They ride inside ordinary comments, so they are valid M1\nand need no grammar change:\n\n```c\n// @m1:allow(L010, T030)        suppresses those diagnostics on the next statement\nFront Torque = 1; // @m1:safety-critical    trailing form attaches to this statement\n```\n\nA comment trailing a statement attaches to that statement; otherwise it\nattaches to the next one (so annotations stack on consecutive lines above\ntheir target). Each tool registers the annotation kinds it owns, and m1-core\nwarns on any `@m1:` kind no tool recognises.\n\n## Usage\n\nNot published to crates.io; consumed via a versioned git tag (the whole\ntoolchain uses this scheme). Pin the\n[latest release](https://github.com/C-Nucifora/m1-core/releases):\n\n```toml\n[dependencies]\nm1-core = { git = \"https://github.com/C-Nucifora/m1-core.git\", tag = \"v0.15.1\" }\n```\n\nThe grammar dependency (`tree-sitter-m1`) is itself a versioned git tag, so the\ncrate builds from a standalone clone.\n\n## Development\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`, on stable and on the MSRV. Releases are cut by\nbumping `version` in `Cargo.toml` on `main`; the tag is the deliverable\n(source-only — consumers build from the tag).\n\n`src/kind.rs` and `src/field.rs` are generated from the grammar; after a\n`tree-sitter-m1` bump, regenerate with `cargo run -p xtask -- gen-kinds`\n(freshness tests fail CI if the committed files are stale).\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
     "commits": [
       {
-        "hash": "120599a",
-        "date": "2026-06-12",
-        "message": "release: v0.12.0 — tree-sitter-m1 v0.7.0 (#60)"
+        "hash": "8454728",
+        "date": "2026-11-11",
+        "message": "Merge pull request #85 from C-Nucifora/deep-review-fixes"
       },
       {
-        "hash": "65e6787",
-        "date": "2026-06-12",
-        "message": "release: v0.11.0 (#59)"
+        "hash": "95297ea",
+        "date": "2026-10-17",
+        "message": "prevent dangling when annotations from widening suppression"
       },
       {
-        "hash": "55bc99d",
-        "date": "2026-06-12",
-        "message": "fix: one column unit for Position — characters everywhere (#58)"
+        "hash": "d294ea7",
+        "date": "2026-10-16",
+        "message": "chore(deps): bump serde_json from 1.0.151 to 1.0.154 (#84)"
       },
       {
-        "hash": "9d53d32",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md + CLAUDE.md, drop stale build plans (#56)"
+        "hash": "e581c96",
+        "date": "2026-10-05",
+        "message": "chore: release m1-core v0.15.1 (#83)"
       },
       {
-        "hash": "099f050",
-        "date": "2026-06-11",
-        "message": "feat: re-export Edit so Cst::reparse is callable by consumers (#55)"
+        "hash": "030ffbc",
+        "date": "2026-08-26",
+        "message": "Merge pull request #82 from C-Nucifora/dependabot/cargo/tree-sitter-0.26.13"
       },
       {
-        "hash": "8c4b9d6",
-        "date": "2026-06-11",
-        "message": "fix: parser reuse, alloc-free walk, xtask pin guard, doc CI (#48 #49 #50 #51) (#52)"
+        "hash": "b992fb5",
+        "date": "2026-08-26",
+        "message": "chore(deps): bump tree-sitter from 0.26.12 to 0.26.13"
       },
       {
-        "hash": "40dcd6c",
-        "date": "2026-06-11",
-        "message": "chore: declare rust-version = 1.88 with an MSRV CI job (#47)"
+        "hash": "3eeedd0",
+        "date": "2026-08-15",
+        "message": "chore(deps): bump tree-sitter from 0.26.11 to 0.26.12 (#81)"
       },
       {
-        "hash": "99a73de",
-        "date": "2026-06-11",
-        "message": "Release v0.9.0 (#46)"
+        "hash": "4d2c48f",
+        "date": "2026-08-12",
+        "message": "chore(deps): bump tree-sitter from 0.26.10 to 0.26.11 (#79)"
       }
     ]
   },
   {
     "slug": "m1-lsp",
+    "revision": "47b010752543e120abff6b92405a1e6a49e336db",
     "title": "m1-lsp",
     "pitch": "Language server for M1 Script",
     "stack": [
@@ -97,53 +100,54 @@ export const githubProjects: GithubProject[] = [
     "sourceUrl": "https://github.com/C-Nucifora/m1-lsp",
     "featured": true,
     "stars": 0,
-    "pushedAt": "2026-06-12",
+    "pushedAt": "2026-11-11",
     "readme": "# m1-lsp\n\nA [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)\nserver for the MoTeC M1 script language (`.m1scr`). It is the integration\nlayer at the top of the M1 toolchain: parsing through\n[m1-core](https://github.com/C-Nucifora/m1-core), live lint and type\ndiagnostics through [m1-lint](https://github.com/C-Nucifora/m1-lint) and\n[m1-typecheck](https://github.com/C-Nucifora/m1-typecheck), and formatting\nthrough [m1-fmt](https://github.com/C-Nucifora/m1-fmt).\n\nIt speaks plain LSP over stdio and works with any LSP client. Ready-made\nintegrations exist for VS Code\n([m1-vscode](https://github.com/nedlane/m1-vscode)) and Neovim\n([nvim-m1](https://github.com/C-Nucifora/nvim-m1)) — both bundle the server,\nso most users never install it directly.\n\n## Features\n\n- **Diagnostics** — syntax errors, lint findings, and project-aware type\n  diagnostics, live on open/change/save. Project-scope audit findings are\n  published against the `Project.m1prj` itself, so the editor matches what the\n  CLIs report.\n- **Project awareness** — the nearest `Project.m1prj`, `parameters.m1cfg`,\n  and `.m1dbc` files are discovered and loaded automatically, giving symbols\n  their real types and units; the model reloads when those files change.\n- **Navigation and insight** — hover (types, units, enum members, library\n  signatures), go-to-definition, references and document highlights with\n  read/write classification, document symbols, call hierarchy over the\n  cross-script channel data-flow graph, folding, and semantic tokens.\n- **Editing support** — completion (project symbols, locals, library\n  methods), signature help, inlay type hints, local rename, code-action\n  quick-fixes (including a whole-file \"fix all auto-fixable lint issues\"),\n  whole-document and range formatting via `m1-fmt`, and a call-rate code lens\n  per script.\n\nChannel references are resolved through each script's group scope, so the\nsame channel written group-relative in one script and read full-path in\nanother collapses onto one entity — navigation follows the project's real\ndata flow, not textual spellings.\n\n## Install\n\nPrebuilt binaries for Linux x64, Windows x64, and Apple-Silicon macOS are\nattached to each [release](https://github.com/C-Nucifora/m1-lsp/releases)\n(the editor integrations consume these automatically). Or build from source:\n\n```sh\ncargo install --git https://github.com/C-Nucifora/m1-lsp.git --tag <latest>\n```\n\nIntel-Mac binaries are not published (GitHub no longer reliably provides\nIntel-Mac CI runners) — build from source there and point your editor at the\nbinary.\n\nRun with no arguments to start the server over stdio (how editors launch it).\n`m1-lsp --scaffold-config` prints a starter `m1-tools.toml`; see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)\nfor how that file is shared across the toolchain. A minimal hand-rolled\nNeovim setup (no plugin) lives in [`editors/nvim/`](editors/nvim/).\n\n## Development\n\n`m1-lsp` depends on every other crate in the toolchain (via versioned git-tag\ndependencies, so it builds from a standalone clone) — a clean build here is\nthe toolchain's end-to-end integration check. It never imports tree-sitter\ndirectly; all CST access goes through `m1-core`.\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`. A corpus smoke test analyses every `.m1scr`\nunder `$M1_CORPUS_PATH` (falling back to a sibling `m1-example/` checkout)\nand asserts the server never panics; it skips if no corpus is present.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
     "commits": [
       {
-        "hash": "c37c57d",
-        "date": "2026-06-12",
-        "message": "release: v0.38.0 — progress, lazy completion docs, .m1fmt.toml, incremental sync, related info; deps to current tags (#279)"
+        "hash": "47b0107",
+        "date": "2026-11-11",
+        "message": "Merge pull request #374 from C-Nucifora/deep-review-fixes"
       },
       {
-        "hash": "7fcdc69",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md, remove stale first-build specs (#275)"
+        "hash": "2bdcb56",
+        "date": "2026-11-11",
+        "message": "Merge branch 'main' into deep-review-fixes"
       },
       {
-        "hash": "5303ad8",
-        "date": "2026-06-12",
-        "message": "feat: treat expand blocks as outline containers (#269) (#274)"
+        "hash": "464b748",
+        "date": "2026-11-11",
+        "message": "chore(deps): bump toml from 1.1.8+spec-1.1.0 to 1.2.1+spec-1.1.0 (#379)"
       },
       {
-        "hash": "6770e66",
-        "date": "2026-06-12",
-        "message": "deps: m1-typecheck v0.35.0 (parse-once API) + m1-fmt v0.12.0; release v0.37.0 (#272)"
+        "hash": "3e95b99",
+        "date": "2026-11-05",
+        "message": "chore(deps): bump tokio from 1.53.2 to 1.54.1 (#376)"
       },
       {
-        "hash": "40f182f",
-        "date": "2026-06-12",
-        "message": "perf: result_id/Unchanged on pull diagnostics + memoize project-scope audit (#263)"
+        "hash": "2607134",
+        "date": "2026-10-17",
+        "message": "refresh project state from actual document changes"
       },
       {
-        "hash": "4ebf0ab",
-        "date": "2026-06-11",
-        "message": "refactor: dedup value_type_str and use locate::node_at_byte for in_comment_or_string (#262)"
+        "hash": "63eaa2e",
+        "date": "2026-10-17",
+        "message": "preserve document mutation order across requests"
       },
       {
-        "hash": "c19c228",
-        "date": "2026-06-11",
-        "message": "perf: guard diagnostic pull paths with block_in_place (#261)"
+        "hash": "3ed54bb",
+        "date": "2026-10-16",
+        "message": "chore(deps): bump toml from 1.1.6+spec-1.1.0 to 1.1.8+spec-1.1.0 (#370)"
       },
       {
-        "hash": "d77b015",
-        "date": "2026-06-11",
-        "message": "chore: bump m1-core v0.10.0, m1-lint v0.18.0, m1-fmt v0.11.2, m1-typecheck v0.34.2 (#271)"
+        "hash": "1662a2f",
+        "date": "2026-10-16",
+        "message": "chore(deps): bump serde_json from 1.0.151 to 1.0.154 (#372)"
       }
     ]
   },
   {
     "slug": "nvim-m1",
+    "revision": "1a3a763ebe78fe1c37c994e1ee2cb61664157014",
     "title": "nvim-m1",
     "pitch": "Neovim plugin for M1 script: LSP, tree-sitter, formatting, and linting in one setup() call",
     "stack": [
@@ -156,53 +160,54 @@ export const githubProjects: GithubProject[] = [
     "sourceUrl": "https://github.com/C-Nucifora/nvim-m1",
     "featured": true,
     "stars": 1,
-    "pushedAt": "2026-06-12",
-    "readme": "# nvim-m1\n\nNeovim plugin for [M1 script](https://github.com/C-Nucifora/m1-tools)\n(`.m1scr`). LSP, tree-sitter highlighting, format-on-save, standalone\nlinting, and project-file editing in a single `setup()` call — the Neovim\nequivalent of [m1-vscode](https://github.com/nedlane/m1-vscode).\n\n**The M1 toolchain is bundled**: the install hook downloads the pinned,\nprebuilt `m1-lsp` / `m1-fmt` / `m1-lint` / `m1-project` binaries for your\nplatform — there is nothing to install by hand, and `:checkhealth nvim-m1`\nverifies the result.\n\n## Requirements\n\n- Neovim ≥ 0.10 (on 0.10,\n  [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) is required;\n  0.11+ uses the native LSP API)\n- A C compiler on `$PATH` — the `m1` parser is compiled from\n  [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1)'s sources on\n  first setup\n- `curl` on `$PATH` — used to download the bundled toolchain (on macOS, also\n  `codesign` from the Xcode CLT: binaries are re-signed ad-hoc so Apple\n  Silicon's code-signing check doesn't kill them)\n- Optional: [conform.nvim](https://github.com/stevearc/conform.nvim) for\n  format-on-save, [nvim-lint](https://github.com/mfussenegger/nvim-lint) for\n  standalone lint — both have built-in fallbacks when absent\n\n## Installation\n\n```lua\n-- lazy.nvim\n{\n  \"C-Nucifora/nvim-m1\",\n  dependencies = {\n    \"C-Nucifora/tree-sitter-m1\", -- the m1 grammar + queries (required)\n    { \"nvim-treesitter/nvim-treesitter\", optional = true },\n    { \"neovim/nvim-lspconfig\", optional = true }, -- only needed on Neovim 0.10\n    { \"stevearc/conform.nvim\", optional = true },\n    { \"mfussenegger/nvim-lint\", optional = true },\n  },\n  -- Downloads the bundled M1 toolchain for your platform on install/update.\n  -- Same as running :M1Install.\n  build = function()\n    require(\"nvim-m1.install\").install()\n  end,\n  ft = { \"m1scr\", \"m1prj\" },\n  opts = {},\n}\n```\n\nBinaries you provide yourself still win: anything on `$PATH` (or pointed to\nvia `server_path` / `project_path`) is used over the bundled toolchain.\nHighlighting works through Neovim core — the plugin compiles and registers\nthe parser itself, so it does not depend on a particular nvim-treesitter\nbranch.\n\n### Options\n\n| Key | Default | Description |\n| --- | --- | --- |\n| `server_path` | `nil` | Path to the m1-lsp binary; `nil` searches `$PATH`. |\n| `project_path` | `nil` | Path to the m1-project binary (powers `:M1CreateChannel` etc.); `nil` searches `$PATH`. |\n| `format_on_save` | `true` | Format `.m1scr` on write with m1-fmt. |\n| `lint_on_save` | `true` | Lint `.m1scr` on write with m1-lint. |\n| `filetypes` | `{ \"m1scr\" }` | Script filetypes to wire. |\n| `attach_m1prj` | `true` | Also attach m1-lsp to `Project.m1prj` (rename a channel from its declaration). |\n| `root_markers` | `{ \"Project.m1prj\", \".git\" }` | Files marking a project root. |\n| `auto_install_parser` | `true` | Install the `m1` parser if missing. |\n| `lint_on_insert_leave` | `false` | Also lint on `InsertLeave`. |\n| `codelens` | `true` | Show m1-lsp code lenses (e.g. a script's `⚡ N Hz` rate); run the lens under the cursor with `:M1CodeLensRun`. |\n| `capabilities` / `on_attach` | — | Forwarded to the LSP client. |\n| `settings` | `{}` | Unified m1-lsp config (lint/format/diagnostics), e.g. `{ lint = { max_line_length = 100 } }`. A workspace `m1-tools.toml` overrides it. |\n\nFor **project-level** config shared with teammates (and the VS Code\nextension), commit an `m1-tools.toml` to the project root — the server\ndiscovers it and it overrides `settings` (see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)).\nGenerate one via `:M1GenerateConfig`.\n\n### Commands\n\n| Command | Action |\n| --- | --- |\n| `:M1Format` / `:M1FormatToggle` | Format the buffer now / toggle format-on-save. |\n| `:M1Lint` | Lint the current buffer now. |\n| `:M1GenerateConfig` | Write a default `m1-tools.toml` to the project root. |\n| `:M1CreateChannel` / `:M1CreateParameter` / `:M1CreateGroup` / `:M1CreateFunction` / `:M1CreateScheduledFunction` | Create components in `Project.m1prj` (prompting for the details). |\n| `:M1SetSecurity` / `:M1SetType` / `:M1SetUnit` / `:M1SetCallRate` / `:M1SetQuantity` / `:M1SetFormat` / `:M1SetDps` / `:M1SetDisplayRange` / `:M1SetValidation` | Set a component's properties (pickers driven by the project model). |\n| `:M1AddTag` / `:M1RemoveTag` | Add or remove a System/Type tag. |\n| `:M1RenameComponent` / `:M1DeleteComponent` | Rename (updating trigger references) or delete a component. |\n| `:M1ValidateProject` | Validate `Project.m1prj` structure into the quickfix list. |\n| `:M1Install` / `:M1Update` | Download the bundled toolchain at the pinned versions. |\n| `:checkhealth nvim-m1` | Verify Neovim version, toolchain binaries, parser and integrations. |\n\nThe project-editing commands drive `Project.m1prj` through the\n[m1-project](https://github.com/nedlane/m1-project) binary (the same tool the\nVS Code extension uses) — the language server stays read-only and reloads\nautomatically after an edit.\n\n### Extras\n\nA statusline component\n(`require(\"nvim-m1.statusline\").component` — shows `m1 v<server-version>`\nwhen attached) and which-key labels for every `:M1*` command\n(`require(\"nvim-m1.whichkey\").register()`).\n\n## Development\n\n```sh\nscripts/test.sh   # headless plenary-busted suite\n```\n\nThe suite covers config resolution, the m1-lint JSON parser, setup wiring,\nand an end-to-end lint run against the real `m1-lint` binary when it is on\n`$PATH`. Test fixtures are synthetic — no project data is checked in. Lua is\nformatted with `stylua` (a separate CI job).\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
+    "pushedAt": "2026-11-11",
+    "readme": "# nvim-m1\n\nNeovim plugin for [M1 script](https://github.com/C-Nucifora/m1-tools)\n(`.m1scr`). LSP, tree-sitter highlighting, format-on-save, standalone\nlinting, and project-file editing in a single `setup()` call — the Neovim\nequivalent of [m1-vscode](https://github.com/nedlane/m1-vscode).\n\n**The M1 toolchain is bundled**: the install hook downloads the pinned,\nprebuilt `m1-lsp` / `m1-fmt` / `m1-lint` / `m1-project` binaries for your\nplatform — there is nothing to install by hand, and `:checkhealth nvim-m1`\nverifies the result.\n\n## Requirements\n\n- Neovim ≥ 0.10 (on 0.10,\n  [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) is required;\n  0.11+ uses the native LSP API)\n- A C compiler on `$PATH` — the `m1` parser is compiled from\n  [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1)'s sources on\n  first setup\n- `curl` on `$PATH` — used to download the bundled toolchain (on macOS, also\n  `codesign` from the Xcode CLT: binaries are re-signed ad-hoc so Apple\n  Silicon's code-signing check doesn't kill them)\n- Optional: [conform.nvim](https://github.com/stevearc/conform.nvim) for\n  format-on-save, [nvim-lint](https://github.com/mfussenegger/nvim-lint) for\n  standalone lint — both have built-in fallbacks when absent\n\n## Installation\n\n```lua\n-- lazy.nvim\n{\n  \"C-Nucifora/nvim-m1\",\n  dependencies = {\n    \"C-Nucifora/tree-sitter-m1\", -- the m1 grammar + queries (required)\n    { \"nvim-treesitter/nvim-treesitter\", optional = true },\n    { \"neovim/nvim-lspconfig\", optional = true }, -- only needed on Neovim 0.10\n    { \"stevearc/conform.nvim\", optional = true },\n    { \"mfussenegger/nvim-lint\", optional = true },\n  },\n  -- Downloads the bundled M1 toolchain for your platform on install/update.\n  -- Same as running :M1Install.\n  build = function()\n    require(\"nvim-m1.install\").install()\n  end,\n  ft = { \"m1scr\", \"m1prj\" },\n  opts = {},\n}\n```\n\nBinaries you provide yourself still win: anything on `$PATH` (or pointed to\nvia `server_path` / `project_path`) is used over the bundled toolchain.\nHighlighting works through Neovim core — the plugin compiles and registers\nthe parser itself, so it does not depend on a particular nvim-treesitter\nbranch.\n\nThe compiled parser tracks a fingerprint of its C sources and headers. After\nupdating `tree-sitter-m1`, the next setup rebuilds stale parsers automatically,\nincluding existing installs without a fingerprint. Restart Neovim after updating\nan already loaded grammar; Neovim retains loaded languages for the session.\n\n### Options\n\n| Key | Default | Description |\n| --- | --- | --- |\n| `server_path` | `nil` | Path to the m1-lsp binary; `nil` searches `$PATH`. |\n| `project_path` | `nil` | Path to the m1-project binary (powers `:M1CreateChannel` etc.); `nil` searches `$PATH`. |\n| `format_on_save` | `true` | Format `.m1scr` on write with m1-fmt. |\n| `lint_on_save` | `true` | Lint `.m1scr` on write with m1-lint. |\n| `filetypes` | `{ \"m1scr\" }` | Script filetypes to wire. |\n| `attach_m1prj` | `true` | Also attach m1-lsp to `Project.m1prj` (rename a channel from its declaration). |\n| `root_markers` | `{ \"Project.m1prj\", \".git\" }` | Files marking a project root. |\n| `auto_install_parser` | `true` | Build the `m1` parser when missing or grammar sources change. |\n| `lint_on_insert_leave` | `false` | Also lint on `InsertLeave`. |\n| `codelens` | `true` | Show m1-lsp code lenses (e.g. a script's `⚡ N Hz` rate); run the lens under the cursor with `:M1CodeLensRun`. |\n| `capabilities` / `on_attach` | — | Forwarded to the LSP client. |\n| `settings` | `{}` | Unified m1-lsp config (lint/format/diagnostics), e.g. `{ lint = { max_line_length = 100 } }`. A workspace `m1-tools.toml` overrides it. |\n\nFor **project-level** config shared with teammates (and the VS Code\nextension), commit an `m1-tools.toml` to the project root — the server\ndiscovers it and it overrides `settings` (see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)).\nGenerate one via `:M1GenerateConfig`.\n\nTo opt into aligning comparisons and logical operators in wrapped conditions,\nuse `settings = { format = { align_conditions = true } }` in the plugin setup,\nor set `align_conditions = true` under `[format]` in `m1-tools.toml`. The\ndefault is `false`; the same setting reaches the server at initialization.\n\n### Bundled toolchain update proposals\n\nA daily workflow checks all four bundled tools for newer stable GitHub\nreleases. It proposes a pin update and one patch bump of `VERSION` only after\nall three supported platform binaries and their `SHA256SUMS` entries exist.\nNative GitHub asset digests are checked against the manifest when available.\nIncomplete releases fail validation without changing the pins. Repeated runs\nleave an identical open proposal branch untouched so approvals are preserved.\n\nThe workflow needs a repository secret named `GH_PAT` with permission to push\nbranches and create pull requests. Its pushes must trigger the normal PR CI;\nthe workflow reports a setup error if the secret is absent. It neither\nauto-merges proposals nor publishes to an editor marketplace. Review, approval\nand merge trigger the existing `VERSION` release workflow; plugin-manager\nupdates then pick up the released plugin and its bundled tool pins.\n\n### Commands\n\n| Command | Action |\n| --- | --- |\n| `:M1Format` / `:M1FormatToggle` | Format the buffer now / toggle format-on-save. |\n| `:M1Lint` | Lint the current buffer now. |\n| `:M1GenerateConfig` | Write a default `m1-tools.toml` to the project root. |\n| `:M1CreateChannel` / `:M1CreateParameter` / `:M1CreateGroup` / `:M1CreateFunction` / `:M1CreateScheduledFunction` / `:M1CreateConstant` / `:M1CreateTable` | Create components in `Project.m1prj` (prompting for the details). |\n| `:M1SetSecurity` / `:M1SetType` / `:M1SetUnit` / `:M1SetCallRate` / `:M1SetQuantity` / `:M1SetFormat` / `:M1SetDps` / `:M1SetDisplayRange` / `:M1SetValidation` | Set a component's properties (pickers driven by the project model). |\n| `:M1AddTag` / `:M1RemoveTag` | Add or remove a System/Type tag. |\n| `:M1RenameComponent` / `:M1DeleteComponent` | Rename (updating trigger references) or delete a component. |\n| `:M1ValidateProject` | Validate `Project.m1prj` structure into the quickfix list. |\n| `:M1SecurityMatrix` | Show the secured components × access-level audit matrix (read-only scratch buffer). |\n| `:M1Install` / `:M1Update` | Download the bundled toolchain at the pinned versions. |\n| `:M1RestartServer` | Restart the `m1-lsp` server (use after `:M1Update` to cycle a stale process). |\n| `:checkhealth nvim-m1` | Verify Neovim version, toolchain binaries, parser and integrations. |\n\nThe project-editing commands drive `Project.m1prj` through the\n[m1-project](https://github.com/nedlane/m1-project) binary (the same tool the\nVS Code extension uses) — the language server stays read-only and reloads\nautomatically after an edit.\n\n### Extras\n\nA statusline component\n(`require(\"nvim-m1.statusline\").component` — shows `m1 v<server-version>`\nwhen attached) and which-key labels for every `:M1*` command\n(`require(\"nvim-m1.whichkey\").register()`).\n\n**Snippets.** The construct *heads* (`if` / `when` / `expand` / `local` /\n`static`) already arrive from `m1-lsp` completion as\n[`InsertTextFormat::Snippet`](https://github.com/C-Nucifora/m1-lsp), so any\nsnippet-aware completion expands them — nvim-m1 does not re-ship those. It does\nbundle the few idioms the server has no path for, in\n[`snippets/m1scr.json`](snippets/m1scr.json) (VS Code snippet format):\n\n| Prefix | Expands to |\n| --- | --- |\n| `is` | a standalone `is (…) { … }` arm of a `when` block |\n| `ifelse` | the full Allman `if … else …` skeleton (the LSP emits only the no-`else` `if`) |\n| `nanguard` | the ECU-legal `Target = Calculate.IsNAN(v) ? fallback : v;` guard the invalid-value tracer recognises |\n| `m1finite` | the `// @m1:requires-finite` annotation |\n| `m1allow` | the `// @m1:allow(Txxx)` diagnostic suppression |\n\nLoading is opt-in (like conform.nvim / nvim-lint). With\n[LuaSnip](https://github.com/L3MON4D3/LuaSnip), point its `from_vscode` loader\nat the bundled file:\n\n```lua\nrequire(\"luasnip.loaders.from_vscode\").load({\n  paths = { require(\"nvim-m1.snippets\").dir() },\n})\n```\n\nEngine-free, you can expand one by prefix or name through Neovim's native\n`vim.snippet` (0.10+) — e.g. bind it to a key:\n\n```lua\nvim.keymap.set(\"i\", \"<C-g>n\", function()\n  require(\"nvim-m1.snippets\").expand(\"nanguard\")\nend, { desc = \"M1: insert NaN guard\" })\n```\n\n## Development\n\n```sh\nscripts/test.sh   # headless plenary-busted suite\n```\n\nThe suite covers config resolution, the m1-lint JSON parser, setup wiring,\nand an end-to-end lint run against the real `m1-lint` binary when it is on\n`$PATH`. Test fixtures are synthetic — no project data is checked in. Lua is\nformatted with `stylua` (a separate CI job).\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
     "commits": [
       {
-        "hash": "ecef4b8",
-        "date": "2026-06-12",
-        "message": "Release v0.11.0: bump toolchain pins (lsp v0.38.0, fmt v0.13.0, lint v0.19.0, project v0.7.0) (#86)"
+        "hash": "1a3a763",
+        "date": "2026-11-11",
+        "message": "Merge pull request #134 from C-Nucifora/deep-review-fixes"
       },
       {
-        "hash": "4a76f17",
-        "date": "2026-06-12",
-        "message": "feat: project.set_call_rate_for — programmatic call-rate assignment (#85)"
+        "hash": "0fb19e7",
+        "date": "2026-11-11",
+        "message": "Merge branch 'main' into deep-review-fixes"
       },
       {
-        "hash": "f65b618",
-        "date": "2026-06-12",
-        "message": "fix: portable async-install spec; pinned, verified e2e toolchain in CI (#84)"
+        "hash": "b49a1c7",
+        "date": "2026-11-05",
+        "message": "Release v0.16.11 with current toolchain and condition alignment (#131)"
       },
       {
-        "hash": "8dadcd0",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md (#81)"
+        "hash": "1bde1c4",
+        "date": "2026-10-17",
+        "message": "discard stale builtin lint results"
       },
       {
-        "hash": "3d86432",
-        "date": "2026-06-12",
-        "message": "feat: :M1CreateConstant and :M1CreateTable commands (#76) (#80)"
+        "hash": "554b216",
+        "date": "2026-10-17",
+        "message": "release project queues after spawn failures"
       },
       {
-        "hash": "683ddec",
-        "date": "2026-06-12",
-        "message": "perf: project commands off UI-blocking system(), serialized with awaitable completion (#71)"
+        "hash": "72aad30",
+        "date": "2026-10-11",
+        "message": "Merge pull request #133 from C-Nucifora/dependabot/github_actions/actions/setup-python-7"
       },
       {
-        "hash": "f79cd1d",
-        "date": "2026-06-12",
-        "message": "chore(release): v0.10.1 — bump bundled toolchain (m1-lsp v0.37.0, m1-fmt v0.12.0) (#79)"
+        "hash": "c2923ce",
+        "date": "2026-10-05",
+        "message": "chore(deps): bump actions/setup-python from 6 to 7"
       },
       {
-        "hash": "94ab324",
-        "date": "2026-06-12",
-        "message": "chore(release): v0.10.0 (#78)"
+        "hash": "121ce6f",
+        "date": "2026-10-04",
+        "message": "ci: propose updates for every bundled toolchain release (#132)"
       }
     ]
   },
   {
     "slug": "tree-sitter-m1",
+    "revision": "c6bc1e73316edc44ca967d9c77fed2a201ced4ae",
     "title": "tree-sitter-m1",
     "pitch": "Tree-sitter grammar for M1 Script",
     "stack": [
@@ -215,595 +220,48 @@ export const githubProjects: GithubProject[] = [
     "sourceUrl": "https://github.com/C-Nucifora/tree-sitter-m1",
     "featured": true,
     "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# tree-sitter-m1\n\nA [tree-sitter](https://tree-sitter.github.io/) grammar for the **MoTeC M1\nscript language** (`.m1scr`) — the C#-like language used inside MoTeC M1 Build\nto program M1-series ECUs (e.g. the M150).\n\nThis is the root of the M1 editor-tooling stack\n([m1-tools](https://github.com/C-Nucifora/m1-tools) is the map of the\necosystem). It produces the parser the Rust tools consume — `m1-core`\nregenerates its node-kind enums from this grammar's `node-types.json`, so a\nchange here ripples through the whole toolchain — plus highlight / indent /\nfold queries for editors. The committed `test/corpus` suite runs in CI; the\nreal-world corpus gate (`scripts/check-corpus.sh` — every script in the two\nreal corpora parses with zero `ERROR`/`MISSING` nodes) is run locally before\na grammar release, since those corpora are not available on public runners.\n\n## The hard part: identifiers contain spaces\n\nIn M1, a path segment can contain spaces and `.` separates segments:\n\n```\nBrenloft.Quassor.Vund Klee.Mosko.Trilby Glonk = CanComms.GetUnsignedInteger(h, 48, 16);\nPellow.KVB Bonquil eq Wexlar Bonquil Mosko.Vor\n```\n\nA regex token can't express \"a run of words, but stop before the keyword\n`eq`\". So the `identifier` token is produced by an **external scanner**\n([`src/scanner.c`](src/scanner.c)) that joins `word SPACE word` greedily while\nrefusing to absorb reserved words. The reserved set there must stay in sync\nwith the keyword strings in [`grammar.js`](grammar.js).\n\nCompile-time interpolation is the other subtlety: a standalone `$(VAR)`\noperand parses as its own `interpolation` node, but when `$(VAR)` appears\ninside a multi-word name it stays part of the `identifier` segment —\npreserving \"one identifier = one path segment\".\n\n> All example identifiers in this repo (grammar comments, corpus tests, docs)\n> are synthetic placeholders, not drawn from any real project.\n\n## Develop\n\n```sh\nnpm install                 # gets the tree-sitter CLI locally\nnpx tree-sitter generate    # regenerate src/parser.c from grammar.js\nnpx tree-sitter test        # corpus tests\nscripts/check-corpus.sh DIR # parse a real corpus dir; fail on ERROR/MISSING\n```\n\n`src/parser.c` is generated but **committed**, so the Rust crate builds\nwithout the tree-sitter CLI — regenerate and commit it together with any\n`grammar.js` change.\n\n## Use as a Rust dependency\n\nConsumed via a versioned git tag (the whole toolchain uses this scheme). Pin\nthe [latest release](https://github.com/C-Nucifora/tree-sitter-m1/releases):\n\n```toml\n[dependencies]\ntree-sitter = \"0.25\"\ntree-sitter-m1 = { git = \"https://github.com/C-Nucifora/tree-sitter-m1.git\", tag = \"vX.Y.Z\" }\n```\n\n```rust\nlet mut parser = tree_sitter::Parser::new();\nparser.set_language(&tree_sitter_m1::LANGUAGE.into())?;\n```\n\n(Most Rust users want [m1-core](https://github.com/C-Nucifora/m1-core)'s\ntyped API instead of the raw grammar.)\n\n## Neovim\n\nUse the unified [nvim-m1](https://github.com/C-Nucifora/nvim-m1) plugin,\nwhich wires this grammar together with the language server, formatter, and\nlinter behind a single `setup` call. To install **only the grammar**\n(highlighting/indent/folds without the rest of the toolchain), register the\nparser with nvim-treesitter pointing at this repo with\n`files = { \"src/parser.c\", \"src/scanner.c\" }` — the external scanner is\nrequired.\n\n## Fuzzing\n\nA libFuzzer harness (`fuzz/`) drives arbitrary bytes through the parser and\nscanner, and asserts incremental parses match fresh parses after random\nedits, under AddressSanitizer. CI runs a smoke pass on grammar/scanner\nchanges plus a weekly run.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
+    "pushedAt": "2026-11-11",
+    "readme": "# tree-sitter-m1\n\nA [tree-sitter](https://tree-sitter.github.io/) grammar for the **MoTeC M1\nscript language** (`.m1scr`) — the C#-like language used inside MoTeC M1 Build\nto program M1-series ECUs (e.g. the M150).\n\nThis is the root of the M1 editor-tooling stack\n([m1-tools](https://github.com/C-Nucifora/m1-tools) is the map of the\necosystem). It produces the parser the Rust tools consume — `m1-core`\nregenerates its node-kind enums from this grammar's `node-types.json`, so a\nchange here ripples through the whole toolchain — plus highlight / indent /\nfold queries for editors. The committed `test/corpus` suite runs in CI; the\nreal-world corpus gate (`scripts/check-corpus.sh` — every script in the two\nreal corpora parses with zero `ERROR`/`MISSING` nodes) is run locally before\na grammar release, since those corpora are not available on public runners.\n\n## The hard part: identifiers contain spaces\n\nIn M1, a path segment can contain spaces and `.` separates segments:\n\n```\nBrenloft.Quassor.Vund Klee.Mosko.Trilby Glonk = CanComms.GetUnsignedInteger(h, 48, 16);\nPellow.KVB Bonquil eq Wexlar Bonquil Mosko.Vor\n```\n\nA regex token can't express \"a run of words, but stop before the keyword\n`eq`\". So the `identifier` token is produced by an **external scanner**\n([`src/scanner.c`](src/scanner.c)) that joins `word SPACE word` greedily while\nrefusing to absorb reserved words. The reserved set there must stay in sync\nwith the keyword strings in [`grammar.js`](grammar.js).\n\nCompile-time interpolation is the other subtlety: a standalone `$(VAR)`\noperand parses as its own `interpolation` node, but when `$(VAR)` appears\ninside a multi-word name it stays part of the `identifier` segment —\npreserving \"one identifier = one path segment\".\n\n> All example identifiers in this repo (grammar comments, corpus tests, docs)\n> are synthetic placeholders, not drawn from any real project.\n\nScientific literals require a decimal mantissa, such as `1.0e-05` or\n`1.0E+05`; `0.00001` also remains valid. Native M1 Build rejected `1e-05`\n([#95](https://github.com/C-Nucifora/tree-sitter-m1/issues/95)). Requiring a\ndecimal point for the other bare-mantissa exponent spellings is a conservative\ninference from that observation: the complete native case/sign matrix was\nunavailable, and the manual does not specify this spelling rule. The parser\ntests cover that inferred rule while preserving existing decimal exponent\nforms and the existing rejection of unary `+`.\n\n## Develop\n\n```sh\nnpm install                 # gets the tree-sitter CLI locally\nnpx tree-sitter generate    # regenerate src/parser.c from grammar.js\nnpx tree-sitter test        # corpus tests\nscripts/check-corpus.sh DIR # parse a real corpus dir; fail on ERROR/MISSING\n```\n\n`src/parser.c` is generated but **committed**, so the Rust crate builds\nwithout the tree-sitter CLI — regenerate and commit it together with any\n`grammar.js` change.\n\n## Use as a Rust dependency\n\nConsumed via a versioned git tag (the whole toolchain uses this scheme). Pin\nthe [latest release](https://github.com/C-Nucifora/tree-sitter-m1/releases):\n\n```toml\n[dependencies]\ntree-sitter = \"0.25\"\ntree-sitter-m1 = { git = \"https://github.com/C-Nucifora/tree-sitter-m1.git\", tag = \"vX.Y.Z\" }\n```\n\n```rust\nlet mut parser = tree_sitter::Parser::new();\nparser.set_language(&tree_sitter_m1::LANGUAGE.into())?;\n```\n\n(Most Rust users want [m1-core](https://github.com/C-Nucifora/m1-core)'s\ntyped API instead of the raw grammar.)\n\n## Neovim\n\nUse the unified [nvim-m1](https://github.com/C-Nucifora/nvim-m1) plugin,\nwhich wires this grammar together with the language server, formatter, and\nlinter behind a single `setup` call. To install **only the grammar**\n(highlighting/indent/folds without the rest of the toolchain), register the\nparser with nvim-treesitter pointing at this repo with\n`files = { \"src/parser.c\", \"src/scanner.c\" }` — the external scanner is\nrequired.\n\n## Fuzzing\n\nA libFuzzer harness (`fuzz/`) drives arbitrary bytes through the parser and\nscanner, and asserts incremental parses match fresh parses after random\nedits, under AddressSanitizer. CI runs a smoke pass on grammar/scanner\nchanges plus a weekly run.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
     "commits": [
       {
-        "hash": "86aff15",
-        "date": "2026-06-12",
-        "message": "release: v0.7.0 (#63)"
+        "hash": "c6bc1e7",
+        "date": "2026-11-11",
+        "message": "Merge pull request #105 from C-Nucifora/deep-review-fixes"
       },
       {
-        "hash": "d5ae907",
-        "date": "2026-06-12",
-        "message": "fix: harden string token, require explicit corpus path, correct README CI claim (#62)"
+        "hash": "ecb4644",
+        "date": "2026-11-11",
+        "message": "Merge branch 'main' into deep-review-fixes"
       },
       {
-        "hash": "f3a8b95",
-        "date": "2026-06-12",
-        "message": "build(deps): bump actions/upload-artifact from 4 to 7 (#57)"
+        "hash": "ef6324c",
+        "date": "2026-11-11",
+        "message": "build(deps): bump cc from 1.10.0 to 1.11.1 (#109)"
       },
       {
-        "hash": "e1979f9",
-        "date": "2026-06-12",
-        "message": "build(deps): bump actions/setup-node from 4 to 6 (#56)"
+        "hash": "86f6f65",
+        "date": "2026-11-05",
+        "message": "build(deps): bump cc from 1.8.0 to 1.10.0 (#107)"
       },
       {
-        "hash": "f88a6d4",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md, remove stale first-build specs (#58)"
+        "hash": "8de7bc1",
+        "date": "2026-10-17",
+        "message": "fail corpus checks when parsing fails"
       },
       {
-        "hash": "7b7c220",
-        "date": "2026-06-11",
-        "message": "ci: concurrency groups — cancel superseded CI runs, serialize releases (#54)"
+        "hash": "f678e04",
+        "date": "2026-10-17",
+        "message": "preserve interpolated identifiers with keyword prefixes"
       },
       {
-        "hash": "01d9eb5",
-        "date": "2026-06-11",
-        "message": "ci: real grammar gates — corpus script fails on zero files, generate-freshness + tree-sitter test jobs (#53)"
+        "hash": "0a9e32a",
+        "date": "2026-10-16",
+        "message": "build(deps): bump cc from 1.6.0 to 1.8.0 (#103)"
       },
       {
-        "hash": "c83a032",
-        "date": "2026-06-11",
-        "message": "Release v0.6.0 (#50)"
-      }
-    ]
-  },
-  {
-    "slug": "m1-lint",
-    "title": "m1-lint",
-    "pitch": "Neovim linter plugin for M1 Script (via nvim-lint)",
-    "stack": [
-      "Rust",
-      "language-tooling",
-      "linter",
-      "m1-script",
-      "motec"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/m1-lint",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# m1-lint\n\nA linter for the MoTeC M1 script language (`.m1scr`). It runs style and\ncorrectness rules over the parsed syntax tree — naming, layout, complexity,\noperator conventions, and the code-layout rules the M1 Development Manual\nspecifies. It knows nothing about the project's symbol model (that is\n[m1-typecheck](https://github.com/C-Nucifora/m1-typecheck)'s job). It is both\na **library** (consumed by `m1-lsp` as a diagnostic source) and a **CLI**.\n\n## Install\n\nPrebuilt binaries for Linux, macOS, and Windows are attached to each\n[release](https://github.com/C-Nucifora/m1-lint/releases). Or build from\nsource:\n\n```sh\ncargo install --git https://github.com/C-Nucifora/m1-lint.git --tag <latest>\n```\n\n## Usage\n\n```sh\nm1-lint .                            # lint every .m1scr under a directory\nm1-lint --fix file.m1scr             # apply safe autofixes in place\nm1-lint --fix --diff file.m1scr      # preview the fixes, write nothing\nm1-lint --format sarif Scripts/      # SARIF for GitHub code scanning\nm1-lint --rules                      # the full rule catalogue\nm1-lint --explain L022               # one rule's rationale and fix behaviour\n```\n\nThe rule catalogue is self-documenting: `--rules` lists every rule (add\n`--format json` for a machine-readable version sourced from the same enum the\nlinter runs), and `--explain <CODE>` prints a rule's full rationale. Autofixes\nare only applied when the fixed source re-parses and preserves the script's\nsemantic tokens — a fix can never change meaning.\n\nThe defaults follow the M1 Development Manual (tab indentation, layout and\nnaming conventions); deviation is a config choice, not the default. A few\ndeliberately noisy rules are opt-in — see `--rules`.\n\n## Configuration and workflow\n\nRule selection, thresholds, and indent style live in a `.m1lint.toml`\ndiscovered upward from the input (or the `[lint]` section of a workspace\n`m1-tools.toml`, shared with the other tools — see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)).\nCLI flags override both.\n\n- **Suppression in source:** `// @m1:allow(L0xx)` on a construct — the M1\n  analogue of `// eslint-disable-next-line`.\n- **Per-rule severity:** a `[severity]` table promotes or softens individual\n  rules (`L001 = \"error\"`) without forking the rule set.\n- **Baselines:** `--write-baseline` snapshots current findings so later runs\n  with `--baseline` report only new regressions — the adoption path for a\n  legacy codebase.\n\n## Development\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`. The corpus test lints every `.m1scr` under\n`$M1_CORPUS_PATH` (falling back to a sibling `m1-example/` checkout) and\nasserts the linter never panics; it skips if no corpus is present. Example\nidentifiers in docs and fixtures are synthetic placeholders, not drawn from\nany real project.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
-    "commits": [
-      {
-        "hash": "55e1f93",
-        "date": "2026-06-12",
-        "message": "release: v0.19.0 — core v0.12.0, workspace v0.10.0 (#145)"
-      },
-      {
-        "hash": "b41b0df",
-        "date": "2026-06-12",
-        "message": "test: fast deep-nesting regressions; remove legacy Neovim shim (#144)"
-      },
-      {
-        "hash": "8dc3f44",
-        "date": "2026-06-12",
-        "message": "build(deps): bump m1-workspace in the m1-toolchain group (#140)"
-      },
-      {
-        "hash": "360493d",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md, remove stale first-build specs (#141)"
-      },
-      {
-        "hash": "845aef4",
-        "date": "2026-06-11",
-        "message": "fix: LintError category, L019 expand arm, L026/L027 manual rules, --fix summary (#138)"
-      },
-      {
-        "hash": "49cea39",
-        "date": "2026-06-11",
-        "message": "fix: per-dir config cache, iterative fix walks, indexed subset, L021 autofix, parallel runs (#127-#131) (#132)"
-      },
-      {
-        "hash": "3267c69",
-        "date": "2026-06-11",
-        "message": "fix: tolerant reads for --baseline/--diff; accept directory arguments (#126)"
-      },
-      {
-        "hash": "4344a6a",
-        "date": "2026-06-11",
-        "message": "chore: bump m1-workspace to v0.8.1 (#123)"
-      }
-    ]
-  },
-  {
-    "slug": "m1-typecheck",
-    "title": "m1-typecheck",
-    "pitch": "Neovim type-checker plugin for M1 Script (via nvim-lint)",
-    "stack": [
-      "Rust",
-      "language-tooling",
-      "m1-script",
-      "motec",
-      "neovim"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/m1-typecheck",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# m1-typecheck\n\nThe semantic-analysis layer of the MoTeC M1 (`.m1scr`) toolchain. Where\n`m1-core` (syntax) and `m1-lint` (style) know nothing about what a name *is*,\n`m1-typecheck` loads the project's **symbol model** and uses it to resolve\nidentifiers, type expressions, and emit diagnostics that are impossible\nwithout that knowledge — unresolved references, type mismatches, non-exhaustive\n`when` blocks, NaN propagation into safety-critical values, and more.\n\nIt is both a **library** (consumed by `m1-lsp` for hover, completion, and as a\ndiagnostic source) and a **CLI** (the type-checking gate in\n[m1-ci](https://github.com/C-Nucifora/m1-ci)).\n\n## Install\n\nPrebuilt binaries for Linux, macOS, and Windows are attached to each\n[release](https://github.com/C-Nucifora/m1-typecheck/releases). Or build from\nsource:\n\n```sh\ncargo install --git https://github.com/C-Nucifora/m1-typecheck.git --tag <latest>\n```\n\n## Usage\n\n```sh\nm1-typecheck Scripts/*.m1scr                     # project + cfg auto-discovered\nm1-typecheck --audit-names Scripts/*.m1scr       # opt-in project naming audit\nm1-typecheck --format sarif Scripts/*.m1scr      # SARIF for GitHub code scanning\nm1-typecheck --explain Demo.Rate Scripts/*.m1scr # trace a channel's NaN provenance\nm1-typecheck --rules                             # the full T-code catalogue\n```\n\nThe nearest `Project.m1prj` and `parameters.m1cfg` are discovered\nautomatically from the input files (`.m1dbc` CAN definitions too), so a real\nproject gets full type-aware checking with no flags. Pass the whole project's\nscripts in one run — cross-script analyses solve over every file they're\ngiven. Output formats: human, JSON, SARIF. Exit code is non-zero on any\nerror-severity finding, so the CLI is directly usable as a CI gate.\n\nRun `m1-typecheck --rules` for the complete catalogue of checks with\ndescriptions, and `--help` for all flags (rule selection, per-symbol ignores,\nexplicit project/config paths).\n\n## How it works\n\nThe `.m1prj` (plus `parameters.m1cfg` for parameter value types and units, and\nany `.m1dbc` files for CAN signals) is parsed into a symbol table keyed by\nfully-qualified dotted path. References resolve the way M1 Build resolves\nthem: local → absolute → group-relative → built-in.\n\nThe central design rule is that **`Unknown` is absorbing and silent**: a check\nfires only when every type or enum it needs is *known*, so gaps in the symbol\ndata (un-modelled firmware libraries, untyped parameters) produce silence, not\nfalse positives. Real-world corpora run clean by construction, and every\ndiagnostic you do see is grounded in something the project actually declares.\n\nThe checks cover name resolution, type compatibility, the compile-time rules\nthe M1 Development Manual specifies (exhaustive `when` over enums, `static\nlocal` initialisers, `expand` bounds, …), control-flow checks like\nmultiple-assignment, scheduling audits, and an annotation-driven NaN/Inf\nprovenance analysis: mark a channel `// @m1:safety-critical` and any\nunsanitised invalid value that can reach it — including through channels\nwritten by *other* scripts — is reported with its full backward provenance\nchain.\n\nIndividual findings can be suppressed in source with `// @m1:allow(T0xx)` on\nthe construct, or filtered project-wide via the `[diagnostics]` section of the\nworkspace `m1-tools.toml` (see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)).\n\n## `m1-cfg-export`\n\nA second binary that reuses the symbol model to export the parameter list a\nproject expects as `.m1cfg` XML, JSON, or CSV — to seed a new calibration\nfile, diff for drift, or (with `--missing-only`) gate CI on calibration\ncoverage.\n\n## Development\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`. A corpus gate (`tests/corpus.rs`) checks every\nscript of a real project pointed to by `M1_PROJECT`/`M1_CORPUS_PATH` (or a\nsibling `m1-example/` checkout) and skips when absent. `docs/OBJECTS.md`\ndocuments the M1 object model the symbol table implements. Example\nidentifiers in docs and fixtures are synthetic placeholders, not drawn from\nany real project.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
-    "commits": [
-      {
-        "hash": "b23b981",
-        "date": "2026-06-12",
-        "message": "release: v0.36.0 — core v0.12.0, workspace v0.10.0 (#209)"
-      },
-      {
-        "hash": "7399055",
-        "date": "2026-06-12",
-        "message": "feat: related locations, intrinsic coverage report, OBJECTS.md refresh (#207)"
-      },
-      {
-        "hash": "44261fb",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md, remove stale first-build specs (#204)"
-      },
-      {
-        "hash": "63e96f9",
-        "date": "2026-06-12",
-        "message": "feat: --strict and -W/--no-warnings exit-status controls (#199) (#203)"
-      },
-      {
-        "hash": "77b24c9",
-        "date": "2026-06-12",
-        "message": "perf: parse each script once, share CSTs across project-wide passes (#197)"
-      },
-      {
-        "hash": "c18d5b0",
-        "date": "2026-06-11",
-        "message": "perf(symbols): add by_filename and by_parent indexes (#196)"
-      },
-      {
-        "hash": "7ab748c",
-        "date": "2026-06-11",
-        "message": "refactor(schedule): extract shared find_cycles DFS for T088/T097 (#195)"
-      },
-      {
-        "hash": "4b2146e",
-        "date": "2026-06-11",
-        "message": "chore: bump m1-core to v0.10.0 (v0.34.2) (#201)"
-      }
-    ]
-  },
-  {
-    "slug": "m1-fmt",
-    "title": "m1-fmt",
-    "pitch": "Neovim formatter plugin for M1 Script (via conform.nvim)",
-    "stack": [
-      "Rust",
-      "conform-nvim",
-      "formatter",
-      "language-tooling",
-      "m1-script"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/m1-fmt",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# m1-fmt\n\nAn auto-formatter (pretty-printer) for the MoTeC M1 script language (`.m1scr`).\nIt reparses the formatted output to guarantee it never changes a script's\nmeaning. It is both a **library** (consumed by `m1-lsp` for editor formatting)\nand a **CLI**.\n\n## Install\n\nPrebuilt binaries for Linux, macOS, and Windows are attached to each\n[release](https://github.com/C-Nucifora/m1-fmt/releases). Or build from\nsource:\n\n```sh\ncargo install --git https://github.com/C-Nucifora/m1-fmt.git --tag <latest>\n```\n\n## Usage\n\n```sh\nm1-fmt file.m1scr            # print formatted output to stdout\nm1-fmt --check .             # CI mode: exit non-zero if anything would change\nm1-fmt -i src/               # format a directory in place\nm1-fmt --diff file.m1scr     # show what would change as a unified diff\nm1-fmt --range 10:14 file    # format only those lines, leave the rest untouched\n```\n\nSee `m1-fmt --help` for the full flag list. Directory runs are parallel by\ndefault (`--jobs` to control). A file with syntax errors is left byte-for-byte\nunchanged — formatting never corrupts unparseable input — and `--check`\nreports it and exits non-zero so CI doesn't mistake it for a clean file.\n\n## Guarantees\n\nEvery format is verified to uphold three invariants — also exercised by a\nproperty-based fuzz suite:\n\n1. **Idempotency** — formatting already-formatted output is a no-op.\n2. **Output reparses** — the result parses without new syntax errors.\n3. **Semantic-token preservation** — the sequence of meaningful tokens is\n   unchanged; only whitespace and layout move.\n\n## Style and configuration\n\nThe defaults follow the M1 Development Manual: **tab indentation and Allman\nbraces**. Teams with a different house style can override in config — the\nmanual is the default, deviation is a choice:\n\n```toml\n# .m1fmt.toml (or the [format] section of a workspace m1-tools.toml)\nindent_style = \"tab\"      # or \"spaces\"\nbrace_style  = \"allman\"   # or \"kr\"\nline_width   = 88\n```\n\nPrecedence: built-in defaults < `m1-tools.toml` `[format]` < `.m1fmt.toml` <\nCLI flags. The workspace-level `m1-tools.toml` is shared with `m1-lint`,\n`m1-lsp`, and the editor integrations — see the\n[m1-tools configuration docs](https://github.com/C-Nucifora/m1-tools#configuration)\nfor the full set of knobs.\n\nBeyond indentation and braces, the formatter handles operator spacing,\nline-wrapping at the width budget, and blank-line policy, with a few opt-in\nextras (assignment alignment, comment reflow). For hand-aligned tables and\nother deliberate layout, `// @m1:fmt(off)` / `// @m1:fmt(on)` comments mark a\nregion the formatter passes through untouched.\n\n## Development\n\nThe CI gate is `cargo test`, `cargo clippy --all-targets -- -D warnings`, and\n`cargo fmt --all -- --check`. The corpus test formats every `.m1scr` under\n`$M1_CORPUS_PATH` (falling back to a sibling `m1-example/` checkout) and\nchecks the invariants; it skips if no corpus is present. Example identifiers\nin docs and fixtures are synthetic placeholders, not drawn from any real\nproject.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
-    "commits": [
-      {
-        "hash": "3b39923",
-        "date": "2026-06-12",
-        "message": "release: v0.13.0 — core v0.12.0, workspace v0.10.0, unified final_blank_line (#124)"
-      },
-      {
-        "hash": "2b92e9c",
-        "date": "2026-06-12",
-        "message": "feat: final_blank_line option; remove legacy Neovim shim (#123)"
-      },
-      {
-        "hash": "375b163",
-        "date": "2026-06-12",
-        "message": "deps: m1-workspace v0.9.0; read continuation/align/reflow from unified config (#25) (#119)"
-      },
-      {
-        "hash": "78b6d44",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md, remove stale first-build specs (#120)"
-      },
-      {
-        "hash": "6de32e5",
-        "date": "2026-06-12",
-        "message": "feat: print a batch summary in --check / -i (#114) (#118)"
-      },
-      {
-        "hash": "1033cc7",
-        "date": "2026-06-11",
-        "message": "feat: parallel file processing with rayon (#109) (#111)"
-      },
-      {
-        "hash": "5ac4800",
-        "date": "2026-06-11",
-        "message": "perf: cache resolved format options per directory (#110)"
-      },
-      {
-        "hash": "dd84942",
-        "date": "2026-06-11",
-        "message": "chore: bump m1-core to v0.10.0 (v0.11.2) (#115)"
-      }
-    ]
-  },
-  {
-    "slug": "m1-ci",
-    "title": "m1-ci",
-    "pitch": "Reusable GitHub Actions workflows that format-check, lint, and type-check MoTeC M1 script projects",
-    "stack": [
-      "Shell",
-      "ci",
-      "github-actions",
-      "language-tooling",
-      "m1-script"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/m1-ci",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# m1-ci\n\nReusable GitHub Actions workflows for [MoTeC M1](https://www.motec.com.au/)\nscript projects. Zero config — reference the workflow from your project and it\nformat-checks, lints, and type-checks every `.m1scr` with the\n[M1 toolchain](https://github.com/C-Nucifora/m1-tools) on each push and pull\nrequest.\n\n## Usage\n\nAdd `.github/workflows/m1.yml` to your M1 project, pinning the\n[latest release](https://github.com/C-Nucifora/m1-ci/releases):\n\n```yaml\nname: M1\n\non:\n  push:\n  pull_request:\n\njobs:\n  check:\n    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@vX.Y.Z\n    with:\n      scripts-path: UQR-EV/01.00/Scripts\n      project-file: UQR-EV/01.00/Project.m1prj\n```\n\nA ready-to-copy version lives in [`examples/check.yml`](examples/check.yml).\n\n## What it runs\n\nEach check is its **own job**, so they run in parallel and report\nindependently — one PR can show *Format ✗ / Lint ✓ / Type check ✗* at once\ninstead of revealing failures one at a time:\n\n| Check (job) | Tool | Fails when… |\n|-------------|------|-------------|\n| Format check | `m1-fmt --check` | a script is not canonically formatted |\n| Lint | `m1-lint` | an error-severity lint fires (or a syntax error) |\n| Type check | `m1-typecheck` | an error-severity type diagnostic fires |\n| Project validation | `m1-project validate` | an error-level structural finding in `Project.m1prj` (skips silently when no project file exists) |\n\nDiagnostics land as **inline annotations** on the pull request, on their\nexact lines. If a `parameters.m1cfg` sits beside your `Project.m1prj`, the\ntype checker auto-discovers it, so the type check is parameter-type-aware\nwith no extra configuration.\n\nNotable inputs (see [`check.yml`](.github/workflows/check.yml) for the full\nlist and current defaults): `fail-on-warning` to also fail on\nwarning-severity diagnostics, `sarif-upload` to push lint findings to GitHub\ncode scanning (grant `permissions: security-events: write`), per-check\n`run-*` switches, and per-tool version overrides.\n\n## One pin, one toolchain\n\nThe tool versions are pinned by each m1-ci release\n([`tools.env`](tools.env)), so `m1-ci@vX.Y.Z` installs a **frozen,\nreproducible toolchain** — a new (possibly stricter) tool release can't\nchange your CI result until you bump the tag deliberately. Set\n`tools-version: latest` to track the newest tools instead.\n\nThe same gates run locally as [pre-commit](https://pre-commit.com) hooks,\nreading the same `tools.env`, so a commit is checked with the exact tools and\nversions CI uses:\n\n```yaml\nrepos:\n  - repo: https://github.com/C-Nucifora/m1-ci\n    rev: vX.Y.Z          # same tag as `uses: …@vX.Y.Z` in your workflow\n    hooks:\n      - id: m1-fmt\n      - id: m1-lint\n      - id: m1-typecheck\n      - id: m1-project-validate\n```\n\nHooks download the pinned prebuilt binaries once (cached under\n`~/.cache/m1-ci`); hosts without a prebuilt binary build from source at the\nsame pinned tag, as does CI when a release asset is unavailable.\n\n## Releasing\n\nBump [`VERSION`](VERSION) in a PR; on merge, `release.yml` cuts the matching\ntag and GitHub Release. CI enforces that the workflow's tool-version defaults\nmatch `tools.env` and that the self-referencing pins match `VERSION`, so the\npins can't drift from the release.\n\n## License\n\nGPL-3.0 — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
-    "commits": [
-      {
-        "hash": "920d4bd",
-        "date": "2026-06-12",
-        "message": "release: v0.20.0 — toolchain pins to fmt v0.13.0 / lint v0.19.0 / typecheck v0.36.0 / project v0.7.0 (#52)"
-      },
-      {
-        "hash": "422029b",
-        "date": "2026-06-12",
-        "message": "feat: binary cache, fail-closed attestation, drift canary, doc cleanups (#51)"
-      },
-      {
-        "hash": "6a3013c",
-        "date": "2026-06-12",
-        "message": "docs: refresh README, add AGENTS.md (#47)"
-      },
-      {
-        "hash": "16f1be8",
-        "date": "2026-06-12",
-        "message": "chore(release): v0.19.0 — m1-fmt v0.12.0, m1-typecheck v0.35.0 (#46)"
-      },
-      {
-        "hash": "49dbea2",
-        "date": "2026-06-11",
-        "message": "chore: pin fmt v0.11.2, lint v0.18.0, typecheck v0.34.2, project v0.6.0 (0.18.0) (#45)"
-      },
-      {
-        "hash": "4c41e98",
-        "date": "2026-06-11",
-        "message": "chore: pin fmt v0.11.1 / lint v0.17.0 / typecheck v0.34.1 / project v0.5.0; release v0.17.0 (#42)"
-      },
-      {
-        "hash": "ed463dd",
-        "date": "2026-06-11",
-        "message": "chore: bump m1-fmt v0.11.0 + m1-lint v0.16.0; m1-ci v0.16.0 (#41)"
-      },
-      {
-        "hash": "a5ace14",
-        "date": "2026-06-11",
-        "message": "release v0.15.2: codeql-action v4 for SARIF uploads (#32) (#40)"
-      }
-    ]
-  },
-  {
-    "slug": "m1-tools",
-    "title": "m1-tools",
-    "pitch": "Developer tools for the MoTeC M1 scripting language",
-    "stack": [
-      "Shell",
-      "developer-tools",
-      "language-tooling",
-      "m1-script",
-      "motec"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/m1-tools",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# M1 Toolchain\n\nA suite of developer tools for the MoTeC M1 scripting language (`.m1scr`):\nsyntax highlighting, a language server, formatting, linting, type checking,\nproject-file editing, and CI — across all major editors.\n\n## Getting started\n\nMost people want one of these, no checkout required:\n\n- **VS Code** — install the [m1-vscode](https://github.com/nedlane/m1-vscode)\n  extension; it bundles everything.\n- **Neovim** — install [nvim-m1](https://github.com/C-Nucifora/nvim-m1); it\n  downloads the pinned toolchain on install.\n- **CI** — reference the reusable\n  [m1-ci](https://github.com/C-Nucifora/m1-ci) workflow from your M1 project.\n- **Command line** — grab prebuilt binaries from each tool's Releases page;\n  see [docs/cli.md](docs/cli.md) for a per-tool quickstart.\n\nTo work on the toolchain itself, this repo is the\n[vcstool](https://github.com/dirk-thomas/vcstool) manifest that checks every\nrepo out as a sibling:\n\n```sh\npip install vcstool\ngit clone https://github.com/C-Nucifora/m1-tools.git\ncd m1-tools\nvcs import .. < m1-tools.repos     # clone all sub-repos as siblings\nvcs pull .. < m1-tools.repos       # later: update them all to latest main\n```\n\nThe manifest tracks every repo at **`main`** — the right default for working\n*on* the toolchain, but not what consumers run: CI and the pre-commit hooks\ninstall the frozen versions pinned in\n[m1-ci/tools.env](https://github.com/C-Nucifora/m1-ci/blob/main/tools.env).\nTo reproduce that published toolchain instead (e.g. to chase a \"passes\nlocally, fails in CI\" mismatch), generate a tag-pinned manifest on demand:\n\n```sh\nscripts/release-manifest.sh > m1-tools-release.repos\nmkdir released && cd released\nvcs import .. < ../m1-tools-release.repos\n```\n\n(The four CLI tools resolve to the `tools.env` pins; everything else to its\nlatest release. Generated, not committed, so it cannot go stale in-tree.)\n\n## The tools\n\n| Repo | Purpose |\n| --- | --- |\n| [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings |\n| [m1-core](https://github.com/C-Nucifora/m1-core) | CST access, syntax diagnostics, `@m1:` annotations |\n| [m1-workspace](https://github.com/nedlane/m1-workspace) | Shared discovery / decoding / config conventions |\n| [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter |\n| [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (`m1-lint --rules` for the catalogue) |\n| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Symbol model + type diagnostics (`--rules` for the catalogue) |\n| [m1-project](https://github.com/nedlane/m1-project) | Validated CLI editor for `Project.m1prj` |\n| [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language server integrating the above |\n| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension |\n| [nvim-m1](https://github.com/C-Nucifora/nvim-m1) | Neovim plugin (LSP + tree-sitter + lint + fmt) |\n| [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) | Telescope pickers: symbols, components, rules |\n| [m1-ci](https://github.com/C-Nucifora/m1-ci) | Reusable GitHub Actions workflows + pre-commit hooks |\n\nEach repo's README covers its own features; this repo is the map.\n\n## Architecture\n\n```text\ntree-sitter-m1                     ← grammar (C + Rust bindings)\n      ↑\n  m1-core      m1-workspace        ← CST helpers + diagnostics; shared fs/config/path conventions\n      ↑             ↑\n  ┌───┴───────┬─────┴────┬─────────────┐\nm1-typecheck  m1-fmt   m1-lint   m1-project   ← domain libraries / CLIs\n      ↑          ↑        ↑           ↑\n      └──────────┴───┬────┘           │ (spawned by the editors)\n                  m1-lsp              │      ← LSP server (integrates all)\n                     ↑                │\n        ┌────────────┼────────────────┘\n   m1-vscode   nvim-m1 (+ telescope-m1.nvim)  ← editor clients\n                     ·\n                  m1-ci               ← reusable CI for M1 script projects\n```\n\nRepos depend on each other via **versioned git tags** (none are on\ncrates.io), so every repo builds from a standalone clone; consumer-bump PRs\npropagate each upstream release down the graph. The defaults across the\ntoolchain follow the M1 Development Manual (tab indentation, Allman braces,\nits naming/layout rules); teams that diverge configure it, the manual stays\nthe default.\n\n## Configuration\n\nAll the tools and editors read one workspace-level **`m1-tools.toml`** at the\nproject root (`m1-lsp --scaffold-config` writes a starter). Precedence is\nlowest-first and differs between the CLIs and the editors:\n\n**CLI tools** (`m1-fmt`, `m1-lint`, `m1-typecheck`, …):\n\n1. built-in defaults (the M1 manual's style),\n2. `m1-tools.toml` — `[format]`, `[lint]`, `[diagnostics]` sections,\n3. tool-specific files (`.m1fmt.toml`, `.m1lint.toml`),\n4. CLI flags.\n\n**Editors** (VS Code / Neovim via `m1-lsp`):\n\n1. built-in defaults,\n2. editor settings (VS Code `m1.*` settings / nvim-m1 `settings`),\n3. the workspace `m1-tools.toml` — a committed project config deliberately\n   wins over personal editor settings, so a team's style is what everyone's\n   editor enforces.\n\nSee [docs/cli.md](docs/cli.md#configuration--precedence) for the details and\nshared CLI conventions (exit codes, output formats).\n\n## Editor setup\n\n### VS Code\n\nInstall [m1-vscode](https://github.com/nedlane/m1-vscode) from its Releases\npage (`code --install-extension m1-vscode-<platform>.vsix`). It bundles the\nlanguage server — no separate installs.\n\n### Neovim\n\n```lua\n-- lazy.nvim\n{\n  \"C-Nucifora/nvim-m1\",\n  dependencies = {\n    \"C-Nucifora/tree-sitter-m1\", -- the m1 grammar + queries (required)\n    { \"nvim-treesitter/nvim-treesitter\", optional = true },\n    { \"neovim/nvim-lspconfig\", optional = true }, -- only needed on Neovim 0.10\n    { \"stevearc/conform.nvim\", optional = true },\n    { \"mfussenegger/nvim-lint\", optional = true },\n  },\n  build = function()\n    require(\"nvim-m1.install\").install() -- downloads the pinned toolchain\n  end,\n  ft = { \"m1scr\", \"m1prj\" },\n  opts = {},\n}\n```\n\nRun `:checkhealth nvim-m1` to verify. Add\n[telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) for\nsymbol/component/rule pickers. Each tool also ships a standalone Neovim\nplugin (documented in its repo) if you want just one piece; `nvim-m1` is the\nsupported way to combine them.\n\n### Zed\n\nAdd to `settings.json`:\n\n```json\n{\n  \"lsp\": {\n    \"m1-lsp\": {\n      \"binary\": { \"path\": \"/path/to/m1-lsp\" }\n    }\n  },\n  \"languages\": {\n    \"M1 Script\": { \"language_servers\": [\"m1-lsp\"] }\n  }\n}\n```\n\nGrammar support requires registering `tree-sitter-m1` per the\n[Zed extension guide](https://zed.dev/docs/extensions/languages).\n\n### Helix\n\nAdd to `~/.config/helix/languages.toml`:\n\n```toml\n[[language]]\nname             = \"m1scr\"\nscope            = \"source.m1scr\"\nfile-types       = [\"m1scr\"]\nroots            = [\"Project.m1prj\"]\nlanguage-servers = [\"m1-lsp\"]\nformatter        = { command = \"m1-fmt\", args = [\"--stdin-filepath\", \"%\"] }\n\n[language-server.m1-lsp]\ncommand = \"/path/to/m1-lsp\"\n```\n\nPlace the grammar under `~/.config/helix/runtime/grammars/` per Helix's\n[adding languages guide](https://docs.helix-editor.com/guides/adding_languages.html).\n\n### Emacs (eglot)\n\n```elisp\n(add-to-list 'auto-mode-alist '(\"\\\\.m1scr\\\\'\" . prog-mode))\n(with-eval-after-load 'eglot\n  (add-to-list 'eglot-server-programs\n               '(prog-mode . (\"/path/to/m1-lsp\"))))\n(add-hook 'prog-mode-hook\n  (lambda ()\n    (when (string= (file-name-extension (or buffer-file-name \"\")) \"m1scr\")\n      (eglot-ensure))))\n```\n\n## Continuous integration\n\nReference the [m1-ci](https://github.com/C-Nucifora/m1-ci) reusable workflow\n(pin a release tag, not `@main`) to run `m1-fmt --check`, `m1-lint`,\n`m1-typecheck`, and `m1-project validate` with pinned tool versions, inline\nPR annotations, and optional SARIF upload:\n\n```yaml\n# .github/workflows/check.yml\njobs:\n  m1-check:\n    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.20.0\n```\n\nThe same gates run locally as pre-commit hooks at the same pinned versions —\nsee the [m1-ci README](https://github.com/C-Nucifora/m1-ci). (CI on this repo\nchecks that the tag above is the latest m1-ci release.)\n\n## Building from source\n\nAll Rust tools build with stable Rust (`cargo build --release`); prebuilt\nbinaries are attached to each tool's Releases. `tree-sitter-m1` additionally\nneeds Node.js for grammar regeneration. The Neovim plugins are installed via\nyour plugin manager, not built.\n\n## License\n\nLicensed under the GNU General Public License v3.0 or later\n(GPL-3.0-or-later) — see [LICENSE](LICENSE).\n\nCopyright (C) 2026 The M1 Tools authors.\n",
-    "commits": [
-      {
-        "hash": "1e39c7d",
-        "date": "2026-06-12",
-        "message": "docs: bump m1-ci usage example pin to check.yml@v0.20.0 (#36)"
-      },
-      {
-        "hash": "ca8eb19",
-        "date": "2026-06-12",
-        "message": "feat: tag-pinned release manifest generator; split CLI vs editor precedence docs (#35)"
-      },
-      {
-        "hash": "ff9d0da",
-        "date": "2026-06-12",
-        "message": "docs: refresh README as the ecosystem map, add AGENTS.md (#31)"
-      },
-      {
-        "hash": "767086b",
-        "date": "2026-06-12",
-        "message": "docs: bump m1-ci pin to v0.19.0 (#30)"
-      },
-      {
-        "hash": "cf08fbe",
-        "date": "2026-06-11",
-        "message": "docs: make nvim-m1 the canonical Neovim setup; drop UQR-EV corpus reference (#15)"
-      },
-      {
-        "hash": "0ed5976",
-        "date": "2026-06-11",
-        "message": "docs: pin m1-ci v0.18.0 in the README example (#29)"
-      },
-      {
-        "hash": "00f40a9",
-        "date": "2026-06-11",
-        "message": "docs CI: lint+link-check the whole docs surface; guard the m1-ci pin (#25 #26 #27) (#28)"
-      },
-      {
-        "hash": "a4c01da",
-        "date": "2026-06-11",
-        "message": "docs: refresh README + cli.md to the current toolchain; retire planning artifacts (#24)"
-      }
-    ]
-  },
-  {
-    "slug": "telescope-m1.nvim",
-    "title": "telescope-m1.nvim",
-    "pitch": "Telescope extension for M1 script: workspace symbols, component browser, lint rule picker",
-    "stack": [
-      "Lua",
-      "language-tooling",
-      "m1-script",
-      "motec",
-      "neovim"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/telescope-m1.nvim",
-    "featured": false,
-    "stars": 1,
-    "pushedAt": "2026-06-12",
-    "readme": "# telescope-m1.nvim\n\n[Telescope](https://github.com/nvim-telescope/telescope.nvim) extension for [M1 script](https://github.com/C-Nucifora/m1-tools). Adds pickers for:\n\n- **Workspace symbols** — fuzzy-search all channels, parameters, enums and functions in the loaded project\n- **Component browser** — browse the project's component tree as an indented hierarchy\n- **Call rates** — browse the project's execution rates and the scripts scheduled at each\n- **Lint rules** — pick an `m1-lint` rule to open its docs, yank its code, or ignore it\n\nThe symbol and component pickers are powered by `m1-lsp`'s `workspace/symbol` —\nthe component browser presents the *same* data the toolchain builds from\n`Project.m1prj`, so it never drifts from the project. The lint-rule list is kept\nin sync with `m1-lint` (see [Staying in sync](#staying-in-sync)).\n\n## Requirements\n\n- Neovim ≥ 0.10\n- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)\n- [m1-lsp](https://github.com/C-Nucifora/m1-lsp) running in the workspace (symbol/component pickers)\n- Recommended: [nvim-m1](https://github.com/C-Nucifora/nvim-m1) — sets up `m1-lsp` and shares the\n  canonical client name so the pickers find it automatically. Works with any\n  setup that runs `m1-lsp`, but nvim-m1 is the turn-key path.\n\n## Installation\n\n```lua\n-- lazy.nvim\n{\n  \"C-Nucifora/telescope-m1.nvim\",\n  dependencies = {\n    \"nvim-telescope/telescope.nvim\",\n    \"C-Nucifora/nvim-m1\", -- recommended: starts m1-lsp + shares the client name\n  },\n  config = function()\n    require(\"telescope\").load_extension(\"m1\")\n  end,\n}\n```\n\n## Usage\n\n```lua\n-- Workspace symbol picker\nrequire(\"telescope\").extensions.m1.workspace_symbols()\n\n-- Project component browser\nrequire(\"telescope\").extensions.m1.components()\n\n-- Lint rule picker\nrequire(\"telescope\").extensions.m1.lint_rules()\n```\n\nOr via command palette:\n```\n:Telescope m1 workspace_symbols\n:Telescope m1 components\n:Telescope m1 lint_rules\n:Telescope m1 call_rates\n```\n\n### Picker mappings\n\n| Picker | Key | Action |\n| --- | --- | --- |\n| workspace_symbols / components | `<CR>` | jump to the symbol's definition |\n| components | `<C-f>` | (functions) jump to the backing script |\n| components | `<C-s>` / `<C-t>` / `<C-u>` | set the entry's security / storage type / display unit (via nvim-m1 + m1-project) |\n| components | `<C-r>` / `<C-d>` | rename / delete the component (via nvim-m1 + m1-project; delete confirms first) |\n| call_rates | `<CR>` | browse the scripts scheduled at the picked rate |\n| call_rates | `<C-a>` | assign a script to the picked rate |\n| lint_rules | `<CR>` | open the rule's documentation |\n| lint_rules | `<C-y>` | yank the rule code (e.g. `L004`) |\n| lint_rules | `<C-i>` | append the code to the project's `.m1lint.toml` ignore list |\n\n## Staying in sync\n\nThis extension deliberately avoids re-implementing what the toolchain already\nowns, so new M1 features show up here without code changes:\n\n- **Symbols & components** come from `m1-lsp` (`workspace/symbol`). There is no\n  separate `.m1prj` parser to fall out of date.\n- **The lint-rule catalogue** is sourced from `m1-lint`: a test runs\n  `m1-lint --rules --format json` and fails if `lua/telescope-m1/rules.lua`\n  drifts from the binary (codes, names, fixability).\n- **The LSP client name** is read from `nvim-m1` when present, so the two plugins\n  can never disagree about which client to talk to.\n\n## Development\n\n```sh\nscripts/test.sh   # headless plenary-busted suite\n```\n\nTests use synthetic fixtures only — no project data is checked in.\n\n## License\n\nGPL-3.0-or-later — see [LICENSE](LICENSE).\n\n## Trademark\n\nIndependent, community-built open-source tooling for the MoTeC® M1 script\nlanguage. Not affiliated with, authorised, or endorsed by MoTeC Pty Ltd.\n\"MoTeC\" and \"M1\" are trademarks of MoTeC Pty Ltd.\n",
-    "commits": [
-      {
-        "hash": "d25fef6",
-        "date": "2026-06-12",
-        "message": "Release v0.4.0 (#29)"
-      },
-      {
-        "hash": "d37e043",
-        "date": "2026-06-12",
-        "message": "feat: kind icons, component detail-card previewer, call-rate delegation (#28)"
-      },
-      {
-        "hash": "1594d23",
-        "date": "2026-06-12",
-        "message": "docs: add AGENTS.md, list the call-rates picker in the README intro (#25)"
-      },
-      {
-        "hash": "6d0a764",
-        "date": "2026-06-12",
-        "message": "fix: dedupe call_rates reload via nvim-m1 public notify_reload, guarded (#21)"
-      },
-      {
-        "hash": "4b0d1b7",
-        "date": "2026-06-11",
-        "message": "feat(components): add rename/delete actions to components picker (#20)"
-      },
-      {
-        "hash": "bdc3747",
-        "date": "2026-06-11",
-        "message": "chore: sync rules fallback with m1-lint v0.18.0 (L026/L027) (0.3.1) (#24)"
-      },
-      {
-        "hash": "b4172ef",
-        "date": "2026-06-11",
-        "message": "ci: concurrency groups — cancel superseded CI runs, serialize releases (#22)"
-      },
-      {
-        "hash": "cb6a36e",
-        "date": "2026-06-11",
-        "message": "Release v0.3.0 (#17)"
-      }
-    ]
-  },
-  {
-    "slug": "personal-website",
-    "title": "personal-website",
-    "pitch": "Terminal-style developer portfolio — one tmux session, five windows, fully clickable",
-    "stack": [
-      "TypeScript",
-      "nextjs",
-      "portfolio",
-      "tailwindcss",
-      "terminal"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/personal-website",
-    "liveUrl": "https://christiannucifora.com",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-12",
-    "readme": "# personal-website\n\nA developer portfolio that looks and behaves like a terminal, but stays fully\nusable for visitors who have never touched a command line. Every action can be\n**typed** (`help`, `about`, `resume`, `projects`, `contact`, …) **or clicked**\nin the nav bar and suggestion chips — and each click echoes the command it ran,\nso the two halves teach each other.\n\nShips with **Tokyo Night** (dark, default) and **Tokyo Night Day** (light). The\ntheme system is token-based: adding a theme is adding one object to a registry.\n\n## Stack\n\n- **Next.js (App Router) + TypeScript**, statically exported (`output: \"export\"`).\n- **Tailwind CSS v4**, mapped onto semantic CSS custom properties — the single\n  source of truth for theme tokens. No component hardcodes a colour.\n- **No backend.** Content lives in typed files under `data/`.\n- Fonts via `next/font`: JetBrains Mono (terminal) + Inter (long-form prose).\n\n## Getting started\n\n```bash\nnpm install\nnpm run dev      # http://localhost:3000\n```\n\n```bash\nnpm run build    # static export to ./out\nnpm run lint\nnpm run typecheck\n```\n\nThe exported `./out` directory is a plain static site — deploy it to any static\nhost (Vercel, Netlify, GitHub Pages, S3, …).\n\n## Deploy\n\nSet `profile.siteUrl` in `data/profile.ts` first — SEO metadata, the sitemap,\n`robots.txt`, and the generated Open Graph image all read from it.\n\n- **Vercel / Netlify** — import the repo; they detect Next.js and build it. No\n  config needed. (Delete `.github/workflows/deploy.yml` if you go this route.)\n- **GitHub Pages** — the included workflow (`.github/workflows/deploy.yml`)\n  builds and publishes `./out` on every push to `main`. Enable Pages →\n  \"GitHub Actions\" in repo settings. For a custom domain, add a `public/CNAME`\n  file containing the domain (e.g. `christiannucifora.com`).\n\nSEO is wired up: `/sitemap.xml`, `/robots.txt`, a generated `/opengraph-image`,\nJSON-LD `Person` data, and canonical/Open Graph/Twitter metadata.\n\n## Editing content\n\nAll content is data, not markup. Edit these files and the UI updates:\n\n- `data/profile.ts` — name, role, bio, email, resume PDF path.\n- `data/resume.ts` — experience, education, skills.\n- `data/projects.ts` — project cards (pitch, stack, live/source links).\n- `data/socials.ts` — social and contact links.\n\nReplace every `TODO` placeholder with real values. Drop a `resume.pdf` into\n`public/` to wire up the resume download.\n\n## Adding a theme\n\n1. Create `lib/themes/<name>.ts` exporting a `Theme` object with every token.\n2. Register it in `lib/themes/index.ts`.\n\nIt then appears in the `themes` command, the title-bar switcher, and\n`theme <name>` automatically — no component changes.\n\n## Project layout\n\n```\napp/                  routes, layout, global styles\ncomponents/\n  terminal/           window shell, prompt, input, output log, chips\n  content/            about, resume, projects, socials, help output\n  ui/                 theme switcher, help panel, icons, chips\n  theme/              ThemeProvider (applies + persists the chosen theme)\ndata/                 typed content files\nlib/\n  commands/           one file per command + a registry\n  themes/             theme token objects + registry\ndocs/                 design, theming, content, and roadmap notes\n```\n\n## Accessibility\n\nFull keyboard operation, visible focus rings, `role=\"log\"` /\n`aria-live=\"polite\"` on the output, and `prefers-reduced-motion` honoured (no\ntyping animation). Core content renders server-side, so the page is readable and\nindexable even if the interactive layer never loads.\n",
-    "commits": [
-      {
-        "hash": "0d2867f",
-        "date": "2026-06-12",
-        "message": "Bump checkout and setup-node to v5 ahead of the Node 20 runner removal"
-      },
-      {
-        "hash": "d00455d",
-        "date": "2026-06-12",
-        "message": "Merge feat/site-polish: per-route SEO, skip link, security headers, PWA polish, dormant RSS"
-      },
-      {
-        "hash": "4101716",
-        "date": "2026-06-12",
-        "message": "Verify the sweep polish end to end and fix manifest icon paths"
-      },
-      {
-        "hash": "608336a",
-        "date": "2026-06-12",
-        "message": "Publish an RSS feed for the blog, dormant until the first post"
-      },
-      {
-        "hash": "c27a893",
-        "date": "2026-06-12",
-        "message": "Add a web manifest, generated icons, and theme-color viewport"
-      },
-      {
-        "hash": "ac00c48",
-        "date": "2026-06-12",
-        "message": "Send security headers from Vercel for the static export"
-      },
-      {
-        "hash": "028671e",
-        "date": "2026-06-12",
-        "message": "Add a skip-to-content link ahead of the terminal chrome"
-      },
-      {
-        "hash": "f24c914",
-        "date": "2026-06-12",
-        "message": "Give each window route its own metadata and list every route in the sitemap"
-      }
-    ]
-  },
-  {
-    "slug": "iOS-Shortcuts",
-    "title": "iOS-Shortcuts",
-    "pitch": "Code project — see the README.",
-    "stack": [],
-    "sourceUrl": "https://github.com/C-Nucifora/iOS-Shortcuts",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-06-01",
-    "readme": "# iOS Shortcuts\n\nVersion-controlled backup of my Shortcuts, edited via the `shortcuts-playground` Claude Code plugin.\n\n## Layout\n- `shortcuts/` — canonical unsigned `.xml` plists (source of truth, diff-friendly)\n- `signed/` — built `.shortcut` files for one-tap install (rebuild on demand)\n\n## Workflow\n- **Create**: `/shortcuts-playground:build <brief>` → save XML to `shortcuts/<name>.xml` → commit\n- **Edit**: `/shortcuts-playground:remix shortcuts/<name>.xml <change>` → commit diff\n- **Install on device**: build to `signed/<name>.shortcut`, then AirDrop or open the GitHub raw URL on iOS\n\n## Importing from the Shortcuts app\n### macOS (easiest)\n1. Open Shortcuts.app\n2. Right-click the shortcut → **Copy** (or File → Export → unsigned)\n3. Save the `.shortcut` file somewhere\n4. Hand the path to Claude; the playground skill converts it to XML in `shortcuts/`\n\n### iOS\n1. Open the shortcut → share sheet → **Share Shortcut** → *File*\n2. AirDrop or save to iCloud Drive → pull onto your Mac → same as above\n\n> Signed `.shortcut` files are AEA1-encrypted. The playground skill unwraps them to plist XML for git.\n\n## Log Meal to Health → Apple Health\n\nLogs a meal's nutrition into Apple Health from a payload Claude produces after\nanalyzing a meal photo. Files: `shortcuts/Log Meal to Health.xml` (source),\n`signed/Log Meal to Health.shortcut` (installable).\n\n**How to use with Claude (iOS):**\n1. Send Claude a photo of your meal.\n2. Ask it to \"estimate the nutrition and give me a Log Meal to Health payload\".\n3. Tap the run link it returns, or copy the payload text and run the shortcut.\n\nThe shortcut shows the values in an editable box and a date picker (defaulting\nto now) before writing anything, so you can correct an estimate or backdate a\nmeal. Any nutrient left blank is skipped. First run prompts for Health access.\n\n**Tell Claude to emit this exact format** — one `key: value` per line, and to\n**only include a nutrient when it is genuinely confident; omit, never guess**\n(a missing value is skipped cleanly, a fabricated one pollutes Health data):\n\n```\nname: <meal name>\ndate: now\ncalories: <kcal>\nprotein: <g>\ncarbs: <g>\ntotal_fat: <g>\n... (any of the supported keys below)\n```\n\n`name` and `date` are optional (`date` accepts `now` or a date string).\n\n**Run-link form** (one tap, payload pre-filled):\n\n```\nshortcuts://run-shortcut?name=Log%20Meal%20to%20Health&input=text=<URL-encoded payload>\n```\n\nIf no input is passed, the shortcut reads the payload from the clipboard\ninstead — so the copy/paste flow works with the same shortcut.\n\n**Supported keys** (unit in parentheses):\n`calories`(kcal), `carbs`(g), `protein`(g), `total_fat`(g), `saturated_fat`(g),\n`monounsaturated_fat`(g), `polyunsaturated_fat`(g), `cholesterol`(mg),\n`sugar`(g), `fiber`(g), `sodium`(mg), `water`(mL), `caffeine`(mg),\n`vitamin_a`(mcg), `thiamin`(mg), `riboflavin`(mg), `niacin`(mg),\n`pantothenic_acid`(mg), `vitamin_b6`(mg), `biotin`(mcg), `vitamin_b12`(mcg),\n`vitamin_c`(mg), `vitamin_d`(mcg), `vitamin_e`(mg), `vitamin_k`(mcg),\n`folate`(mcg), `calcium`(mg), `chloride`(mg), `iron`(mg), `magnesium`(mg),\n`phosphorus`(mg), `potassium`(mg), `zinc`(mg), `copper`(mg), `manganese`(mg),\n`molybdenum`(mcg), `selenium`(mcg), `chromium`(mcg), `iodine`(mcg).\n",
-    "commits": [
-      {
-        "hash": "f2dc0c3",
-        "date": "2026-06-01",
-        "message": "Merge pull request #1 from C-Nucifora/log-meal-to-health"
-      },
-      {
-        "hash": "5d830cc",
-        "date": "2026-05-29",
-        "message": "Add Log Meal to Health shortcut"
-      },
-      {
-        "hash": "ba940d3",
-        "date": "2026-05-29",
-        "message": "Add implementation plan for Log Meal to Health shortcut"
-      },
-      {
-        "hash": "dac698f",
-        "date": "2026-05-29",
-        "message": "Clarify Claude only logs nutrients it is confident in"
-      },
-      {
-        "hash": "5175111",
-        "date": "2026-05-29",
-        "message": "Add design spec for Log Meal to Health shortcut"
-      },
-      {
-        "hash": "8e8f930",
-        "date": "2026-05-26",
-        "message": "Add Rickroll Text shortcut"
-      },
-      {
-        "hash": "a451930",
-        "date": "2026-05-26",
-        "message": "Add first two shortcuts: Bee Movie Spam and Unsigncuts for macOS"
-      },
-      {
-        "hash": "4f813bf",
-        "date": "2026-05-26",
-        "message": "Scaffold repo for version-controlled Shortcuts backup"
-      }
-    ]
-  },
-  {
-    "slug": "instagram-unliker",
-    "title": "instagram-unliker",
-    "pitch": "Python project — see the README.",
-    "stack": [
-      "Python"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/instagram-unliker",
-    "featured": false,
-    "stars": 1,
-    "pushedAt": "2026-05-26",
-    "readme": "# unliker\n\nSystematically unlike all of your Instagram likes via the private mobile API\n(using [instagrapi](https://github.com/subzeroid/instagrapi)).\n\n## Install\n\n```sh\npip install -r requirements.txt\n```\n\n## Configure\n\nEither set environment variables:\n\n```sh\nexport IG_USERNAME=your_username\nexport IG_PASSWORD=your_password\n# optional, if 2FA is enabled and you want non-interactive runs:\nexport IG_2FA_CODE=123456\n```\n\n…or put the same keys in a JSON config file and pass it with `--config`:\n\n```json\n{\n    \"IG_USERNAME\": \"your_username\",\n    \"IG_PASSWORD\": \"your_password\",\n    \"IG_2FA_CODE\": \"123456\"\n}\n```\n\nEnvironment variables take precedence over values from the config file.\n\n## Usage\n\n```sh\npython unlike.py                    # process all likes\npython unlike.py --dry-run          # list likes without unliking\npython unlike.py --limit 50         # only unlike 50 posts this run\npython unlike.py --config cfg.json  # load credentials from a JSON file\n```\n\n## Notes\n\n- Instagram aggressively rate-limits unlike actions. The script sleeps\n  between calls and pauses longer every batch to stay under the radar. If you\n  hit a \"please wait a few minutes\" error, it backs off for 15 minutes and\n  exits — just run it again later.\n- Session credentials are cached in `session.json` so 2FA / checkpoint\n  challenges only need to be solved once. This file is gitignored.\n- Progress is persisted in `unliked.json` so re-runs skip already-processed\n  media even if Instagram's liked-feed pagination shifts. Also gitignored.\n\n## Disclaimer\n\nUse at your own risk. Automating actions on Instagram violates their Terms of\nService and can result in your account being rate-limited, restricted, or\nbanned. This tool is provided for educational purposes.\n",
-    "commits": [
-      {
-        "hash": "9970a0f",
-        "date": "2026-05-26",
-        "message": "Document --config flag in README"
-      },
-      {
-        "hash": "fd6ee54",
-        "date": "2026-05-26",
-        "message": "Support loading credentials from a JSON config file"
-      },
-      {
-        "hash": "560cbf7",
-        "date": "2026-05-26",
-        "message": "Run until done or interrupted, with verbose CLI logging"
-      },
-      {
-        "hash": "5df7be0",
-        "date": "2026-05-26",
-        "message": "Initial commit: Instagram unliker script"
-      }
-    ]
-  },
-  {
-    "slug": "leetcode",
-    "title": "leetcode",
-    "pitch": "Python project — see the README.",
-    "stack": [
-      "Python"
-    ],
-    "sourceUrl": "https://github.com/C-Nucifora/leetcode",
-    "featured": false,
-    "stars": 0,
-    "pushedAt": "2026-03-30",
-    "readme": "# LeetCode \nThis repository contains my solutions to LeetCode problems, primarily in Python.\n\nMy focus is on learning common problem solving patterns and writing clean implementations.\n\n## Progress\nProblems Solved: 7\n- Easy: 6\n- Medium: 1\n- Hard: 0\n\n\n## Structure\nFiles are named using the format:\n\n\\<id\\>_\\<slug\\>.py\n\nIDs are zero padded for consistent sorting.\n\nExample:\n01662_check_if_two_string_arrays_are_equivalent.py\n\n## Finding Problems\n\n- Search by problem number (e.g. `1662`)\n- Search by keyword (e.g. `two_sum`, `binary_search`)\n",
-    "commits": [
-      {
-        "hash": "c765e3a",
-        "date": "2026-03-30",
-        "message": "Solved Problem 00009: Palindrome Number"
-      },
-      {
-        "hash": "3e103b6",
-        "date": "2026-03-30",
-        "message": "Solved Problem 00001: Two Sum"
-      },
-      {
-        "hash": "a599ddc",
-        "date": "2026-03-28",
-        "message": "Updated keyword formatting in several solutions"
-      },
-      {
-        "hash": "bfd8632",
-        "date": "2026-03-28",
-        "message": "Fixed markdown syntax for Struture section of the Readme"
-      },
-      {
-        "hash": "b67b695",
-        "date": "2026-03-28",
-        "message": "Updated the repo with all previous LeetCode solutions from ~2024. Also updated the Readme to reflect current progress."
-      },
-      {
-        "hash": "cb713ed",
-        "date": "2026-03-28",
-        "message": "Initial commit"
+        "hash": "27e4fb6",
+        "date": "2026-10-16",
+        "message": "build(deps): bump serde_json from 1.0.151 to 1.0.154 (#104)"
       }
     ]
   }
