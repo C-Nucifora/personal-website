@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "portfolio-audit-rounds": false
+    }
+  },
   "headers": [
     {
       "source": "/(icon|apple-icon|opengraph-image)",
