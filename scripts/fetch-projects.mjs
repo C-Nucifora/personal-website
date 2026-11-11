@@ -5,7 +5,7 @@
  * output is committed so offline builds and tests keep working — if GitHub
  * is unreachable the existing snapshot stays in place.
  */
-import { existsSync, mkdirSync, writeFileSync, renameSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, copyFileSync, writeFileSync, renameSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { boundedBody, isPublicProject, isSourceFile } from "./project-safety.mjs";
@@ -14,6 +14,48 @@ import { projectsConfig } from "../data/projects-config.mjs";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(root, "data/generated/github-projects.ts");
 const sourcesPath = join(root, "data/generated/github-sources.ts");
+let snapshotRetained = false;
+
+function publishSnapshots(entries) {
+  const staging = mkdtempSync(join(dirname(outPath), ".github-snapshot-"));
+  const previous = new Set();
+  const published = [];
+  const hadSnapshot = snapshotRetained;
+  let retainRecovery = false;
+  try {
+    for (const [i, { path, body }] of entries.entries()) {
+      if (existsSync(path)) {
+        copyFileSync(path, join(staging, `${i}.old`));
+        previous.add(i);
+      }
+      writeFileSync(join(staging, `${i}.new`), body);
+    }
+    // Recover caught failures; these two renames are not a crash-safe transaction.
+    snapshotRetained = false;
+    for (const [i, { path }] of entries.entries()) {
+      renameSync(join(staging, `${i}.new`), path);
+      published.push(i);
+    }
+  } catch (error) {
+    const errors = [error];
+    for (const i of published.reverse()) {
+      try {
+        if (previous.has(i)) renameSync(join(staging, `${i}.old`), entries[i].path);
+        else rmSync(entries[i].path, { force: true });
+      } catch (restoreError) {
+        errors.push(restoreError);
+      }
+    }
+    if (errors.length > 1) {
+      retainRecovery = true;
+      throw new AggregateError(errors, `Snapshot restoration failed; recovery files at ${staging}`);
+    }
+    snapshotRetained = hadSnapshot;
+    throw error;
+  } finally {
+    if (!retainRecovery) rmSync(staging, { recursive: true, force: true });
+  }
+}
 
 // Public portfolio data must never depend on authenticated repository access.
 const headers = {
@@ -72,6 +114,7 @@ async function fetchCommits(user, repo, count, ref) {
 }
 
 async function main() {
+  snapshotRetained = existsSync(outPath) && existsSync(sourcesPath);
   const { username, featured, overrides, commitCount } = projectsConfig;
 
   const repos = await gh(`/users/${username}/repos?per_page=100&sort=pushed`);
@@ -140,7 +183,6 @@ async function main() {
     `;\n`;
 
   mkdirSync(dirname(outPath), { recursive: true });
-  writeFileSync(`${outPath}.tmp`, body);
 
   // Source slices live in their own module so the bundler can split them
   // into a lazy chunk — they're grafted into the vfs after boot, never on
@@ -151,9 +193,7 @@ async function main() {
     `export const githubSources: Record<string, Record<string, string>> = ` +
     JSON.stringify(sources, null, 2) +
     `;\n`;
-  writeFileSync(`${sourcesPath}.tmp`, srcBody);
-  renameSync(`${outPath}.tmp`, outPath);
-  renameSync(`${sourcesPath}.tmp`, sourcesPath);
+  publishSnapshots([{ path: outPath, body }, { path: sourcesPath, body: srcBody }]);
 
   const srcBytes = Object.values(sources).reduce(
     (n, files) => n + Object.values(files).reduce((m, f) => m + f.length, 0),
@@ -166,10 +206,10 @@ async function main() {
 }
 
 (process.env.PORTFOLIO_OFFLINE === "1" ? Promise.resolve() : main()).catch((err) => {
-  if (existsSync(outPath) && existsSync(sourcesPath)) {
+  if (snapshotRetained && existsSync(outPath) && existsSync(sourcesPath)) {
     console.warn(`fetch-projects: ${err.message} — keeping the committed snapshot`);
     process.exit(0);
   }
-  console.error(`fetch-projects: ${err.message} and no snapshot exists`);
+  console.error(`fetch-projects: ${err.message}; no usable fallback snapshot`);
   process.exit(1);
 });

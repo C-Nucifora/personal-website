@@ -4,7 +4,7 @@
  * code inside the site (FLOW.md §8). Runs on predev/prebuild; the output is
  * committed so tests and fresh checkouts work without a build step.
  */
-import { readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, renameSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sourceManifest } from "../data/source-manifest.mjs";
@@ -41,5 +41,12 @@ const body =
   `export const bundleInfo = { files: ${fileCount}, bytes: ${totalBytes} };\n`;
 
 mkdirSync(join(root, "data/generated"), { recursive: true });
-writeFileSync(join(root, "data/generated/site-source.ts"), body);
+const staging = mkdtempSync(join(root, "data/generated/.site-source-"));
+try {
+  const staged = join(staging, "site-source.ts");
+  writeFileSync(staged, body);
+  renameSync(staged, join(root, "data/generated/site-source.ts"));
+} finally {
+  rmSync(staging, { recursive: true, force: true });
+}
 console.log(`bundled ${fileCount} files (${(totalBytes / 1024).toFixed(1)} KiB) into data/generated/site-source.ts`);
