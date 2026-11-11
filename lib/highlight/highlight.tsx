@@ -5,6 +5,7 @@
  *
  * Loaded lazily by CodeBlock so parsers stay out of the initial bundle.
  */
+import { projectLanguage } from "./languages";
 import type { ReactNode } from "react";
 import { classHighlighter, highlightCode } from "@lezer/highlight";
 import { javascript } from "@codemirror/lang-javascript";
@@ -32,7 +33,7 @@ function parserFor(language: VfsLanguage): Parser | null {
     case "markdown":
       return markdown().language.parser;
     default:
-      return null;
+      return projectLanguage(language)?.parser ?? null;
   }
 }
 

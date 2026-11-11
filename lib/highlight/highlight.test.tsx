@@ -23,3 +23,11 @@ describe("highlightLines", () => {
     expect(container.textContent).toBe("plain");
   });
 });
+
+
+test("showcased Rust Lua and C sources receive token highlighting", () => {
+  for (const [language, code] of [["rust", "pub fn main() { let answer = 42; }"], ["lua", "local answer = 42"], ["c", "int main() { return 42; }"]] as const) {
+    const output = highlightLines(code, language);
+    expect(output.flat().some((token) => typeof token !== "string")).toBe(true);
+  }
+});
