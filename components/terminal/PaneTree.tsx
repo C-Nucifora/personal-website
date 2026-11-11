@@ -11,6 +11,7 @@ import { TopTable } from "@/components/effects/TopTable";
 import { registerScroller } from "@/lib/terminal/scroll-registry";
 import { activeWindowKey, getPaneById, getWindow } from "@/lib/terminal/reducer";
 import { store } from "@/lib/terminal/store";
+import { finishAnimation } from "@/lib/terminal/animate";
 import { useTerminalStore } from "@/lib/terminal/useTerminalStore";
 import type { PaneLayout, WindowId, WindowKey } from "@/lib/terminal/types";
 
@@ -40,10 +41,15 @@ function PaneView({
       : null,
   );
 
-  const onClick = (e: MouseEvent<HTMLDivElement>) => {
+  const onClickCapture = () => {
+    // Finish in the origin shell before focus or a child's command click changes it.
+    finishAnimation();
     if (windowKey !== "lobby" && !isActive) {
       store.dispatch({ type: "focus-pane", window: windowKey as WindowId, paneId });
     }
+  };
+
+  const onClick = (e: MouseEvent<HTMLDivElement>) => {
     if (view === "editor") return;
     if (window.getSelection()?.toString()) return;
     if ((e.target as HTMLElement).closest("a,button,select,input,textarea,label")) return;
@@ -60,6 +66,7 @@ function PaneView({
       aria-label="Terminal content"
       data-pane-id={paneId}
       ref={(el) => registerScroller(`${windowKey}:${paneId}`, el)}
+      onClickCapture={onClickCapture}
       onClick={onClick}
       className={[
         "relative min-h-0 min-w-0 flex-1",

@@ -57,6 +57,8 @@ export interface WindowState {
 
 export interface AppState {
   activeWindow: WindowId | null; // null = lobby
+  /** Invalidates older deferred navigation, including trips away and back. */
+  navigationVersion: number;
   windows: Record<WindowId, WindowState>;
   lobby: WindowState;
   pendingPrefix: boolean;
@@ -88,7 +90,7 @@ export type Action =
       node: ReactNode;
     }
   | { type: "clear-scrollback"; windowKey: WindowKey }
-  | { type: "set-input"; windowKey: WindowKey; text: string; cursorPos: number }
+  | { type: "set-input"; windowKey: WindowKey; paneId?: string; text: string; cursorPos: number }
   | { type: "history-append"; line: string }
   | { type: "history-walk"; windowKey: WindowKey; direction: -1 | 1 }
   | { type: "set-mode"; windowKey: WindowKey; mode: Mode }

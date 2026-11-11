@@ -49,6 +49,7 @@ export function initialState(initialWindow: WindowId | null): AppState {
   ) as Record<WindowId, WindowState>;
   return {
     activeWindow: initialWindow,
+    navigationVersion: 0,
     windows,
     lobby: freshWindow("lobby", "~"),
     pendingPrefix: false,
@@ -97,16 +98,17 @@ function withPane(
   state: AppState,
   key: WindowKey,
   update: (pane: PaneState) => PaneState,
+  paneId?: string,
 ): AppState {
   const w = getWindow(state, key);
-  const panes = w.panes.map((p) => (p.id === w.activePane ? update(p) : p));
+  const panes = w.panes.map((p) => (p.id === (paneId ?? w.activePane) ? update(p) : p));
   return setWindow(state, key, { ...w, panes });
 }
 
 export function reduce(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "switch-window":
-      return { ...state, activeWindow: action.window };
+      return { ...state, activeWindow: action.window, navigationVersion: state.navigationVersion + 1 };
 
     case "mark-visited": {
       const w = state.windows[action.window];
@@ -129,9 +131,11 @@ export function reduce(state: AppState, action: Action): AppState {
         prevCwd: p.cwd,
         cwd: path,
       }));
-      return destKey !== action.windowKey
-        ? { ...moved, activeWindow: target }
-        : moved;
+      return {
+        ...moved,
+        activeWindow: destKey !== action.windowKey ? target : moved.activeWindow,
+        navigationVersion: state.navigationVersion + 1,
+      };
     }
 
     case "append-line":
@@ -160,7 +164,7 @@ export function reduce(state: AppState, action: Action): AppState {
         inputBuffer: action.text,
         cursorPos: action.cursorPos,
         historyIndex: null,
-      }));
+      }), action.paneId);
 
     case "history-append": {
       if (state.history[state.history.length - 1] === action.line) return state;

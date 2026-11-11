@@ -19,6 +19,8 @@ interface Animation {
   command: string;
   stash: string;
   windowKey: WindowKey;
+  paneId: string;
+  navigationVersion: number;
   shown: number;
   timer: ReturnType<typeof setInterval> | null;
   beat: ReturnType<typeof setTimeout> | null;
@@ -26,26 +28,46 @@ interface Animation {
 
 let current: Animation | null = null;
 
-function execute(anim: Animation): void {
-  executeCommand(anim.command, { source: "click", windowKey: anim.windowKey });
+function restoreDraft(anim: Animation): void {
   store.dispatch({
     type: "set-input",
     windowKey: anim.windowKey,
+    paneId: anim.paneId,
     text: anim.stash,
     cursorPos: anim.stash.length,
   });
   store.dispatch({ type: "set-animating", animating: null });
-  focusActivePrompt();
+}
+
+function stopAnimation(): Animation | null {
+  const anim = current;
+  if (!anim) return null;
+  current = null;
+  if (anim.timer) clearInterval(anim.timer);
+  if (anim.beat) clearTimeout(anim.beat);
+  return anim;
+}
+
+function isCurrent(anim: Animation): boolean {
+  const state = store.getState();
+  return state.navigationVersion === anim.navigationVersion &&
+    getPane(state, anim.windowKey).id === anim.paneId;
+}
+
+/** History navigation cancels pending work and preserves the origin draft. */
+export function cancelAnimation(): void {
+  const anim = stopAnimation();
+  if (anim) restoreDraft(anim);
 }
 
 /** Complete a running animation instantly (skip rule — keypress or click). */
 export function finishAnimation(): void {
-  if (!current) return;
-  const anim = current;
-  current = null;
-  if (anim.timer) clearInterval(anim.timer);
-  if (anim.beat) clearTimeout(anim.beat);
-  execute(anim);
+  const anim = stopAnimation();
+  if (!anim) return;
+  const valid = isCurrent(anim);
+  if (valid) executeCommand(anim.command, { source: "click", windowKey: anim.windowKey });
+  restoreDraft(anim);
+  if (valid) focusActivePrompt();
 }
 
 function prefersReducedMotion(): boolean {
@@ -57,8 +79,9 @@ export function animateClick(cmd: string): void {
   finishAnimation();
   store.dispatch({ type: "set-pending-prefix", pending: false });
 
-  const windowKey = activeWindowKey(store.getState());
-  const pane = getPane(store.getState(), windowKey);
+  const state = store.getState();
+  const windowKey = activeWindowKey(state);
+  const pane = getPane(state, windowKey);
 
   // Clicking in NORMAL or COPY returns to INSERT, then animates (§5).
   if (pane.mode !== "INSERT") {
@@ -76,6 +99,8 @@ export function animateClick(cmd: string): void {
     command: cmd,
     stash: pane.inputBuffer,
     windowKey,
+    paneId: pane.id,
+    navigationVersion: state.navigationVersion,
     shown: 0,
     timer: null,
     beat: null,
@@ -85,20 +110,22 @@ export function animateClick(cmd: string): void {
 
   const perChar = Math.min(CHAR_MS, MAX_TYPE_MS / cmd.length);
   anim.timer = setInterval(() => {
+    if (!isCurrent(anim)) {
+      cancelAnimation();
+      return;
+    }
     anim.shown += 1;
     store.dispatch({
       type: "set-input",
       windowKey,
+      paneId: anim.paneId,
       text: cmd.slice(0, anim.shown),
       cursorPos: anim.shown,
     });
     if (anim.shown >= cmd.length) {
       if (anim.timer) clearInterval(anim.timer);
       anim.timer = null;
-      anim.beat = setTimeout(() => {
-        current = null;
-        execute(anim);
-      }, BEAT_MS);
+      anim.beat = setTimeout(finishAnimation, BEAT_MS);
     }
   }, perChar);
 }

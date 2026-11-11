@@ -19,6 +19,7 @@ import { WINDOW_META } from "@/lib/window-meta";
 import { profile } from "@/data/profile";
 import { store } from "./store";
 import { focusActivePrompt } from "./focus";
+import { cancelAnimation } from "./animate";
 
 declare global {
   interface Window {
@@ -54,6 +55,7 @@ export function initRouting(): () => void {
   const onPopState = () => {
     const w = windowFromPath(window.location.pathname);
     applying = true;
+    cancelAnimation();
     store.dispatch({ type: "switch-window", window: w });
     ensureWindowDisplayed();
     applying = false;
