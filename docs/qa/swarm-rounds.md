@@ -24,12 +24,47 @@ All build, test, property, fuzz and browser jobs acquire the shared heavy.lock. 
 
 The authorized remote is C-Nucifora/personal-website. Topic branch portfolio-audit-rounds starts at e758b91, retaining the four signed baseline commits. Fetch before pushing. GitHub CI currently triggers on main pushes, pull requests and manual dispatch. Existing deployment/webhook records returned no entries; Vercel is documented as the hosting integration. Vercel's live schema confirms git.deploymentEnabled can disable automatic deployment per branch. This topic branch therefore explicitly disables its own auto-deployment before any push. Never push main or open a deployment URL.
 
-No branch-specific push record exists for this new topic branch. New signed granular commits use a short span after retained local history, following realistic-commits. Publishing is authorized; personal-content approval remains deferred.
+The first topic-branch push is recorded in its remote-tracking reflog on 2026-11-12 at 08:49:46 +1000. Check for a newer push before subsequent work. New signed granular commits use a short span after the latest push and retained local history, following realistic-commits. Publishing is authorized; personal-content approval remains deferred.
 
 ## Round ledger
 
 | Round | Status | Confirmed findings | Fix and challenge evidence | Published commits | Clean streak |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Breakers starting | Pending reproduction | Pending | None | 0 |
+| 1 | Paused after verified checkpoint, independent challenge pending | Six P2 defects, terminal state, snapshot writes and editor failure isolation | All fixes implemented; 476 full-suite tests, typecheck, lint, build, 93 production interaction, 140 publication and 93 development interaction checks pass | b7c33c0, 3752ba6, 71514a9, followed by this checkpoint ledger | 0 |
 | 2 | Pending | Pending | Pending | None | 0 |
 | 3 | Pending | Pending | Pending | None | 0 |
+
+### Round 1 execution
+
+Two Astra high/priority breakers started with separate regression-file ownership. The terminal breaker owns lib/terminal/round1-temporal.test.tsx and tests delayed source loads, command ordering, pane reuse and animation state. The snapshot breaker owns scripts/round1-boundaries.test.ts and tests faulted responses, malformed metadata, snapshot retention and rendering boundaries. Both use local fixtures, preserve production source and acquire the shared lock for each test job. Findings require a failing reproduction before triage. A separate fixer wave and fresh independent challenge follow confirmed defects.
+
+Both breakers finished source analysis, retaining 19 terminal and 31 snapshot/rendering cases. Their bounded lock acquisitions expired without running tests. The owner consolidated execution with a rejected-editor-chunk case under one lock. The first run collected 51 cases in 9.15 seconds, with 30 passing and 21 failing. Fourteen snapshot failures came from a process-exit mock that incorrectly returned; the editor fixture used an unsupported testing-library option. The owner corrected these fixture errors before confirming findings and retained the initial log.
+
+Confirmed from the first run, all P2:
+
+- A rejected deferred source import appends its echo/error into the newly focused or replacement pane. Successful loads already guard pane identity; rejection lacks that guard.
+- Clicking another pane during command animation leaves the origin draft truncated, overwrites the destination draft and executes the command there.
+- A deferred cd or click-animation callback can override a later browser-history navigation, changing the selected window and URL back to its earlier destination.
+- A partial local bundle output write destroys the previous generated source snapshot. A synthetic ENOSPC write left a 32-byte prefix in place of the old snapshot.
+
+The corrected baseline executed all 51 cases in 8.98 seconds, with 43 passing and eight failing. It confirmed two further P2 defects. A second snapshot rename failure leaves new project metadata paired with old sources while reporting fallback success. A rejected lazy editor import reaches the enclosing route boundary and removes surrounding navigation. A fixture route boundary models the same React error propagation; production-browser fault injection remains required.
+
+Two separate Sol high/priority fixers corrected terminal and snapshot files, including their regressions. The owner added the editor boundary correction with a return-to-shell control. Private command logs distinguish lock timeouts, fixture defects and product assertion failures.
+
+The editor correction passed two focused regressions in 3.09 seconds. A rejected import preserves surrounding navigation, and returning from an inactive pane's failed editor closes that pane while preserving another open file. The terminal fixer passed 162 tests across 11 files and focused lint. The snapshot fixer passed 53 tests and focused lint, including failed restoration, incomplete previous pairs and staging ownership. The combined run passed typecheck, lint and all 476 tests across 39 files. File hashes matched before and after those checks. The one-worker production build exported 16 pages. The final regressions contain 29 terminal, 49 snapshot-boundary and two editor-failure cases.
+
+### Requested checkpoint and pause
+
+The owner subsequently requested a checkpoint and pause before any new swarms or rounds. Both fixers finished and stopped. The owner reviewed their diffs and checked their tested file hashes against the worktree. The production build and all three existing private browser suites passed. Production interaction passed 93 checks in 42.76 seconds; publication passed 140 in 19.02 seconds; development interaction passed 93. Browser suites reported no console or page errors. Publication checks also reported no failed resources.
+
+Each browser suite acquired the shared lock separately, used a server bound to 127.0.0.1, stopped it and released the lock before the next job. Listener comparisons found no new public exposure, both test ports were free afterward and rootless Docker published no ports. An initial wrapper stopped on terminal input before running any e2e check. The owner stopped only its own wrapper and server, released the lock and replaced the wrapper with noninteractive jobs. That orchestration failure is retained in private evidence and is not counted as a product defect.
+
+The checkpoint uses three signed fix commits and a separate ledger commit on portfolio-audit-rounds. Fetch found no incoming topic commits; the branch deployment guard and CI triggers were checked before publication. The previous push was recorded at 08:49:46 +1000 on 2026-11-12. New commits use real timestamps later that morning, with configured signing and no history rewrite. Private logs and browser evidence remain outside the repository under portfolio-audit/swarm-rounds/round1.
+
+No fresh independent challenge was launched after the pause instruction. Round 1 therefore remains incomplete, with a clean streak of zero. Production-browser fault injection, real-browser import retry, session reset with pending imports and independent challenge remain for a later restart, followed by rounds 2 and 3 and the two-consecutive-clean-round gate. Snapshot rollback handles caught errors but does not provide crash-safe two-file atomicity or serialize concurrent publishers. Personal content approval is still a publication blocker. No further work starts until the owner resumes the goal.
+
+### Coverage reserved for later rounds
+
+On restart, round 2 is reserved for worker RPC and provider lifecycle alongside keyboard composition and modal state. Existing RPC tests cover round trips, handler errors, unknown methods and request timeout. They do not establish behavior for synchronous postMessage failure, disposal with pending or later requests, delayed replies, or malformed messages. Those are hypotheses to test against callers and FLOW.md, not confirmed findings.
+
+Round 3 is reserved for delivery and browser fault recovery with a fresh export, including interrupted optional assets, route/plain-view sequences and no-JS behavior. Existing browser suites exercise successful worker startup and ordinary navigation. New fault injection and state sequences must add evidence beyond rerunning those suites. Preserve console/network observations and distinguish deliberately injected failures from application defects. No further round starts until the owner resumes the goal.

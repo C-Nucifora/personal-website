@@ -29,7 +29,8 @@ FLOW.md governs interaction. docs/DESIGN.md and docs/THEMES.md govern visuals. H
 - [x] Typecheck, lint, unit tests, build and browser e2e pass.
 - [x] Actual development and production output checked in a local browser.
 - [x] Private evidence recorded; temporary servers stopped; listener comparison shows no new public exposure.
-- [x] Changes reviewed and committed locally with signing. No push or publication without approval. Signatures were checked using a temporary allowed-signers file; Git's global trust configuration was left unchanged.
+- [x] Baseline changes reviewed and committed with signing. The owner subsequently authorized topic-branch pushes. The baseline is published on portfolio-audit-rounds with automatic deployment disabled for that branch. No merge, release or deployment is authorized. Signatures were checked using a temporary allowed-signers file; Git's global trust configuration was left unchanged.
+- [ ] Extended audit complete. Run at least three new breaker/fixer/reviewer rounds and achieve two consecutive independent clean rounds, as recorded in docs/qa/swarm-rounds.md. The baseline checks below do not satisfy this gate.
 
 ## Owner decisions
 
@@ -38,9 +39,9 @@ FLOW.md governs interaction. docs/DESIGN.md and docs/THEMES.md govern visuals. H
 - Shared command history remains shared across windows and panes. FLOW.md now records that choice.
 - Use the existing product design documents while the shared profile is unavailable.
 
-## Runtime baseline
+## Original runtime baseline
 
-Initial checkout was clean on main at 0084c1b, matching origin/main. Only remote product branch is main; other branches are dependency updates. No reliable branch-specific last push record was available in the clone or current GitHub user events. Use the realistic-commits past-day fallback, without rewriting published history.
+Initial checkout was clean on main at 0084c1b, matching origin/main. At that inspection, the only remote product branch was main; other branches were dependency updates. No reliable branch-specific last push record was available then. The subsequent portfolio-audit-rounds push has a local remote-tracking reflog record. Check that branch's latest push before further commits and pushes, without rewriting published history.
 
 Pre-existing services and routes were left untouched. Rootless Docker became available during the audit but was not needed. All portfolio servers bind explicitly to 127.0.0.1, with no tunnel, route or publishing changes. Tests and builds use a disk-backed TMPDIR and low parallelism under host contention.
 
@@ -55,3 +56,9 @@ The final full unit run passed 396 tests across 36 files. Typecheck and lint pas
 A cold loopback sample before the final fixes measured FCP at 624 ms and interactive readiness at 2.762 s. Initial JavaScript transferred about 907 kB without compression. Remote sources, editor dependencies and the TypeScript worker loaded only after interaction. These timings reflect host contention and are not deployment performance guarantees.
 
 Private logs, screenshots and resource measurements are stored outside the repository in the portfolio-audit evidence directory. No Safari, Firefox, real mobile keyboard or real screen-reader run was performed. Production dependencies have no reported advisories; eight moderate advisories remain in development lint tooling, whose proposed automatic fix requires breaking dependency changes.
+
+## Extended audit checkpoint
+
+Round 1 confirmed and fixed six P2 defects in delayed terminal work, snapshot failure recovery and editor failure isolation. The checkpoint passed typecheck, lint, all 476 unit tests across 39 files, a 16-page production export, 93 production interaction checks, 140 publication checks and 93 development interaction checks. Temporary servers stopped after each suite, both test ports are free and listener comparisons found no new public exposure.
+
+The owner requested a signed topic-branch checkpoint and pause before further swarms. Round 1 still needs independent challenge and browser fault injection. Rounds 2 and 3 and the two-consecutive-clean-round gate remain pending. Deferred personal content remains unchanged and continues to block publication. See docs/qa/swarm-rounds.md for findings, fixes, evidence limits and checkpoint commits.
