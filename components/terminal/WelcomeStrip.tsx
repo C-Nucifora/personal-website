@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { runClick } from "@/lib/terminal/run-click";
 
 export const WELCOME_DISMISSED_KEY = "portfolio:welcome-dismissed";
@@ -38,8 +38,9 @@ const dismiss = () => {
  */
 export function WelcomeStrip() {
   const dismissed = useSyncExternalStore(subscribe, isDismissed, () => true);
+  const [dismissedLocally, setDismissedLocally] = useState(false);
 
-  if (dismissed) return null;
+  if (dismissed || dismissedLocally) return null;
 
   return (
     <div
@@ -62,7 +63,10 @@ export function WelcomeStrip() {
       <button
         type="button"
         aria-label="Dismiss welcome message"
-        onClick={dismiss}
+        onClick={() => {
+          setDismissedLocally(true);
+          dismiss();
+        }}
         className="min-h-11 min-w-11 shrink-0 cursor-pointer px-1 font-mono text-sm text-muted transition-colors hover:text-fg focus-visible:outline-2"
       >
         ✕
