@@ -47,7 +47,7 @@ export function removeLeaf(l: PaneLayout, paneId: string): PaneLayout | null {
   const a = removeLeaf(l.a, paneId);
   if (a === null) return l.b;
   const b = removeLeaf(l.b, paneId);
-  if (b === null) return a === l.a ? l.a : { ...l, a };
+  if (b === null) return a;
   return { ...l, a, b };
 }
 
