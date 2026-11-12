@@ -137,6 +137,7 @@ function handlePickerKey(e: KeyboardEvent): void {
   if (!["j", "k", "ArrowDown", "ArrowUp", "Enter", "Escape", "q", "w", ...ACTIVE_WINDOW_IDS.map((_, i) => String(i + 1))].includes(e.key)) { if (e.key.length === 1) e.preventDefault(); return; }
   const picker = store.getState().picker!;
   e.preventDefault();
+  e.stopPropagation();
   if (e.key === "j" || e.key === "ArrowDown") {
     store.dispatch({
       type: "set-picker",
@@ -339,8 +340,9 @@ export function initKeyboard(): () => void {
       return;
     }
     const target = e.target instanceof Element ? e.target : null;
-    if (earlyState.picker && e.key === "Escape") {
+    if (earlyState.picker && e.key === "Escape" && !e.isComposing) {
       e.preventDefault();
+      e.stopPropagation();
       store.dispatch({ type: "set-picker", picker: null });
       focusActivePrompt();
       return;
@@ -390,11 +392,13 @@ export function initKeyboard(): () => void {
         store.dispatch({ type: "set-confirm", confirm: null });
         focusActivePrompt();
         e.preventDefault();
+        e.stopPropagation();
         return;
       }
       if (e.key === "n" || e.key === "N" || e.key === "Escape") {
         store.dispatch({ type: "set-confirm", confirm: null });
         e.preventDefault();
+        e.stopPropagation();
         return;
       }
       store.dispatch({ type: "set-confirm", confirm: null });
