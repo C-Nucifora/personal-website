@@ -7,6 +7,7 @@ import { initialState, reduce } from "./reducer";
 import type { Action, AppState, WindowId } from "./types";
 
 let state: AppState = initialState(null);
+let session = 0;
 const listeners = new Set<() => void>();
 
 function notify(): void {
@@ -14,6 +15,13 @@ function notify(): void {
 }
 
 export const store = {
+  getSession(): number {
+    return session;
+  },
+  /** Discard callbacks from a terminal that has been cleaned up. */
+  invalidateSession(): void {
+    session += 1;
+  },
   getState(): AppState {
     return state;
   },
@@ -29,6 +37,7 @@ export const store = {
   },
   /** Reinitialize (page mount with a deep-linked window, and tests). */
   reset(initialWindow: WindowId | null): void {
+    session += 1;
     state = initialState(initialWindow);
     notify();
   },

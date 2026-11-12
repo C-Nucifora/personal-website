@@ -134,7 +134,11 @@ export function executeCommand(line: string, opts: ExecOptions): void | Promise<
 
   const [name, ...args] = cmdLine.split(/\s+/);
   const mod = resolveCommand(name);
-  const pane = getPane(startState, windowKey);
+  const session = store.getSession();
+  if (mod?.meta.name === "vim" && args[0]) {
+    store.dispatch({ type: "request-editor", windowKey });
+  }
+  const pane = getPane(store.getState(), windowKey);
   const sourcePath = args.find((arg) => !arg.startsWith("-")) ?? "";
   const targetPath = resolvePath(pane.cwd, sourcePath);
   const projectSlug = targetPath.startsWith("~/projects/") ? targetPath.split("/")[2] : "";
@@ -145,10 +149,12 @@ export function executeCommand(line: string, opts: ExecOptions): void | Promise<
       const state = store.getState();
       const current = getPane(state, windowKey);
       return current.id === pane.id && current.cwd === pane.cwd &&
+        (mod.meta.name !== "vim" || current.editorVersion === pane.editorVersion) &&
         (mod.meta.name !== "cd" || state.navigationVersion === startState.navigationVersion);
     };
     store.dispatch({ type: "set-notice", text: "Loading project sources…", until: Date.now() + 5000 });
     return loadProjectSources().then(() => {
+      if (store.getSession() !== session) return;
       // Reads may finish in an unchanged background shell; navigation must still be current.
       if (!canResume()) {
         store.dispatch({ type: "set-notice", text: "Project sources loaded. Run the command again in your current shell.", until: Date.now() + 5000 });
@@ -156,6 +162,7 @@ export function executeCommand(line: string, opts: ExecOptions): void | Promise<
       }
       return executeCommand(cmdLine, { ...opts, windowKey });
     }).catch(() => {
+      if (store.getSession() !== session) return;
       if (!canResume()) {
         store.dispatch({ type: "set-notice", text: "Source unavailable offline. Try the command again when connected.", until: Date.now() + 5000 });
         return;

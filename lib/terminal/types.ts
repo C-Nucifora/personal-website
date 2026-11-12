@@ -41,6 +41,8 @@ export interface PaneState {
   vim: LineVimState; // NORMAL-mode line-editing state (§6.2)
   view: "shell" | "editor";
   editorPath: string | null;
+  /** Changes on file requests, opens and closes, even for the same path. */
+  editorVersion: number;
   /** One-shot message-line text shown when the editor opens (vi joke). */
   editorNote: string | null;
   /** Initial cursor offset — set by intel gd jumps (spec 2026-06-12). */
@@ -115,6 +117,7 @@ export type Action =
   | { type: "unlock-crt" }
   | { type: "set-overlay"; overlay: AppState["overlay"] }
   | { type: "open-editor"; windowKey: WindowKey; path: string; note?: string; offset?: number }
+  | { type: "request-editor"; windowKey: WindowKey }
   | { type: "close-editor"; windowKey: WindowKey }
   | { type: "set-notice"; text: string; until: number }
   | { type: "clear-notice" }

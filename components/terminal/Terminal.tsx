@@ -15,6 +15,7 @@ import { Disintegration } from "@/components/effects/Disintegration";
 import { MatrixRain } from "@/components/effects/MatrixRain";
 import { store } from "@/lib/terminal/store";
 import { executeCommand } from "@/lib/terminal/executor";
+import { cancelAnimation } from "@/lib/terminal/animate";
 import { focusActivePrompt } from "@/lib/terminal/focus";
 import { loadProjectSources } from "@/lib/vfs/project-sources";
 import { initIdle } from "@/lib/terminal/idle";
@@ -51,6 +52,7 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     document.documentElement.setAttribute("data-js-ready", "true");
 
     store.reset(initialWindow);
+    const session = store.getSession();
     try {
       if (localStorage.getItem("portfolio:crt-unlocked") === "1") {
         store.dispatch({ type: "unlock-crt" });
@@ -68,10 +70,12 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
     let sourcesRequested = false;
     let sourcesFailed = false;
     const loadSources = () => {
+      if (store.getSession() !== session) return;
       if (store.getState().activeWindow !== "projects") sourcesFailed = false;
       if (sourcesRequested || sourcesFailed || store.getState().activeWindow !== "projects" || document.documentElement.getAttribute("data-view") === "plain") return;
       sourcesRequested = true;
       loadProjectSources().then(disposeSources).catch(() => {
+        if (store.getSession() !== session) return;
         sourcesRequested = false;
         sourcesFailed = true;
         store.dispatch({ type: "set-notice", text: "Source unavailable offline. Project summaries are still available.", until: Date.now() + 5000 });
@@ -88,6 +92,10 @@ export function Terminal({ initialWindow = null }: { initialWindow?: WindowId | 
       disposeKeyboard();
       disposeRouting();
       disposeIdle();
+      if (store.getSession() === session) {
+        store.invalidateSession();
+        cancelAnimation();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

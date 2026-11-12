@@ -27,6 +27,7 @@ function freshPane(id: string, cwd: string): PaneState {
     vim: initialVimState(),
     view: "shell",
     editorPath: null,
+    editorVersion: 0,
     editorNote: null,
     editorOffset: null,
   };
@@ -240,11 +241,15 @@ export function reduce(state: AppState, action: Action): AppState {
     case "unlock-crt":
       return { ...state, crtUnlocked: true };
 
+    case "request-editor":
+      return withPane(state, action.windowKey, (p) => ({ ...p, editorVersion: p.editorVersion + 1 }));
+
     case "open-editor":
       return withPane(state, action.windowKey, (p) => ({
         ...p,
         view: "editor",
         editorPath: action.path,
+        editorVersion: p.editorVersion + 1,
         editorNote: action.note ?? null,
         editorOffset: action.offset ?? null,
       }));
@@ -254,6 +259,7 @@ export function reduce(state: AppState, action: Action): AppState {
         ...p,
         view: "shell",
         editorPath: null,
+        editorVersion: p.editorVersion + 1,
         editorNote: null,
         editorOffset: null,
       }));

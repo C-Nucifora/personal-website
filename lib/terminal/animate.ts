@@ -20,6 +20,7 @@ interface Animation {
   stash: string;
   windowKey: WindowKey;
   paneId: string;
+  session: number;
   navigationVersion: number;
   shown: number;
   timer: ReturnType<typeof setInterval> | null;
@@ -29,6 +30,7 @@ interface Animation {
 let current: Animation | null = null;
 
 function restoreDraft(anim: Animation): void {
+  if (store.getSession() !== anim.session) return;
   store.dispatch({
     type: "set-input",
     windowKey: anim.windowKey,
@@ -50,7 +52,8 @@ function stopAnimation(): Animation | null {
 
 function isCurrent(anim: Animation): boolean {
   const state = store.getState();
-  return state.navigationVersion === anim.navigationVersion &&
+  return store.getSession() === anim.session &&
+    state.navigationVersion === anim.navigationVersion &&
     getPane(state, anim.windowKey).id === anim.paneId;
 }
 
@@ -100,6 +103,7 @@ export function animateClick(cmd: string): void {
     stash: pane.inputBuffer,
     windowKey,
     paneId: pane.id,
+    session: store.getSession(),
     navigationVersion: state.navigationVersion,
     shown: 0,
     timer: null,
@@ -110,6 +114,7 @@ export function animateClick(cmd: string): void {
 
   const perChar = Math.min(CHAR_MS, MAX_TYPE_MS / cmd.length);
   anim.timer = setInterval(() => {
+    if (current !== anim) return;
     if (!isCurrent(anim)) {
       cancelAnimation();
       return;
@@ -125,7 +130,9 @@ export function animateClick(cmd: string): void {
     if (anim.shown >= cmd.length) {
       if (anim.timer) clearInterval(anim.timer);
       anim.timer = null;
-      anim.beat = setTimeout(finishAnimation, BEAT_MS);
+      anim.beat = setTimeout(() => {
+        if (current === anim) finishAnimation();
+      }, BEAT_MS);
     }
   }, perChar);
 }
