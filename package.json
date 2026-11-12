@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "node e2e/verify.mjs",
-    "e2e:publication": "node e2e/publication.mjs"
+    "e2e:publication": "node e2e/publication.mjs",
+    "e2e:faults": "node e2e/round1-faults.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",

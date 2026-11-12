@@ -30,3 +30,4 @@ jobs:
           sleep 2
           BASE=http://127.0.0.1:3000 npm run e2e
           BASE=http://127.0.0.1:3000 npm run e2e:publication
+          npm run e2e:faults
