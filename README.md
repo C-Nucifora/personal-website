@@ -1,5 +1,18 @@
 # personal-website
 
+The current site is the static 3D datacenter portfolio in [`concept/rack`](concept/rack/README.md). It contains Software, Hardware and Experience racks, individual M1 module inspection and normal project pages.
+
+```sh
+npm run build:rack
+python3 -m http.server 4318 --directory dist
+```
+
+Vercel uses the repository's `vercel.json` to run `build:rack` and serve `dist/` at the root URL. See [deployment notes](concept/rack/DEPLOYMENT.md) and [content editing notes](concept/rack/CONTENT.md). The Next.js terminal implementation below is retained as the earlier version; its commands do not build the current Vercel site.
+
+CI uses Node.js 24 to run lint, the earlier application's typecheck and unit suite, and the rack's production build. Rack browser interactions are checked separately in release reviews; CI does not currently automate those browser checks. The historical terminal browser suite remains available through `npm run e2e` against its own `out/` export.
+
+## Earlier terminal portfolio
+
 A developer portfolio that looks and behaves like a terminal — one tmux
 session, windows mapped onto a virtual filesystem — but stays fully usable for
 visitors who have never touched a command line. Every action can be **typed**
@@ -52,11 +65,11 @@ npm run e2e        # Playwright suite against a server of ./out
 Set `profile.siteUrl` in `data/profile.ts` first — SEO metadata, the sitemap,
 `robots.txt`, the RSS feed, and the generated Open Graph image all read from it.
 
-The exported `./out` directory is a plain static site. **Vercel** imports the
-repo and builds it with no extra config (`vercel.json` adds security headers);
-any other static host works too. CI (`.github/workflows/ci.yml`) runs
-typecheck, lint, unit tests, the production build, and the e2e suite on every
-push — deploys are the host's job.
+The earlier application's exported `./out` directory is a plain static site
+that can be served separately. The checked-in `vercel.json` builds the current
+rack portfolio instead; it does not deploy this terminal version. Its manual
+browser suite requires a server for `out/` and is not part of the current
+production CI workflow.
 
 SEO is wired up: per-route titles, `/sitemap.xml`, `/robots.txt`, a generated
 `/opengraph-image`, JSON-LD `Person` data, a web manifest, and

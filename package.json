@@ -2,6 +2,9 @@
   "name": "personal-website",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "bundle-source": "node scripts/bundle-source.mjs",
     "bundle-blog": "node scripts/bundle-blog.mjs",
@@ -10,14 +13,18 @@
     "prebuild": "node scripts/fetch-projects.mjs && node scripts/bundle-source.mjs && node scripts/check-assets.mjs && node scripts/bundle-blog.mjs && node scripts/bundle-ts-libs.mjs",
     "dev": "next dev",
     "build": "next build",
+    "build:rack": "node scripts/build-rack.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "node e2e/verify.mjs"
+    "e2e": "node e2e/verify.mjs",
+    "dev:rack": "node --env-file-if-exists=.env.local scripts/dev-rack.mjs",
+    "db:setup": "node --env-file-if-exists=.env.local scripts/setup-admin.mjs"
   },
   "dependencies": {
+    "@auth/core": "^0.41.3",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-css": "^6.3.1",
     "@codemirror/lang-html": "^6.4.11",
@@ -30,7 +37,9 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.43.1",
     "@lezer/highlight": "^1.2.3",
+    "@neondatabase/serverless": "^1.2.0",
     "@replit/codemirror-vim": "^6.3.0",
+    "@vercel/blob": "^2.8.2",
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

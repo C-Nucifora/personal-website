@@ -1,6 +1,6 @@
-# Quality gate: typecheck, lint, unit tests, build, and the Playwright e2e
-# suite against the static export. Deploys are Vercel's job (it builds
-# directly from the repo); this workflow only keeps main honest.
+# Build the same rack artifact as Vercel. Keep the earlier application's
+# typecheck and unit suite as additional checks; they do not verify the rack
+# browser flows, which have separate release-review evidence.
 name: CI
 
 on:
@@ -16,20 +16,14 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run test
-      # prebuild re-syncs projects from the GitHub API; the token avoids
-      # anonymous rate limits (falls back to the committed snapshot if it fails)
-      - run: npm run build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: npx playwright install --with-deps chromium
-      - name: e2e against the static export
-        run: |
-          (cd out && python3 -m http.server 3000 &)
-          sleep 2
-          BASE=http://127.0.0.1:3000 node e2e/verify.mjs
+      - name: typecheck earlier application
+        run: npm run typecheck
+      - name: lint authored source
+        run: npm run lint
+      - name: existing unit suite
+        run: npm run test
+      - name: build rack production artifact
+        run: npm run build:rack

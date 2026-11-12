@@ -1,0 +1,337 @@
+{
+  "reviewedAt": "2026-10-23",
+  "scope": "Public technical descriptions for the 15 existing M1 rack modules. Repository ownership does not establish individual authorship or project dates.",
+  "collaboration": "The existing approved portfolio register describes the wider toolchain as co-developed with Ned Lane. m1-can is a fork of nedlane/m1-can and is attributed to its canonical upstream here.",
+  "sources": {
+    "m1-tools": {
+      "repository": "https://github.com/C-Nucifora/m1-tools",
+      "commit": "599969ac0276d01fba8a45f9fa51030ba7f40971",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-tools/blob/599969ac0276d01fba8a45f9fa51030ba7f40971/README.md",
+          "sha256": "8dd2203eb381e56e71061fea3034bdbf34646647c9bc2d85c3dc040d6fd9f7d4"
+        },
+        {
+          "path": "scripts/release-manifest.sh",
+          "url": "https://github.com/C-Nucifora/m1-tools/blob/599969ac0276d01fba8a45f9fa51030ba7f40971/scripts/release-manifest.sh",
+          "sha256": "76ca94929649ccf3733e6d3105431e330cb183c0ff897d1aa78dfcb5fa754f08"
+        }
+      ],
+      "claims": [
+        "The umbrella repository is the starting point for the M1 development environment. It holds the multi-repository checkout manifest, explains the dependency layers and documents configuration shared by editors and command-line tools.",
+        "The development manifest tracks each repository at main. That is useful when changing several tools together, but it differs from the version-pinned binaries consumed by CI and editor integrations.",
+        "A release-manifest script reads the tool pins from the released m1-ci configuration and resolves other components to release tags. It refuses an unreleased component unless the caller explicitly permits a main-branch fallback.",
+        "A project-level m1-tools.toml shares formatting, lint and diagnostic policy. In editors, committed workspace settings override personal preferences. The umbrella also links collaborator-owned components; this cabinet presents a selection of that wider ecosystem."
+      ]
+    },
+    "tree-sitter-m1": {
+      "repository": "https://github.com/C-Nucifora/tree-sitter-m1",
+      "commit": "0a9e32a444c7b659d42657b6dcfc9ebdaf8f5648",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/tree-sitter-m1/blob/0a9e32a444c7b659d42657b6dcfc9ebdaf8f5648/README.md",
+          "sha256": "b21b6fe890513a9059508c0aea4a2d64ce213e84cbb584e97886a153125fcff2"
+        },
+        {
+          "path": "src/scanner.c",
+          "url": "https://github.com/C-Nucifora/tree-sitter-m1/blob/0a9e32a444c7b659d42657b6dcfc9ebdaf8f5648/src/scanner.c",
+          "sha256": "b9668ea79cfea3aac2c1f45aadca2399445b4c0485cfe85ed768abd5d5c1653c"
+        }
+      ],
+      "claims": [
+        "A grammar and generated parser for .m1scr files. It gives editors syntax highlighting and gives the Rust tools a concrete syntax tree, including the M1 names that ordinary word-based tokenisation would split incorrectly.",
+        "A name segment can contain several words, while dots separate segments. The external scanner joins those words but stops before reserved words such as eq, so a comparison operator does not become part of a channel name.",
+        "The repository commits the generated parser alongside the grammar. m1-core builds its typed node definitions from the grammar, and editor queries define highlighting, indentation and folding.",
+        "Corpus fixtures and fuzzing exercise parsing and incremental edits. The documentation separates observed M1 behaviour from conservative inferences, including the decimal-mantissa rule for scientific literals. These are parser checks, not evidence that a script behaves correctly on an ECU."
+      ]
+    },
+    "m1-core": {
+      "repository": "https://github.com/C-Nucifora/m1-core",
+      "commit": "d294ea79dab8a42f12ed62372b781d4d2a7bb8cd",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-core/blob/d294ea79dab8a42f12ed62372b781d4d2a7bb8cd/README.md",
+          "sha256": "8b6e1e1b542e4c63b2811fb9e7a410605f1fe3bd1262059b90b3c3a8034e7b26"
+        },
+        {
+          "path": "src/lib.rs",
+          "url": "https://github.com/C-Nucifora/m1-core/blob/d294ea79dab8a42f12ed62372b781d4d2a7bb8cd/src/lib.rs",
+          "sha256": "43bb4958c9cce6b0957e27788336eff9eb44e10b50f1f287a9945f8bf26c4ab2"
+        }
+      ],
+      "claims": [
+        "The Rust library that gives the rest of the toolchain one way to read M1 syntax. It wraps the parser with typed nodes, source positions and diagnostics, so each downstream tool does not need its own tree-sitter integration.",
+        "Consumers work with Cst, Node, Kind and Field rather than importing tree-sitter directly. Incremental reparsing supports editor updates, while common source-position and operator helpers keep diagnostics consistent.",
+        "The library reads @m1: directives from ordinary comments. Those annotations can suppress a diagnostic, mark a safety-critical value or control formatting. Each tool registers the annotation kinds it understands.",
+        "m1-core describes the source structure. It deliberately has no expression-type query because resolving types requires a project symbol model. That work belongs to m1-typecheck, above this library in the dependency graph."
+      ]
+    },
+    "m1-lsp": {
+      "repository": "https://github.com/C-Nucifora/m1-lsp",
+      "commit": "3ed54bb96cbd54120d53dab087c91f65b13d3e37",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-lsp/blob/3ed54bb96cbd54120d53dab087c91f65b13d3e37/README.md",
+          "sha256": "19c738b4df7c8f79da4350dd954ef158b55b616e9c6cdc73d23f9e4775394728"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-lsp/blob/3ed54bb96cbd54120d53dab087c91f65b13d3e37/src/main.rs",
+          "sha256": "1dd2efa45f533436e08a8f9a2a34dec1f6eae4604d04976a7e9d67e4bcadac73"
+        }
+      ],
+      "claims": [
+        "The language server connects M1 analysis to an editor. It combines parsing, linting, project-aware type diagnostics and formatting behind the Language Server Protocol, so navigation and feedback use the same tools as command-line checks.",
+        "The server discovers project, calibration and CAN database files and reloads their model when they change. Hover, completion and definitions can therefore use declared types and units rather than matching text alone.",
+        "Group-relative and fully qualified channel references resolve to the same project entity. References, read/write highlights and call hierarchy help follow data across scripts. Formatting and code actions reuse m1-fmt and m1-lint.",
+        "Editors normally launch the binary with no arguments and exchange LSP messages over stdio. The scaffold command prints a starter shared configuration. The documented release binaries cover Linux x64, Windows x64 and Apple Silicon; Intel Mac users build from source."
+      ]
+    },
+    "m1-fmt": {
+      "repository": "https://github.com/C-Nucifora/m1-fmt",
+      "commit": "0c46a6e16ee9dd46e648186507a7f39b2ef3b997",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-fmt/blob/0c46a6e16ee9dd46e648186507a7f39b2ef3b997/README.md",
+          "sha256": "16789abef81ee9bb38efc62203111bf7186a54a45069e9213fec078dc7a92f19"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-fmt/blob/0c46a6e16ee9dd46e648186507a7f39b2ef3b997/src/main.rs",
+          "sha256": "69aa3c82aa8652ef79d50831e35ca0672ad1d15660f326b092d28359063761b1"
+        }
+      ],
+      "claims": [
+        "A formatter for M1 scripts, available as a command-line program and a Rust library. It changes whitespace and layout, then checks the result against the parsed input before accepting the formatted source.",
+        "The formatter checks that output reparses, preserves meaningful tokens and remains unchanged on a second formatting pass. Source with syntax errors stays untouched, and check mode reports a failure instead of treating that file as clean.",
+        "Print a formatted file, inspect a diff, edit a directory in place or run a read-only CI check. Stdin support lets editors format an unsaved buffer; a supplied filename also selects that project's configuration.",
+        "Defaults use tabs and Allman braces. Workspace settings, tool-specific configuration and CLI overrides can choose another layout. Comment directives let deliberately aligned regions remain unchanged; alignment and comment reflow are opt-in."
+      ]
+    },
+    "m1-lint": {
+      "repository": "https://github.com/C-Nucifora/m1-lint",
+      "commit": "6b7815c012f8832b9349d75a54bb5bb3e1ae7206",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-lint/blob/6b7815c012f8832b9349d75a54bb5bb3e1ae7206/README.md",
+          "sha256": "067c17789b552cb348f41ded7b507ff3842f6fab6ec3e2e53694bd2265a64064"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-lint/blob/6b7815c012f8832b9349d75a54bb5bb3e1ae7206/src/main.rs",
+          "sha256": "bf9a2a4e01e45489cf69a365d873db61005effd87c8f56da28bbffccb4e07cd5"
+        }
+      ],
+      "claims": [
+        "A syntax-based linter for M1 scripts. It reports naming, layout and local correctness issues, with rule codes that can be explained in the terminal, suppressed in source or configured for a project.",
+        "Rules inspect the script itself, including unused locals, deep nesting, operator conventions and complexity. They do not resolve a channel against Project.m1prj; project-aware checks belong to m1-typecheck.",
+        "Autofix supports a diff-only preview. Before writing a fix, the tool reparses the result and checks meaningful tokens. Rules that need a semantic change, such as renaming a local, do not receive an automatic fix.",
+        "A baseline records existing findings so a legacy project can gate new regressions first. Rule selection, severity overrides and source annotations let teams choose policy without maintaining a separate linter. The running binary provides its own rule catalogue and explanations."
+      ]
+    },
+    "m1-typecheck": {
+      "repository": "https://github.com/C-Nucifora/m1-typecheck",
+      "commit": "2729e222dfa890f421ffd6beb4f192c1cfa5efd9",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-typecheck/blob/2729e222dfa890f421ffd6beb4f192c1cfa5efd9/README.md",
+          "sha256": "8257391720d4e01498802f11ca57c288215f7b22bbaed89114d3101e3a0de294"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-typecheck/blob/2729e222dfa890f421ffd6beb4f192c1cfa5efd9/src/main.rs",
+          "sha256": "730c0d99e3eb25c13279ce3349459bf27d58f9215fc67cb996b7fde0d9dc31b5"
+        }
+      ],
+      "claims": [
+        "The semantic-analysis layer loads an M1 project and resolves what the names in its scripts refer to. It checks relationships that syntax alone cannot establish, including declared types, enum cases, units and cross-script invalid-value paths.",
+        "The CLI discovers nearby project, parameter and CAN database files. Supplying the full script set allows analyses to follow values across files, rather than judging each script in isolation.",
+        "Diagnostics depend on types or enum information the model can establish. Missing firmware or parameter information does not justify guessing. The tool can also explain a channel's NaN or unit provenance to show how an inferred value reached it.",
+        "Error findings fail the default CLI run; strict mode also fails on warnings. Shared configuration and per-symbol ignores control project policy. The same project model supports editor hover and completion, and a companion exporter can describe expected calibration parameters."
+      ]
+    },
+    "nvim-m1": {
+      "repository": "https://github.com/C-Nucifora/nvim-m1",
+      "commit": "72aad30609c1335f57744dd8e716f1d3442ae40f",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/nvim-m1/blob/72aad30609c1335f57744dd8e716f1d3442ae40f/README.md",
+          "sha256": "0de05e46323b1378094d95b4f3451787894173446530366117035d3de369f001"
+        },
+        {
+          "path": "lua/nvim-m1/init.lua",
+          "url": "https://github.com/C-Nucifora/nvim-m1/blob/72aad30609c1335f57744dd8e716f1d3442ae40f/lua/nvim-m1/init.lua",
+          "sha256": "1aab9dc5430946d8aa96dce82156b8ce59375569e5ad126cbe1db7b21cf6e984"
+        }
+      ],
+      "claims": [
+        "The Neovim integration assembles the M1 editor environment in one plugin. It configures the parser and language server, provides formatting and lint commands, and connects project-editing commands to the separate m1-project tool.",
+        "The install hook downloads platform-specific pinned binaries. The parser compiles locally, so setup needs a C compiler and curl. Explicit paths and binaries already on PATH take precedence over the bundled tools.",
+        "Formatting, linting, call-rate lenses and configuration generation are available as editor commands. Optional conform.nvim and nvim-lint integrations have fallbacks. Neovim 0.11 uses native LSP support; 0.10 needs nvim-lspconfig.",
+        "Component creation and attribute edits invoke m1-project, maintained in Ned Lane's repository. The language server reloads after those edits. This keeps structured project writes separate from the server's analysis and navigation work."
+      ]
+    },
+    "telescope-m1.nvim": {
+      "repository": "https://github.com/C-Nucifora/telescope-m1.nvim",
+      "commit": "ab580d2324f87851dd231ca3d58f0976f92c0180",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/telescope-m1.nvim/blob/ab580d2324f87851dd231ca3d58f0976f92c0180/README.md",
+          "sha256": "7cbb926814865a0e88fa0f3b1a806a4a0af58aa2f66d1dcd157b8da98505169c"
+        },
+        {
+          "path": "lua/telescope/_extensions/m1.lua",
+          "url": "https://github.com/C-Nucifora/telescope-m1.nvim/blob/ab580d2324f87851dd231ca3d58f0976f92c0180/lua/telescope/_extensions/m1.lua",
+          "sha256": "8da6d663e4d0224e1098a68d94a6f1b332ece6dd26360e2193549c5ad38f317b"
+        }
+      ],
+      "claims": [
+        "A Telescope extension for exploring an M1 project without knowing an exact symbol name or XML location. It provides searchable symbols, a component tree, execution rates and the lint and type-check rule catalogues.",
+        "Symbol and component pickers query the running language server. Type, security level and tag filters reach the server too. The extension does not keep a second project parser that could disagree with the model.",
+        "A selected symbol opens its definition. The component browser can jump to a function's backing script, while call-rate pickers show the scripts scheduled at a rate. Project-editing actions delegate to nvim-m1 and m1-project.",
+        "The lint picker asks the installed linter for a rule's rationale, with a short static summary when the binary is unavailable. Rule codes can be copied or added to the project ignore list. The extension requires Neovim 0.10 or newer and an active M1 LSP for symbol navigation."
+      ]
+    },
+    "m1-ci": {
+      "repository": "https://github.com/C-Nucifora/m1-ci",
+      "commit": "dafff6099a13787ce545a09207ce2e40d16aa8a5",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-ci/blob/dafff6099a13787ce545a09207ce2e40d16aa8a5/README.md",
+          "sha256": "b403b305b3f392aa7f38ad5b1ce9e4ddaf15439715d0181ee34c2bef90f56c4c"
+        },
+        {
+          "path": ".github/workflows/check.yml",
+          "url": "https://github.com/C-Nucifora/m1-ci/blob/dafff6099a13787ce545a09207ce2e40d16aa8a5/.github/workflows/check.yml",
+          "sha256": "e07421a594814e1eb44353487adca3d83df7cd015e27caa22dede8db1ad6e207"
+        }
+      ],
+      "claims": [
+        "Reusable GitHub Actions workflows put the M1 command-line checks on a project's pull requests. Each released workflow pins the tool versions so a new formatter or diagnostic release cannot silently change an existing project's gate.",
+        "Formatting, linting and type checking run as separate jobs. Project structure validation and an opt-in CAN export drift check extend the gate. Findings can appear on the relevant source lines.",
+        "A lint baseline lets existing findings remain while new regressions fail. Changed-file mode narrows formatter and lint gates, but SARIF still covers the full project so untouched alerts are not incorrectly reported as resolved.",
+        "Pre-commit hooks read the workflow's tools.env pins. Downloaded tools require provenance verification by default; missing prebuilt binaries can build from the pinned source. Updating the workflow release is a deliberate change to the project's checking environment."
+      ]
+    },
+    "m1-doc": {
+      "repository": "https://github.com/C-Nucifora/m1-doc",
+      "commit": "8df33d8f18ea5a2d3f81cefbbb4fc7b7913a448b",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-doc/blob/8df33d8f18ea5a2d3f81cefbbb4fc7b7913a448b/README.md",
+          "sha256": "cd668eaf86c06fcad6adaa3685371346d564aceb618db60bfed43e1b0e5e2fa4"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-doc/blob/8df33d8f18ea5a2d3f81cefbbb4fc7b7913a448b/src/main.rs",
+          "sha256": "a8aa101b03f2d2cffb84509214f28c1d86d1d071f20de3f295ad568f9b96fb7d"
+        }
+      ],
+      "claims": [
+        "A documentation generator that turns an M1 project into a navigable reference. It reads the project model and script relationships, then emits Markdown, an offline HTML site or structured JSON for other tools.",
+        "Generated pages describe channels, parameters, constants and functions with their available types, units and annotations. HTML adds search, navigation and security filters. Markdown is the canonical text used to produce the HTML reference.",
+        "Resolved calls, reads, writes and aliases become typed graph edges. Group pages show interactive relationships, and a requested subsystem page can include neighbouring groups. Unresolved targets remain unlinked or absent instead of receiving invented destinations.",
+        "Security and tag filters can produce a symbol-focused subset. JSON exposes the same document model with a schema version and deterministic output, useful for comparing references or checking project metadata in another pipeline."
+      ]
+    },
+    "m1-visualiser": {
+      "repository": "https://github.com/C-Nucifora/m1-visualiser",
+      "commit": "e025f550a43a1d1a70abf659b2851bb5fc97672f",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-visualiser/blob/e025f550a43a1d1a70abf659b2851bb5fc97672f/README.md",
+          "sha256": "3ded87addde5c4f33ef89cd06dce417e096c18839b867c7dd2910ee13bc2c959"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-visualiser/blob/e025f550a43a1d1a70abf659b2851bb5fc97672f/src/main.rs",
+          "sha256": "1fa688b43169312c7430450236f264be17f0ee55c4620937ff565e437286a60c"
+        }
+      ],
+      "claims": [
+        "A read-only graph of an M1 project's structure. It turns the loaded symbol model and parsed scripts into an interactive offline HTML file, with DOT and JSON alternatives for other graph tools.",
+        "The graph distinguishes data flow, table axes, group containment and execution schedules. Collapsible groups make it possible to inspect a subsystem without reading all of the project XML.",
+        "Structural links come from resolved project data. Optional scenario and recorded-log overlays call m1-eval, then colour the graph with computed values or counterfactual differences. Those numbers inherit the evaluator's assumptions and input requirements.",
+        "Unresolved structure is omitted rather than guessed. Numeric overlays are experimental and unsuitable for calibration, safety or behavioural validation. The offline model does not reproduce ECU execution budgets, watchdogs or preemption."
+      ]
+    },
+    "m1-eval": {
+      "repository": "https://github.com/C-Nucifora/m1-eval",
+      "commit": "0b5cd55aaf159ee34d078faf7777a4c98e515701",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-eval/blob/0b5cd55aaf159ee34d078faf7777a4c98e515701/README.md",
+          "sha256": "6387aeb19be4929b0dab77fb664019a3000bf93069d89185174c8d5bb21cfd78"
+        },
+        {
+          "path": "src/lib.rs",
+          "url": "https://github.com/C-Nucifora/m1-eval/blob/0b5cd55aaf159ee34d078faf7777a4c98e515701/src/lib.rs",
+          "sha256": "7f2f7ea6bbaba5939bfcab10686591db3f9ab462be87c93a645b8209d6bad1fd"
+        }
+      ],
+      "claims": [
+        "An experimental offline interpreter for M1 scripts. A scenario supplies inputs over time and the evaluator produces a repeatable trace, allowing source-level experiments without connecting the tool to a live ECU.",
+        "A run can evaluate one function, a target channel or the project's multi-rate schedule. Counterfactual replay holds a recorded log as the baseline and recomputes the downstream effects of an override.",
+        "The maturity contract distinguishes verified, assumed, stubbed and unsupported behaviour. Synthetic tests establish the evaluator's own contracts; they do not prove equivalence with M1 firmware. Coverage reports expose the methods and scheduling assumptions a project would exercise.",
+        "The model excludes real-time and hardware-in-the-loop execution, ECU timing budgets, preemption and watchdog behaviour. Unsupported executable behaviour fails when reached. Missing inputs and calibration require explicit handling, so a successful trace still needs its assumptions reviewed before anyone relies on its numbers."
+      ]
+    },
+    "m1-can": {
+      "repository": "https://github.com/nedlane/m1-can",
+      "commit": "b69d74ff7130367a5b3456209b8864a95b5cf23c",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/nedlane/m1-can/blob/b69d74ff7130367a5b3456209b8864a95b5cf23c/README.md",
+          "sha256": "06f2b6f5d8bc76984aaaa6f1431b34084eac1d4a6bc34cb8c6e69c0063346f25"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/nedlane/m1-can/blob/b69d74ff7130367a5b3456209b8864a95b5cf23c/src/main.rs",
+          "sha256": "78b78126efc920b0f606fce82c9248b6f8eaec621d371ead070eec7b06cf0283"
+        }
+      ],
+      "claims": [
+        "CAN inspection combines a project's database definitions with the scripts that bind them to buses. This component is maintained in Ned Lane's repository and also exports M1 databases to the standard Vector DBC format.",
+        "A database declares messages without identifying its bus. Inspection reads DBC Init calls and available calibration values to distinguish same-bus collisions from legitimate reuse on different buses. Unresolved bindings remain unknown.",
+        "The .m1dbc database remains authoritative. A shared workspace configuration explicitly maps source stems to output stems, so generated .dbc files can be committed for tools outside M1 Build.",
+        "Export check mode generates into temporary storage and compares decoded text with the committed files. Normalised line endings are not treated as drift. Export verification compares message and signal counts and reparses output with an independent DBC parser."
+      ]
+    },
+    "m1-dbc": {
+      "repository": "https://github.com/C-Nucifora/m1-dbc",
+      "commit": "9d9df71cfaed9becca956c95506d6e5156a5bc9e",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-dbc/blob/9d9df71cfaed9becca956c95506d6e5156a5bc9e/README.md",
+          "sha256": "b1aedcfd02b2c007f8c02d18491f572c6da61a8d892a8c27f221013af75e1efc"
+        },
+        {
+          "path": "src/main.rs",
+          "url": "https://github.com/C-Nucifora/m1-dbc/blob/9d9df71cfaed9becca956c95506d6e5156a5bc9e/src/main.rs",
+          "sha256": "419add37bb7861983657da8cf25d0300e11b93ea12349d1f4b69027d02cf0384"
+        }
+      ],
+      "claims": [
+        "The standalone DBC exporter converts MoTeC .m1dbc databases into Vector .dbc files. Its scope is deliberately narrow: regenerate shared CAN descriptions and let CI detect when committed exports no longer match their source.",
+        "The workspace configuration names the source and output directories and pairs each source stem with an output stem. The command discovers that configuration by walking up from its current directory, so a hook needs no file-path arguments.",
+        "Check mode writes only to temporary storage, then compares the generated text with existing exports. Line endings, a leading BOM and supported legacy encoding do not create a false change. A missing export is reported as out of sync.",
+        "The cabinet keeps this exporter as its own record. The current m1-can component also provides export plus project-aware topology inspection. m1-dbc focuses on conversion and verification; a repository without export configuration is a clean no-op."
+      ]
+    }
+  }
+}
