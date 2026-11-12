@@ -255,6 +255,7 @@ function handleNormalKey(e: KeyboardEvent, windowKey: WindowKey): void {
 
   if (result.effect === "execute") {
     const line = result.buf.text;
+    store.dispatch({ type: "set-input", windowKey, text: "", cursorPos: 0 });
     store.dispatch({
       type: "apply-vim",
       windowKey,
