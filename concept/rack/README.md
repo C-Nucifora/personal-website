@@ -6,7 +6,7 @@ A local, static 3D portfolio for Christian Nucifora. Software, Hardware and Expe
 
 ```sh
 npm run build:rack
-python3 -m http.server 4318 --bind 0.0.0.0 --directory dist
+python3 -m http.server 4318 --bind 127.0.0.1 --directory dist
 ```
 
 The build copies runtime assets and required licenses to `dist/`. Vercel is configured to build and serve that directory at the root URL, including query-based rack selection and full record pages. The previous Next.js terminal application remains in the repository but is not the Vercel entry point. See [deployment notes](DEPLOYMENT.md). No runtime CDN, API, font service or server process is required.
