@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personal website prototypes</title>
+    <style>
+      @font-face {
+        font-family: "Archivo";
+        src: url("fonts/archivo-var.woff2") format("woff2");
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #e7ebee;
+        color: #1b2430;
+        font:
+          1rem/1.55 "Archivo",
+          system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 48px) 48px;
+      }
+      h1 {
+        font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+        line-height: 1.1;
+        font-weight: 750;
+        font-stretch: 112%;
+        letter-spacing: -0.02em;
+      }
+      .lead {
+        max-width: 42rem;
+        margin-top: 12px;
+        color: #4b5866;
+      }
+      ul {
+        list-style: none;
+        margin: 36px 0 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
+      }
+      a {
+        color: inherit;
+      }
+      .choice > a {
+        display: block;
+        text-decoration: none;
+      }
+      .choice > a:focus-visible {
+        outline: 3px solid #1f5fd6;
+        outline-offset: 6px;
+      }
+      .frame {
+        position: relative;
+        aspect-ratio: 1440 / 900;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #b9c3cc;
+      }
+      .frame iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1440px;
+        height: 900px;
+        border: 0;
+        transform-origin: 0 0;
+        pointer-events: none;
+      }
+      .choice h2 {
+        font-size: 1.375rem;
+        font-weight: 720;
+        font-stretch: 100%;
+        margin: 14px 0 4px;
+      }
+      .choice > a:hover h2 {
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+      }
+      .choice p {
+        margin: 0;
+        color: #4b5866;
+        font-size: 0.9375rem;
+        max-width: 30rem;
+      }
+      .choice .signature {
+        color: #1b2430;
+        margin-top: 6px;
+      }
+      footer {
+        margin-top: 48px;
+        padding-top: 16px;
+        border-top: 1px solid #b9c3cc;
+        font-size: 0.875rem;
+        color: #4b5866;
+        max-width: 60rem;
+      }
+      @media (max-width: 900px) {
+        ul {
+          grid-template-columns: 1fr;
+          max-width: 34rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Two directions for Christian's site</h1>
+      <p class="lead">
+        Same content in each. Previews are the live pages, scaled down.
+      </p>
+      <ul>
+        <li class="choice">
+          <a href="sweep.html">
+            <div class="frame">
+              <iframe
+                src="sweep.html"
+                title="Sweep preview"
+                tabindex="-1"
+                aria-hidden="true"
+                loading="lazy"
+              ></iframe>
+            </div>
+            <h2>Sweep</h2>
+            <p class="signature">
+              A simulated LiDAR scan and path through a driverless cone track.
+            </p>
+            <p>
+              The scan and planned path lead the page. Below them, a quiet
+              reading page with an expandable project index.
+            </p>
+          </a>
+        </li>
+        <li class="choice">
+          <a href="channels.html">
+            <div class="frame">
+              <iframe
+                src="channels.html"
+                title="Channels preview"
+                tabindex="-1"
+                aria-hidden="true"
+                loading="lazy"
+              ></iframe>
+            </div>
+            <h2>Channels</h2>
+            <p class="signature">
+              School, study, work and team drawn as data-log channels you can
+              scrub through by month.
+            </p>
+            <p>
+              Taken from motorsport telemetry. Projects open as signal chains in
+              a list and detail viewer.
+            </p>
+          </a>
+        </li>
+      </ul>
+      <footer>
+        Local prototypes. The scan is simulated and the project flows summarise
+        each README; neither is team data. The rack site is unchanged.
+      </footer>
+    </main>
+    <script>
+      // Scale each 1440px-wide preview to its frame.
+      const fit = () =>
+        document.querySelectorAll(".frame").forEach((f) => {
+          f.querySelector("iframe").style.transform =
+            `scale(${f.clientWidth / 1440})`;
+        });
+      new ResizeObserver(fit).observe(document.body);
+    </script>
+  </body>
+</html>

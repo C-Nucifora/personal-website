@@ -1,6 +1,6 @@
-import { webHandler, method, readJson, json } from '../server/http.mjs';
-import { requireOwner, requireCsrf, csrfToken } from '../server/auth.mjs';
-import { readAdmin, updatePortfolio } from '../server/store.mjs';
+import { webHandler, method, readJson, json } from '../../../server/http.mjs';
+import { requireOwner, requireCsrf, csrfToken } from '../../../server/auth.mjs';
+import { readAdmin, updatePortfolio } from '../../../server/store.mjs';
 
 export async function adminRequest(request) {
   method(request, ['GET', 'PUT', 'POST']);

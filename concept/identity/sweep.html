@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Christian Nucifora: engineering and computer science student, UQ Racing perception and electrical, software projects."
+    />
+    <title>Christian Nucifora</title>
+    <link rel="stylesheet" href="hero.css" />
+    <link rel="stylesheet" href="sweep.css" />
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="hero" id="top" data-slot="hero"></header>
+
+    <main id="main">
+      <section class="block" id="work" aria-labelledby="work-h">
+        <h2 id="work-h">Work</h2>
+        <div class="block-body">
+          <ul class="index" data-slot="projects"></ul>
+          <h3 class="minor-h">Smaller things</h3>
+          <ul class="minor" data-slot="smaller"></ul>
+        </div>
+      </section>
+
+      <section class="block" id="about" aria-labelledby="about-h">
+        <h2 id="about-h">About</h2>
+        <div class="block-body about" data-slot="intro"></div>
+      </section>
+
+      <section class="block" id="experience" aria-labelledby="exp-h">
+        <h2 id="exp-h">Experience</h2>
+        <div class="block-body">
+          <ol class="exp" data-slot="experience" reversed></ol>
+          <p class="fine">
+            Dates from LinkedIn as of <span data-slot="snapshot"></span>.
+          </p>
+        </div>
+      </section>
+
+      <section class="block contact" id="contact" aria-labelledby="contact-h">
+        <h2 id="contact-h">Contact</h2>
+        <div class="block-body">
+          <p data-slot="email"></p>
+          <ul class="elsewhere" data-slot="elsewhere"></ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>Project notes summarise each README at the linked revision.</p>
+      <p data-preview-only><a href="index.html">Both directions</a></p>
+    </footer>
+
+    <noscript data-preview-only
+      ><p class="noscript">
+        This preview renders its content with JavaScript. Run
+        <code>npm run build:identity</code> for static pages.
+      </p></noscript
+    >
+    <script src="content.js" data-preview-only></script>
+    <script src="views.js" data-preview-only></script>
+    <script src="sweep.js"></script>
+    <script src="scan.js"></script>
+  </body>
+</html>

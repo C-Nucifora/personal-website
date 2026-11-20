@@ -1,5 +1,5 @@
-import { webHandler, method, json } from '../server/http.mjs';
-import { readPublished } from '../server/store.mjs';
+import { webHandler, method, json } from '../../../server/http.mjs';
+import { readPublished } from '../../../server/store.mjs';
 
 export async function portfolioRequest(request) {
   method(request, ['GET']);

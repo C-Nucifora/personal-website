@@ -1,0 +1,181 @@
+/* Sweep hero: the scan field, name, lede and caption. Sweep and the portfolio both use it, so every rule is scoped to .hero and the hero keeps
+   Sweep's type and colours on either page. The page supplies --gutter. */
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/bricolage-grotesque-var.woff2") format("woff2");
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+}
+
+.hero {
+  /* Sweep's scale; sweep.css repeats --small, --heading and --bold for the
+     reading page. */
+  --petrol: #0b1f2a;
+  --cone-yellow: #ffd43b;
+  --small: 0.875rem;
+  --heading: clamp(1.375rem, 2.4vw, 1.75rem);
+  --display: clamp(3.1rem, 10.5vw, 9.5rem);
+  --bold: 650;
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+
+  position: relative;
+  min-height: min(100svh, 980px);
+  min-height: max(560px, min(100svh, 980px));
+  background: var(--petrol);
+  color: #e8f0ee;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero :focus-visible {
+  outline-color: var(--cone-yellow);
+}
+
+.hero .scan {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.hero .scan-recorded {
+  background: center / cover no-repeat;
+}
+/* Keeps text readable where it sits on the scan. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(11 31 42 / 0.85), rgb(11 31 42 / 0) 22%),
+    linear-gradient(
+      to top,
+      rgb(11 31 42 / 0.95),
+      rgb(11 31 42 / 0.7) 30%,
+      rgb(11 31 42 / 0) 58%
+    );
+}
+
+.hero .bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px 28px;
+  flex-wrap: wrap;
+  padding: 22px var(--gutter);
+}
+.hero .bar ul {
+  display: flex;
+  gap: 6px 24px;
+  flex-wrap: wrap;
+}
+.hero .bar a {
+  text-decoration: none;
+}
+.hero .bar a:hover {
+  text-decoration: underline;
+}
+.hero .mark {
+  font-weight: var(--bold);
+}
+
+.hero-text {
+  align-self: end;
+  padding: 0 var(--gutter);
+  max-width: 62rem;
+}
+.hero h1 {
+  font-size: var(--display);
+  line-height: 0.88;
+  font-weight: 720;
+  font-variation-settings: "wdth" 76;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.hero .lede {
+  margin-top: 22px;
+  max-width: 34rem;
+  font-size: var(--heading);
+  line-height: 1.3;
+  color: #c9dbd6;
+}
+
+.hero-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px 32px;
+  flex-wrap: wrap;
+  padding: 28px var(--gutter) 26px;
+}
+.hero .caption {
+  max-width: 30rem;
+  font-size: var(--small);
+  line-height: 1.45;
+  color: #93aeb0;
+}
+.hero .pause {
+  font: inherit;
+  font-size: var(--small);
+  color: #e8f0ee;
+  background: transparent;
+  border: 1px solid rgb(232 240 238 / 0.35);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+.hero .pause:hover {
+  border-color: #e8f0ee;
+}
+.hero .pause:disabled {
+  cursor: wait;
+}
+/* Recorded builds: the Play button and its loading status. */
+.hero .scan-controls {
+  margin-left: auto;
+  text-align: right;
+}
+.hero .scan-status {
+  max-width: 24rem;
+  font-size: var(--small);
+  color: #c9dbd6;
+}
+.hero .scan-status:not(:empty) {
+  margin-bottom: 8px;
+}
+
+/* Sweep project pages reuse the bar and name without the scan. */
+.hero-page {
+  min-height: 0;
+  grid-template-rows: auto auto;
+}
+.hero-page::after {
+  content: none;
+}
+.hero-page .hero-text {
+  padding-block: clamp(48px, 9vw, 128px) clamp(32px, 5vw, 64px);
+}
+.hero-page h1 {
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 420px) {
+  .hero .bar {
+    padding-top: 16px;
+  }
+  .hero .bar ul {
+    gap: 4px 16px;
+  }
+  .hero .mark {
+    display: none;
+  }
+}

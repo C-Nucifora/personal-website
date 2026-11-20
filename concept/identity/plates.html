@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Christian Nucifora: engineering and computer science student, UQ Racing perception and electrical, software projects."
+    />
+    <title>Christian Nucifora</title>
+    <link rel="stylesheet" href="plates.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="top">
+      <a class="mark" href="#cover">Christian Nucifora</a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#index">Projects</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#history">History</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="sheet cover" id="cover" aria-labelledby="name">
+        <div class="cover-intro">
+          <h1 id="name">Christian Nucifora</h1>
+          <p class="cover-line" data-slot="oneLine"></p>
+        </div>
+        <figure class="keyplan">
+          <div data-slot="keyplan"></div>
+          <figcaption>
+            Key plan. One block per project sheet; block height is the number of
+            stages drawn on that sheet, not a measure of size or importance.
+          </figcaption>
+        </figure>
+        <nav class="sheet-index" id="index" aria-labelledby="index-h">
+          <h2 id="index-h">Sheet index</h2>
+          <ol data-slot="index"></ol>
+        </nav>
+        <dl class="titleblock cover-block">
+          <div class="tb-wide">
+            <dt>Drawing set</dt>
+            <dd>Projects, study and work of Christian Nucifora</dd>
+          </div>
+          <div>
+            <dt>Based in</dt>
+            <dd>Brisbane</dd>
+          </div>
+          <div>
+            <dt>Issue</dt>
+            <dd>Prototype</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div data-slot="sheets"></div>
+
+      <section class="sheet about" id="about" aria-labelledby="about-h">
+        <header class="sheet-head">
+          <h2 id="about-h">About</h2>
+          <span class="sheet-no" data-slot="aboutNo"></span>
+        </header>
+        <div class="about-grid">
+          <div class="about-text" data-slot="intro"></div>
+          <div class="history" id="history">
+            <h3>Revision history</h3>
+            <p class="fine">
+              Each revision is a role or course of study, oldest first. Dates as
+              listed on LinkedIn in <span data-slot="snapshot"></span>.
+            </p>
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Rev</th>
+                  <th scope="col">Dates</th>
+                  <th scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody data-slot="history"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet contact" id="contact" aria-labelledby="contact-h">
+        <header class="sheet-head">
+          <h2 id="contact-h">Contact</h2>
+          <span class="sheet-no" data-slot="contactNo"></span>
+        </header>
+        <div class="contact-grid">
+          <div>
+            <p class="contact-lead">
+              Questions about a drawing, or work you think I'd fit? Email is
+              quickest.
+            </p>
+            <p><a class="email" data-slot="email" href="#"></a></p>
+          </div>
+          <dl class="titleblock">
+            <div>
+              <dt>GitHub</dt>
+              <dd><a data-slot="github" href="#"></a></dd>
+            </div>
+            <div>
+              <dt>LinkedIn</dt>
+              <dd><a data-slot="linkedin" href="#">Christian Nucifora</a></dd>
+            </div>
+            <div class="tb-wide">
+              <dt>Also in the repository</dt>
+              <dd><ul class="smaller" data-slot="smaller"></ul></dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>
+        Prototype. Drawings diagram the flow described in each repository's
+        README at the listed revision. They are not screenshots or hardware
+        documentation.
+      </p>
+    </footer>
+
+    <noscript
+      ><p class="noscript">
+        This prototype renders its content with JavaScript. Email
+        <a href="mailto:cgnucifora@proton.me">cgnucifora@proton.me</a>.
+      </p></noscript
+    >
+    <script src="content.js"></script>
+    <script src="plates.js"></script>
+  </body>
+</html>

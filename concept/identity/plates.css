@@ -1,0 +1,660 @@
+/* Plates: a drawing set. Ink line on drafting film, red only for revisions. */
+
+@font-face {
+  font-family: "Newsreader";
+  src: url("fonts/newsreader-var.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("fonts/newsreader-italic-var.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --film: #dfe5e0;
+  --film-light: #e9eee9;
+  --ink: #23408e;
+  --graphite: #56616c;
+  --rev: #c73a2b;
+  --line: rgb(35 64 142 / 0.28);
+  --pad: clamp(14px, 3.4vw, 40px);
+  font-family: "Newsreader", Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--film);
+  color: var(--ink);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+}
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+table {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+:focus-visible {
+  outline: 2px solid var(--rev);
+  outline-offset: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  background: var(--ink);
+  color: var(--film);
+  padding: 10px 14px;
+  z-index: 5;
+}
+.skip:focus {
+  top: 12px;
+}
+
+.top {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  padding: 18px var(--pad);
+  font-size: 1.0625rem;
+}
+.top ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+}
+.top a {
+  text-decoration: none;
+}
+.top a:hover {
+  text-decoration: underline;
+}
+.mark {
+  font-style: italic;
+  font-weight: 500;
+}
+
+main {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 var(--pad) 24px;
+  display: grid;
+  gap: clamp(28px, 4vw, 48px);
+}
+
+/* A sheet: double ruled frame, ink only. */
+.sheet {
+  position: relative;
+  border: 1.5px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: -8px;
+  padding: clamp(22px, 3.4vw, 44px);
+  background: var(--film-light);
+  scroll-margin-top: 16px;
+}
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  margin-bottom: clamp(18px, 2.6vw, 30px);
+  border-bottom: 1px solid var(--ink);
+}
+.sheet-head h2 {
+  font-size: clamp(1.75rem, 3.6vw, 2.75rem);
+  line-height: 1.05;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+.sheet-no {
+  font-style: italic;
+  color: var(--graphite);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.fine {
+  font-size: 0.9375rem;
+  color: var(--graphite);
+}
+
+/* Cover ------------------------------------------------------------- */
+
+.cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-areas: "intro plan" "index block";
+  gap: 32px clamp(24px, 4vw, 56px);
+}
+.cover-intro {
+  grid-area: intro;
+  align-self: center;
+}
+.cover h1 {
+  font-size: clamp(3rem, 7.4vw, 6.75rem);
+  line-height: 0.95;
+  font-weight: 380;
+  letter-spacing: -0.025em;
+}
+.cover-line {
+  margin-top: 22px;
+  font-size: clamp(1.1875rem, 1.8vw, 1.4375rem);
+  line-height: 1.45;
+  max-width: 30rem;
+  font-style: italic;
+}
+
+.keyplan {
+  grid-area: plan;
+  min-width: 0;
+}
+.keyplan svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.keyplan figcaption {
+  font-size: 0.875rem;
+  color: var(--graphite);
+  margin-top: 8px;
+  max-width: 36rem;
+}
+.block-link {
+  cursor: pointer;
+}
+.block-link polygon {
+  fill: var(--film-light);
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  transition: fill 0.15s;
+}
+.block-link polygon.top {
+  fill: #f3f6f2;
+}
+.block-link polygon.side-r {
+  fill: #cfd8d2;
+}
+.block-link:hover polygon.top,
+.block-link:focus-visible polygon.top {
+  fill: #fff;
+}
+.block-link:focus-visible {
+  outline: none;
+}
+.block-link:focus-visible polygon {
+  stroke: var(--rev);
+  stroke-width: 2;
+}
+.balloon circle {
+  fill: var(--film-light);
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+.balloon text {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 15px;
+  fill: var(--ink);
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: lining-nums;
+}
+.ground {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+/* One reveal on load: the blocks rise from the plan. */
+@media (prefers-reduced-motion: no-preference) {
+  .keyplan .rise {
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i) * 55ms + 150ms);
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(26px);
+      opacity: 0;
+    }
+  }
+}
+
+.sheet-index {
+  grid-area: index;
+}
+.sheet-index h2,
+.history h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.sheet-index ol {
+  columns: 2 12rem;
+  column-gap: 28px;
+}
+.sheet-index li {
+  break-inside: avoid;
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-index li span {
+  color: var(--graphite);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.sheet-index a {
+  text-decoration: none;
+}
+.sheet-index a:hover {
+  text-decoration: underline;
+}
+
+/* Title blocks ------------------------------------------------------- */
+
+/* Cells draw right and bottom rules; the frame clips the outer ones. */
+.titleblock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1.5px solid var(--ink);
+  align-self: end;
+  overflow: hidden;
+}
+.titleblock > div {
+  padding: 7px 10px 9px;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  margin: 0 -1px -1px 0;
+  min-width: 0;
+  position: relative;
+}
+.titleblock > div.tb-wide {
+  grid-column: 1 / -1;
+}
+.titleblock dt {
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: var(--graphite);
+  line-height: 1.3;
+}
+.titleblock dd {
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.titleblock .rev-code {
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.02em;
+}
+.cover-block {
+  grid-area: block;
+}
+
+/* Revision cloud, drawn around anything unverified or limited. */
+.clouded {
+  color: var(--rev);
+}
+.cloud {
+  position: absolute;
+  inset: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  pointer-events: none;
+  overflow: visible;
+}
+.cloud path {
+  fill: none;
+  stroke: var(--rev);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Project sheets ------------------------------------------------------ */
+
+.project-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-areas: "text parts" "draw notes" "draw block";
+  gap: 24px clamp(24px, 4vw, 56px);
+}
+.drawing {
+  grid-area: draw;
+  min-width: 0;
+}
+.drawing svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 560px;
+  overflow: visible;
+}
+.drawing .slab polygon {
+  fill: var(--film-light);
+  stroke: var(--ink);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+.drawing .slab polygon.top {
+  fill: #f4f7f3;
+}
+.drawing .slab polygon.side-r {
+  fill: #d3dbd6;
+}
+.drawing .slab.last polygon.top {
+  fill: var(--ink);
+}
+.drawing .slab.last polygon.side-l,
+.drawing .slab.last polygon.side-r {
+  fill: #1a3170;
+}
+.drawing .assembly {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 10 4 2 4;
+}
+.drawing .leader {
+  stroke: var(--ink);
+  stroke-width: 1;
+  fill: none;
+}
+.drawing .leader-dot {
+  fill: var(--ink);
+}
+.drawing .flow-arrow {
+  stroke: var(--graphite);
+  stroke-width: 1.2;
+  fill: none;
+}
+.drawing .flow-label {
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  fill: var(--graphite);
+}
+
+.parts {
+  grid-area: parts;
+  align-self: start;
+}
+.parts table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.96875rem;
+  line-height: 1.35;
+}
+.parts caption {
+  text-align: left;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  padding-bottom: 6px;
+}
+.parts th,
+.parts td {
+  text-align: left;
+  vertical-align: top;
+  padding: 7px 8px 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.parts thead th {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--graphite);
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--ink);
+}
+.parts td:first-child {
+  width: 2.6rem;
+}
+.parts .num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-variant-numeric: lining-nums;
+}
+.parts td span {
+  display: block;
+  color: var(--graphite);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.notes {
+  grid-area: notes;
+}
+.notes h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.notes ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.notes ol li::marker {
+  font-variant-numeric: lining-nums;
+  color: var(--graphite);
+}
+
+.project-text {
+  grid-area: text;
+  align-self: start;
+}
+.project-text .what {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.35;
+  font-style: italic;
+  margin-bottom: 12px;
+  max-width: 34rem;
+}
+.project-text p + p {
+  margin-top: 10px;
+}
+.project-text .summary {
+  max-width: 36rem;
+}
+.code {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--ink);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+.project-block {
+  grid-area: block;
+}
+
+/* About / history ----------------------------------------------------- */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 28px clamp(24px, 4vw, 56px);
+}
+.about-text {
+  display: grid;
+  gap: 1em;
+  max-width: 36rem;
+}
+.about-text p:first-child {
+  font-size: 1.375rem;
+  line-height: 1.45;
+}
+.history table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid var(--ink);
+  margin-top: 12px;
+  font-size: 0.96875rem;
+  line-height: 1.4;
+}
+.history th,
+.history td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+}
+.history thead th {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--graphite);
+  font-size: 0.8125rem;
+}
+.history td:first-child {
+  width: 3rem;
+  text-align: center;
+  font-variant-numeric: lining-nums;
+}
+.history td:nth-child(2) {
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 0.875rem;
+}
+.history strong {
+  font-weight: 600;
+}
+.history span {
+  display: block;
+  color: var(--graphite);
+  font-size: 0.9375rem;
+}
+.history tr.current td:first-child {
+  position: relative;
+  color: var(--rev);
+}
+.history .open {
+  color: var(--rev);
+  font-style: italic;
+}
+
+/* Contact ------------------------------------------------------------- */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px clamp(24px, 4vw, 56px);
+  align-items: end;
+}
+.contact-lead {
+  font-size: 1.25rem;
+  max-width: 26rem;
+}
+.email {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: clamp(1.75rem, 4.4vw, 3.25rem);
+  line-height: 1.1;
+  font-weight: 420;
+  overflow-wrap: anywhere;
+}
+.smaller {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+.smaller li {
+  font-size: 0.9375rem;
+}
+.smaller span {
+  color: var(--graphite);
+}
+
+.foot {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 8px var(--pad) 36px;
+  font-size: 0.875rem;
+  color: var(--graphite);
+}
+.noscript {
+  padding: 20px var(--pad);
+}
+
+/* Narrow -------------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .cover {
+    grid-template-columns: 1fr;
+    grid-template-areas: "intro" "plan" "index" "block";
+  }
+  .project-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "text" "draw" "parts" "notes" "block";
+  }
+  .about-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .drawing svg {
+    max-height: none;
+  }
+}
+@media (max-width: 480px) {
+  .sheet {
+    outline-offset: -6px;
+  }
+  .titleblock {
+    grid-template-columns: 1fr;
+  }
+  .history td:nth-child(2) {
+    white-space: normal;
+  }
+  .history th,
+  .history td {
+    padding: 7px 6px;
+  }
+}

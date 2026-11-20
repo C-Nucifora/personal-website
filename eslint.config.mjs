@@ -22,7 +22,7 @@ const eslintConfig = defineConfig([
     rules: { "@next/next/no-assign-module-variable": "off" },
   },
   {
-    files: ["concept/rack/*.js", "api/*.mjs", "server/*.mjs", "scripts/*.mjs"],
+    files: ["concept/rack/*.js", "concept/rack/api/*.mjs", "server/*.mjs", "scripts/*.mjs"],
     // TypeScript checks the earlier app; keep undefined names checked in
     // the JavaScript that builds and serves the current rack portfolio.
     rules: { "no-undef": "error" },

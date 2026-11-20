@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
-import { webHandler, HttpError, method, json } from '../server/http.mjs';
-import { requireOwner, requireCsrf } from '../server/auth.mjs';
+import { webHandler, HttpError, method, json } from '../../../server/http.mjs';
+import { requireOwner, requireCsrf } from '../../../server/auth.mjs';
 
 const MAX_BYTES = 3145728;
 export function imageExtension(bytes, type) {

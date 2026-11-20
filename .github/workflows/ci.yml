@@ -1,6 +1,4 @@
-# Build the same rack artifact as Vercel. Keep the earlier application's
-# typecheck and unit suite as additional checks; they do not verify the rack
-# browser flows, which have separate release-review evidence.
+# Build the portfolio artifact and check the archived terminal application.
 name: CI
 
 on:
@@ -25,5 +23,5 @@ jobs:
         run: npm run lint
       - name: existing unit suite
         run: npm run test
-      - name: build rack production artifact
-        run: npm run build:rack
+      - name: build Vercel artifact
+        run: npm run build:vercel
