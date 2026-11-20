@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Christian Nucifora: engineering and computer science student, UQ Racing perception and electrical, software projects."
+    />
+    <title>Christian Nucifora</title>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="channels.css" />
+    <link rel="stylesheet" href="hero.css" />
+    <link rel="stylesheet" href="site.css" />
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body data-view="site">
+    <a class="skip" href="#main">Skip to content</a>
+
+    <div class="scan-story" id="top" data-slot="hero"></div>
+
+    <main id="main">
+      <section
+        class="log"
+        id="log"
+        aria-labelledby="log-h"
+        data-slot="log"
+      ></section>
+
+      <section class="work" id="work" aria-labelledby="work-h">
+        <div class="work-index">
+          <div>
+            <h2 id="work-h">Selected work</h2>
+            <ul class="project-index" data-slot="selected"></ul>
+          </div>
+          <aside class="others" id="other-projects" aria-labelledby="others-h">
+            <h3 id="others-h">Other projects</h3>
+            <ul data-slot="others"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <div class="closing">
+        <section class="about" id="about" aria-labelledby="about-h">
+          <h2 id="about-h">About</h2>
+          <div class="about-text" data-slot="intro"></div>
+        </section>
+
+        <section class="contact" id="contact" aria-labelledby="contact-h">
+          <h2 id="contact-h">Contact</h2>
+          <p data-slot="email"></p>
+          <ul class="elsewhere" data-slot="elsewhere"></ul>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <p data-slot="signature"></p>
+      <p data-preview-only><a href="index.html">All directions</a></p>
+    </footer>
+
+    <noscript data-preview-only
+      ><p class="noscript">
+        This preview renders its content with JavaScript. Run
+        <code>npm run build:site</code> for static pages.
+      </p></noscript
+    >
+    <script src="content.js"></script>
+    <script src="views.js"></script>
+    <script src="channels.js"></script>
+    <script src="scan.js"></script>
+  </body>
+</html>

@@ -1,0 +1,414 @@
+{
+  "version": 1,
+  "content_module": "concept/rack/software-content.js",
+  "scope": "Software project records, Personal Projects aggregate and M1 parent story. Module-specific M1 content has its own provenance.",
+  "method": "Read-only public GitHub API fetches pinned to exact commits. Repository code was inspected but not executed. Existing approved co-development records supply team attribution. No dates, deployment outcomes, sole authorship or physical hardware validation were inferred.",
+  "repositories": [
+    {
+      "repository": "C-Nucifora/ci-runner-console",
+      "commit": "247135a5b6dbd224b5a840a53fedb6dd09a118b2",
+      "retrieved_at": "2026-10-23T01:16:09.816591+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/ci-runner-console/blob/247135a5b6dbd224b5a840a53fedb6dd09a118b2/README.md",
+          "sha256": "da312bc8d6e1fa8bfe82f1d075a85f0b76ed8b9378b1f8ada9c44e77b7f622be",
+          "supports": [
+            "Single VM runner-instance scope and shared security boundary",
+            "Forced SSH allowlist, pinned host key, stdin tokens, OIDC and audit logging",
+            "Independent concurrency caps and headroom"
+          ]
+        },
+        {
+          "path": "src/reconcile.ts",
+          "url": "https://github.com/C-Nucifora/ci-runner-console/blob/247135a5b6dbd224b5a840a53fedb6dd09a118b2/src/reconcile.ts",
+          "sha256": "45d7495e4a3063e021cd6a17f6ed2ef0dc0dbbdc9802b99a5d693b7b40214e3e",
+          "supports": [
+            "Two-inventory reconciliation and incomplete GitHub state handling"
+          ]
+        },
+        {
+          "path": "vm/ci-runner-ctl-ssh",
+          "url": "https://github.com/C-Nucifora/ci-runner-console/blob/247135a5b6dbd224b5a840a53fedb6dd09a118b2/vm/ci-runner-ctl-ssh",
+          "sha256": "be4daf3bdcd12e2ed5ff31fbb2ca6520eca5a7675be69ba6bbc11aab6e6023f8",
+          "supports": [
+            "Forced-command argument shape and allowlisted operations"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/artifact-platform",
+      "commit": "defe312919ef574f2ad9d1e1605ab409dd5400c0",
+      "retrieved_at": "2026-10-23T01:16:09.816825+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/artifact-platform/blob/defe312919ef574f2ad9d1e1605ab409dd5400c0/README.md",
+          "sha256": "3fda4dd4ac039bf2a86f8f79f207a7eddfd872f423cfb0f20f23b4f6cc964888",
+          "supports": [
+            "Static artifact convention and pre-enrollment local preview",
+            "Caddy, Python discovery, Tailscale SSH, Funnel and optional OIDC admin overlay"
+          ]
+        },
+        {
+          "path": "platform/discovery/discovery/mesh.py",
+          "url": "https://github.com/C-Nucifora/artifact-platform/blob/defe312919ef574f2ad9d1e1605ab409dd5400c0/platform/discovery/discovery/mesh.py",
+          "sha256": "be9e175cdd2cdb3ebc70e12d3d88fdc2859c6ea6a734d3880159fea8d3bc7804",
+          "supports": [
+            "Operator exclusions, discovered endpoint overrides and manual peers"
+          ]
+        },
+        {
+          "path": "platform/discovery/discovery/ssh_fetch.py",
+          "url": "https://github.com/C-Nucifora/artifact-platform/blob/defe312919ef574f2ad9d1e1605ab409dd5400c0/platform/discovery/discovery/ssh_fetch.py",
+          "sha256": "22b24b6191f4162d9b4e37e9c1110101e90baccc378a2f162f0fb7d404e24e21",
+          "supports": [
+            "Fixed manifest command, byte limit and process timeout"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/nvim-stm32",
+      "commit": "6a7951e6fe29b51a90290e2e8ee6b0573cd406dd",
+      "retrieved_at": "2026-10-23T01:16:09.817065+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/nvim-stm32/blob/6a7951e6fe29b51a90290e2e8ee6b0573cd406dd/README.md",
+          "sha256": "7a88359a8ab14e112392ce307caa239e8dbc0d355e7640c15d1a1ef08a03157f",
+          "supports": [
+            "Nearest-project discovery, build artifact tracking and target signals",
+            "Planning, probe selection, programming checks, serial process ownership",
+            "Debugging planned and connected-board acceptance remains required"
+          ]
+        },
+        {
+          "path": "lua/nvim-stm32/init.lua",
+          "url": "https://github.com/C-Nucifora/nvim-stm32/blob/6a7951e6fe29b51a90290e2e8ee6b0573cd406dd/lua/nvim-stm32/init.lua",
+          "sha256": "8cc5b623a3021c501b6ba758ad46ec979c0d1b712afd5eb8955b157db40f7d0c",
+          "supports": [
+            "Neovim operation and command entry points"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/mozaproxy",
+      "commit": "98d5dadc6efdf565e6caa7e49a3d029f4046946e",
+      "retrieved_at": "2026-10-23T01:16:09.817242+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/mozaproxy/blob/98d5dadc6efdf565e6caa7e49a3d029f4046946e/README.md",
+          "sha256": "6f3dbbdc6fe9d61429ebb510f4acbecf43d3d3f78662cf71596985b0dae1b64a",
+          "supports": [
+            "Explicit settings connection and Apply readback",
+            "Optional uinput relay and effect forwarding limits",
+            "Unimplemented calibration, firmware and automatic routing"
+          ]
+        },
+        {
+          "path": "docs/compatibility.md",
+          "url": "https://github.com/C-Nucifora/mozaproxy/blob/98d5dadc6efdf565e6caa7e49a3d029f4046946e/docs/compatibility.md",
+          "sha256": "e4e886ae6ef3953651cf9a24995da8bb86c865eabc46c98401ba783102ec7977",
+          "supports": [
+            "Configuration-specific FH5 and JDM attended passes; incomplete broader compatibility"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/m1-tools",
+      "commit": "599969ac0276d01fba8a45f9fa51030ba7f40971",
+      "retrieved_at": "2026-10-23T01:16:09.817399+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-tools/blob/599969ac0276d01fba8a45f9fa51030ba7f40971/README.md",
+          "sha256": "8dd2203eb381e56e71061fea3034bdbf34646647c9bc2d85c3dc040d6fd9f7d4",
+          "supports": [
+            "Shared grammar/domain tools/LSP/editor/CI architecture",
+            "Main-branch development manifest versus pinned releases",
+            "Workspace configuration precedence"
+          ]
+        },
+        {
+          "path": "m1-tools.repos",
+          "url": "https://github.com/C-Nucifora/m1-tools/blob/599969ac0276d01fba8a45f9fa51030ba7f40971/m1-tools.repos",
+          "sha256": "22f03fc4ba4b0f669dfda8040a9b97fc637b58a56fbaef8abc61fb363f4bb541",
+          "supports": [
+            "Current cross-account collaborator-owned components"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/wavelength",
+      "commit": "1e651133b0f65336d6336af12cc0a9aab0f58869",
+      "retrieved_at": "2026-10-23T01:16:09.817567+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/wavelength/blob/1e651133b0f65336d6336af12cc0a9aab0f58869/README.md",
+          "sha256": "2cc32c013d21a7aabca240c9125f4f1b7d3ac18bf3dac9bf9c27d3ada66c9b9e",
+          "supports": [
+            "SwiftUI native app, local Bun engine and helper/Keychain credential boundary",
+            "Genre, artist and discography workflows, source attribution and uncertain matches",
+            "Unsupported Apple web-session route, source-build state and unverified release boundaries",
+            "Library history versus export data and local AI assessments"
+          ]
+        },
+        {
+          "path": "src/jobs.ts",
+          "url": "https://github.com/C-Nucifora/wavelength/blob/1e651133b0f65336d6336af12cc0a9aab0f58869/src/jobs.ts",
+          "sha256": "273a6a99b98572915d7396343c1464f352e03f01dd85e07a26d10ff1e050ab82",
+          "supports": [
+            "Interrupted job recovery, unknown creation outcomes and separate cover work"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/islet",
+      "commit": "608b32779cda8026f3a080fcfaf153ee97320d61",
+      "retrieved_at": "2026-10-23T01:16:09.817862+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/islet/blob/608b32779cda8026f3a080fcfaf153ee97320d61/README.md",
+          "sha256": "b69f2882dbac2f541c5452744fb3e5b84bbdb52f1b55abbf3a64ae932a0acd75",
+          "supports": [
+            "Current activities, top-edge and pin interaction, macOS 26/27 support",
+            "Source-build status and permission/privacy handling"
+          ]
+        },
+        {
+          "path": "project.yml",
+          "url": "https://github.com/C-Nucifora/islet/blob/608b32779cda8026f3a080fcfaf153ee97320d61/project.yml",
+          "sha256": "4c883bb4dcb9842ed20ac647a76e04104f4a86482f58493359ab929af5c71b03",
+          "supports": [
+            "macOS 26 deployment target and stable signing requirements"
+          ]
+        },
+        {
+          "path": "Integrations/Pulse/README.md",
+          "url": "https://github.com/C-Nucifora/islet/blob/608b32779cda8026f3a080fcfaf153ee97320d61/Integrations/Pulse/README.md",
+          "sha256": "482f791d8ae9ee1ef2a00eeae9967fa712039b33b3dc1becc1522be27705833d",
+          "supports": [
+            "Out-of-process bounded JSON providers with explicit permissions and Xcode integration"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/personal-website",
+      "commit": "0084c1bf0013ea3d6771dc031443a8247aab68ab",
+      "retrieved_at": "2026-10-23T01:16:09.818087+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/personal-website/blob/0084c1bf0013ea3d6771dc031443a8247aab68ab/README.md",
+          "sha256": "785c92c923732bd1076da80c022f92b0a3888e90258c5ee94b13404d421f28e0",
+          "supports": [
+            "Earlier terminal portfolio virtual filesystem, shared typed/clicked/keyboard state",
+            "Plain view, source viewer and static export"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/reconcile-app",
+      "commit": "13fece900d952963f0390296d704b86206b70e34",
+      "retrieved_at": "2026-10-23T01:16:09.818460+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/reconcile-app/blob/13fece900d952963f0390296d704b86206b70e34/README.md",
+          "sha256": "4309a32a98cfdc253b1c6a24cc7b11d46db9ead67fa7406e7e1df61548138655",
+          "supports": [
+            "Expense split modes and itemization",
+            "Local records, separate image storage and PDF backup limitation"
+          ]
+        },
+        {
+          "path": "src/engine/settle.ts",
+          "url": "https://github.com/C-Nucifora/reconcile-app/blob/13fece900d952963f0390296d704b86206b70e34/src/engine/settle.ts",
+          "sha256": "a3ced0f1010f77185f77e8c1b7745f6132b54ba9338122c15cd1f2dcc7049621",
+          "supports": [
+            "Deterministic largest-debt/largest-credit matching with ID tiebreak"
+          ]
+        },
+        {
+          "path": "src/engine/money.ts",
+          "url": "https://github.com/C-Nucifora/reconcile-app/blob/13fece900d952963f0390296d704b86206b70e34/src/engine/money.ts",
+          "sha256": "00cdd2c716bd2dff025d1f4df1fa7861c60b0eb606a8b671636f2486d0ad862c",
+          "supports": [
+            "Integer-cent parsing and deterministic allocations"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/mountd",
+      "commit": "b39ea7ed42b418faa870f74f8edf282f60797fde",
+      "retrieved_at": "2026-10-23T01:16:09.818707+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/mountd/blob/b39ea7ed42b418faa870f74f8edf282f60797fde/README.md",
+          "sha256": "b8020b88a716f9bea018b88d8f018e22d136863e4b44f0556a8efdb4596af900",
+          "supports": [
+            "Conditional, dependency and TCP probe gating with ordered endpoints",
+            "Per-user LaunchAgent, wake/health recovery and deliberate unmount state",
+            "mountctl command examples and local SMB argv credential visibility"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/gphotos-album-downloader",
+      "commit": "4a4e7471a05e34059205a691b3b6fc4f8db753e4",
+      "retrieved_at": "2026-10-23T01:16:09.818917+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/gphotos-album-downloader/blob/4a4e7471a05e34059205a691b3b6fc4f8db753e4/README.md",
+          "sha256": "8746245f640203cbcd59c980dd011b1596acc2b77cf43d6469321b22e8a08e6f",
+          "supports": [
+            "gpwc API path, Playwright fallback and resumable manifest",
+            "Fidelity checks and original-source limitations",
+            "API ownership uncertainty, retained copies and no API Trash emptying",
+            "Browser opt-in empty-Trash operation is account-wide and irreversible"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/iOS-Shortcuts",
+      "commit": "f3237a5f54b19b2d165568579bd720b8bdb2739f",
+      "retrieved_at": "2026-10-23T01:16:09.819128+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/iOS-Shortcuts/blob/f3237a5f54b19b2d165568579bd720b8bdb2739f/README.md",
+          "sha256": "b65d73a023b72986a9deaa846a5d9f56a69e9bc129b0f23e77a9226b244b50e4",
+          "supports": [
+            "Reviewable XML sources and separate installable builds",
+            "Meal payload review and date selection before Health writes"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/instagram-unliker",
+      "commit": "7e87b20ec158bae40999373fb3310298946625fb",
+      "retrieved_at": "2026-10-23T01:16:09.819313+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/instagram-unliker/blob/7e87b20ec158bae40999373fb3310298946625fb/README.md",
+          "sha256": "69dbe639d10433be4d95524c0fd45a7811852abf3d6f666704f3ca05e794a140",
+          "supports": [
+            "Dry run, limits, session cache, persistent progress and unofficial API risk"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/leetcode",
+      "commit": "8a1150a7561366e40f625856ebfc170e67d6a6b5",
+      "retrieved_at": "2026-10-23T01:16:09.819389+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/leetcode/blob/8a1150a7561366e40f625856ebfc170e67d6a6b5/README.md",
+          "sha256": "bf4cb91a4f8f068feb954a354c6bfc84955c482e83c4490ad8ea2a96ea15c00a",
+          "supports": [
+            "Primarily Python exercise repository and ID/slug naming"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/m1-eval",
+      "commit": "0b5cd55aaf159ee34d078faf7777a4c98e515701",
+      "retrieved_at": "2026-10-23T01:17:01.583406+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-eval/blob/0b5cd55aaf159ee34d078faf7777a4c98e515701/README.md",
+          "sha256": "6387aeb19be4929b0dab77fb664019a3000bf93069d89185174c8d5bb21cfd78",
+          "supports": [
+            "Offline interpreter versus ECU behavior; synthetic evidence is not captured-M1 verification"
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "C-Nucifora/m1-visualiser",
+      "commit": "e025f550a43a1d1a70abf659b2851bb5fc97672f",
+      "retrieved_at": "2026-10-23T01:17:01.583465+00:00",
+      "sources": [
+        {
+          "path": "README.md",
+          "url": "https://github.com/C-Nucifora/m1-visualiser/blob/e025f550a43a1d1a70abf659b2851bb5fc97672f/README.md",
+          "sha256": "3ded87addde5c4f33ef89cd06dce417e096c18839b867c7dd2910ee13bc2c959",
+          "supports": [
+            "Experimental numeric overlays and calibration/safety prohibition"
+          ]
+        }
+      ]
+    }
+  ],
+  "approved_publication_records": [
+    {
+      "repository": "personal-website",
+      "commit": "57708ade5b75c8b2354132307a92b985a9256517",
+      "path": "src/data/public/catalog/islet.ts",
+      "sha256": "95517ebb19ba140fcebb0fb37c171756dab8dceea89459a2e7d50e5650fc500e",
+      "supports": [
+        "Approved co-development with Ned Lane"
+      ],
+      "authority": "Explicit publication record identified by concept/rack/CONTENT.md"
+    },
+    {
+      "repository": "personal-website",
+      "commit": "57708ade5b75c8b2354132307a92b985a9256517",
+      "path": "src/data/public/catalog/m1-language-toolchain.ts",
+      "sha256": "f4ce032790356a5c916e81d8cc69c890a25d194fcda2fcc263996c9cc947214f",
+      "supports": [
+        "Approved co-development with Ned Lane and independent community-work attribution",
+        "Independent community work with no MoTeC affiliation or endorsement"
+      ],
+      "authority": "Explicit publication record identified by concept/rack/CONTENT.md"
+    }
+  ],
+  "local_revision_sources": [
+    {
+      "repository": "personal-website",
+      "commit": "8226cd77c61998d4f909c8c6d87cdb0587d137c9",
+      "path": "concept/rack/README.md",
+      "supports": [
+        "Current procedural rack geometry, direct reading routes, Text view and static Vercel build"
+      ],
+      "visibility": "Local revision; public main is still the terminal snapshot"
+    },
+    {
+      "repository": "personal-website",
+      "commit": "8226cd77c61998d4f909c8c6d87cdb0587d137c9",
+      "path": "concept/rack/catalog.js",
+      "supports": [
+        "Current Personal Projects membership, seven occupied bays and one spare"
+      ],
+      "visibility": "Local revision; public main is still the terminal snapshot"
+    }
+  ],
+  "remaining_gaps": [
+    "Individual feature ownership and actual work dates are not documented for most software records.",
+    "No project screenshots or hardware photos were collected in this pass.",
+    "Wavelength clean-machine installation, notarized public release and real CSV imports remain unverified by its public README.",
+    "The public terminal source snapshot does not contain the current rack revision."
+  ]
+}

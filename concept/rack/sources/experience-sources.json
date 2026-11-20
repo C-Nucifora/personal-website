@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "researchedAt": "2026-10-23",
+  "scope": "Hardware, experience, education and introduction copy in experience-content.js",
+  "approvedSourceRepositoryCommit": "57708ade5b75c8b2354132307a92b985a9256517",
+  "sources": [
+    {
+      "id": "linkedin-timeline-2026-08-30",
+      "kind": "approved user-supplied snapshot",
+      "url": "https://www.linkedin.com/in/christian-nucifora-501432387/",
+      "snapshotId": "linkedin-work-history",
+      "snapshotVersion": "1.0.0",
+      "approvalId": "chat-2026-08-30-linkedin-timeline",
+      "approvedAt": "2026-08-30",
+      "files": [
+        {
+          "path": "docs/content/linkedin-timeline-snapshot.md",
+          "sha256": "fe5233105a0c9ea4c2eed549e891fc8943d0489766ae98e6f16bfd9ffd6cd416"
+        },
+        {
+          "path": "src/data/public/timeline.ts",
+          "sha256": "69701f740fe468a1da173eaa28c46f2e49091009b4127a5401d2a2c2f0133184"
+        }
+      ],
+      "supports": [
+        "UQ Racing Electrical Systems Engineer, part-time, March 2026 to present in the snapshot, hybrid in St Lucia",
+        "DataAnnotation Software Engineer, contract, August 2026 to present in the snapshot, remote from Brisbane",
+        "St Leo's College IT Assistant, part-time, February to November 2025, on-site in Brisbane",
+        "St Leo's Level 1 support to college team and residents, after-hours assistance and day-to-day troubleshooting",
+        "UQ Bachelor of Engineering / Bachelor of Computer Science, Electrical and Electronics Engineering, February 2024 to expected July 2029",
+        "St Augustine's College, Cairns attendance from January 2018 to November 2023"
+      ],
+      "limits": [
+        "The LinkedIn profile was not freshly scraped. Current-role status is dated to the approved August 2026 snapshot.",
+        "No DataAnnotation duties, clients, tools, output counts or results appear in the approved source.",
+        "No St Augustine's qualification, grades or achievements are supplied.",
+        "Only the visible St Leo's support description is approved. The truncated remainder was not reconstructed."
+      ]
+    },
+    {
+      "id": "uqr-approved-engineering-2026-08-30",
+      "kind": "approved portfolio team summary",
+      "approvalId": "chat-2026-08-30-catalog-extension",
+      "approvedAt": "2026-08-30",
+      "files": [
+        {
+          "path": "src/data/public/catalog/uqr-engineering.ts",
+          "sha256": "90a0583fad1147c453fdd6eee57a2c2579eea1a54bd8066c26768f47aef11af1"
+        },
+        {
+          "path": "src/data/public/catalog/uqr-programs.ts",
+          "sha256": "336b6b6fa9abc64eb3b499e0d142c70f5984ccb81be5ea2d65bf84302e53e50e"
+        }
+      ],
+      "supports": [
+        "Substantial perception and broader electrical contribution across both UQ Racing cars, completed as part of the team",
+        "Separate autonomous and electric vehicle program records may describe the same approved team-level contribution"
+      ],
+      "limits": [
+        "Does not establish ownership of an ECU, PCB, harness, algorithm, repository or vehicle",
+        "Does not approve private project implementation, photographs, diagrams or measured results for publication"
+      ]
+    },
+    {
+      "id": "uqr-public-organisation",
+      "kind": "primary public team source",
+      "url": "https://github.com/UQRacing",
+      "accessedAt": "2026-10-23",
+      "supports": [
+        "UQ Racing is the University of Queensland Formula SAE team",
+        "The organisation describes electric and autonomous vehicle software",
+        "Public autonomous examples include LiDAR cone processing and custom ROS messages"
+      ],
+      "limits": [
+        "Program context only. Public repositories are not attributed to Christian.",
+        "No code, images or other assets were copied."
+      ]
+    },
+    {
+      "id": "uq-faculty-team-overview",
+      "kind": "primary public university source",
+      "url": "https://www.eait.uq.edu.au/community/high-school-activities-and-digital-resources/high-school-workshops-and-activities/uq-racing-visit",
+      "accessedAt": "2026-10-23",
+      "supports": [
+        "UQ Racing is student-led and designs and builds electric race cars for inter-university competition"
+      ],
+      "limits": [
+        "The page's dated claim about developing the first autonomous vehicle is not used as current program status.",
+        "Program context only, not evidence of Christian's individual deliverables."
+      ]
+    },
+    {
+      "id": "existing-rack-catalog",
+      "kind": "existing public portfolio structure",
+      "files": [
+        {
+          "path": "concept/rack/catalog.js"
+        },
+        {
+          "path": "concept/rack/bundled-collections.js"
+        }
+      ],
+      "supports": [
+        "The introduction can identify the existing Software, Hardware and Experience records",
+        "M1 Toolchain and Wavelength have individual units, and Personal Projects groups smaller projects"
+      ],
+      "limits": [
+        "Existing project inclusion is not proof of a particular motivation, work habit, achievement or professional result."
+      ]
+    },
+    {
+      "id": "dataannotation-public-role-2026-10-23",
+      "kind": "official public company role description",
+      "url": "https://www.dataannotation.tech/job-board/software-engineer",
+      "reviewedAt": "2026-10-23",
+      "supports": [
+        "General company software-engineering context: coding tasks, generated-code review, debugging, reasoning assessment and AI training",
+        "Remote independent-contractor role category"
+      ],
+      "limits": [
+        "Company-level context is not evidence of Christian individual assignments, clients, results, hours or compensation.",
+        "User explicitly requested generalized company context and asked to leave UQ Racing contribution broad."
+      ]
+    }
+  ],
+  "records": {
+    "hardware-uqr-autonomous": [
+      "uqr-approved-engineering-2026-08-30",
+      "linkedin-timeline-2026-08-30",
+      "uqr-public-organisation",
+      "uq-faculty-team-overview"
+    ],
+    "hardware-uqr-electric": [
+      "uqr-approved-engineering-2026-08-30",
+      "linkedin-timeline-2026-08-30",
+      "uq-faculty-team-overview",
+      "uqr-public-organisation"
+    ],
+    "hardware-project-placeholder": [],
+    "experience-uqr": [
+      "linkedin-timeline-2026-08-30",
+      "uqr-approved-engineering-2026-08-30",
+      "uqr-public-organisation",
+      "uq-faculty-team-overview"
+    ],
+    "experience-dataannotation": [
+      "linkedin-timeline-2026-08-30",
+      "dataannotation-public-role-2026-10-23"
+    ],
+    "experience-st-leos": [
+      "linkedin-timeline-2026-08-30"
+    ],
+    "experience-uq-study": [
+      "linkedin-timeline-2026-08-30",
+      "uqr-approved-engineering-2026-08-30",
+      "existing-rack-catalog"
+    ],
+    "experience-st-augustines": [
+      "linkedin-timeline-2026-08-30"
+    ],
+    "experience-story-placeholder": [
+      "linkedin-timeline-2026-08-30",
+      "uqr-approved-engineering-2026-08-30",
+      "existing-rack-catalog"
+    ]
+  },
+  "ownerInputNeeded": [
+    "Confirm or update current roles after the August 2026 snapshot",
+    "Name specific UQ Racing tasks and individual responsibility, with approval for any technical details, media and measured results",
+    "Supply a publishable DataAnnotation role description if permitted",
+    "Add any further St Leo's details that are safe to publish",
+    "Supply the reserved hardware project's name, dates, contribution, build evidence and publication permission",
+    "Add a personal account of motivation or goals if desired. The introduction currently states sourced facts only."
+  ],
+  "publicationNotes": [
+    "The hardware project bay remains visibly reserved and placeholder true.",
+    "The introduction keeps its existing ID for stable links but is now factual content, placeholder false.",
+    "No private UQ Racing repository, hardware design, image, implementation detail or result was imported.",
+    "No logos, photographs or other external assets were imported."
+  ],
+  "ownerDirection": {
+    "uqRacing": "Keep contribution broad; do not invent specific deliverables",
+    "dataAnnotation": "Use public company context to generalise the record, without confidential assignments"
+  }
+}

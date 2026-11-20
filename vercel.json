@@ -1,19 +1,96 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
   "headers": [
     {
-      "source": "/(icon|apple-icon)",
-      "headers": [{ "key": "Content-Type", "value": "image/png" }]
+      "source": "/recording/(.*)\\.bin\\.br",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-transform"
+        }
+      ]
+    },
+    {
+      "source": "/recording/(.*)\\.json\\.gz",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": "gzip"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-cache, no-transform"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.mjs",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/javascript; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'none'"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
       ]
+    }
+  ],
+  "git": {
+    "deploymentEnabled": false
+  },
+  "redirects": [
+    {
+      "source": "/combined",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/combined/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/combined/:path+",
+      "destination": "/:path+",
+      "permanent": true
     }
   ]
 }

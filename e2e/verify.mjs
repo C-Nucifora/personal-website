@@ -1,7 +1,7 @@
 /**
  * End-to-end verification of the FLOW.md interaction model.
  * Run against a server of the static export (or `next dev`):
- *   npm run build && (cd out && python3 -m http.server 3000) & BASE=http://127.0.0.1:3000 node e2e/verify.mjs
+ *   npm run build:terminal && (cd out && python3 -m http.server 3000) & BASE=http://127.0.0.1:3000 node e2e/verify.mjs
  */
 import { chromium, devices } from "playwright";
 

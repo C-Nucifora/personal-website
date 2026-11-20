@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "retrievedAtUtc": "2026-10-18T06:30:51.225840+00:00",
+  "scope": "Selected runtime maps copied unchanged from verified research sources. Source archives are provenance only and are not shipped.",
+  "designContext": {
+    "profile": "personal",
+    "product": "personal-website",
+    "sourcesCatalog": "/home/christian/Documents/dev/design-language/sources/catalog.json",
+    "catalogDecision": "ambientCG is unlisted; user explicitly requested sourced textures. Terms verified before download.",
+    "productOverlayWarning": "Central product overlay describes older PCB portfolio. Current explicit datacenter task governs texture choice."
+  },
+  "assets": [
+    {
+      "assetId": "Metal032",
+      "title": "Metal 032",
+      "author": "ambientCG",
+      "authorNote": "ambientCG is the credited source brand; official imprint names operator Lennart Demes. Asset pages do not name an additional individual author.",
+      "sourceUrl": "https://ambientcg.com/view?id=Metal032",
+      "shortUrl": "https://ambientcg.com/a/Metal032",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "licenseText": "CC0-1.0.txt",
+      "releaseDate": "2020-08-09 00:00:00",
+      "role": "Satin grey brushed metal for bare rails, chassis and shelf edges. My visual choice, not an upstream product specification.",
+      "archive": {
+        "path": "upstream/Metal032_1K-JPG.zip",
+        "downloadUrl": "https://ambientcg.com/get?file=Metal032_1K-JPG.zip",
+        "bytes": 3650556,
+        "sha256": "9e4f363905a647958c273154fa125d2a6440892d0e583f9b3af24bb08b5afc3c"
+      },
+      "maps": [
+        {
+          "path": "Metal032_1K-JPG_NormalGL.jpg",
+          "archiveMember": "Metal032_1K-JPG_NormalGL.jpg",
+          "bytes": 341948,
+          "sha256": "8537c1015de5cc33d20231e5b6aa27309edcb983e1c37e608d08bb00f733747d",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "NormalGL",
+          "downloadUrl": "https://ambientcg.com/get?file=Metal032_1K-JPG.zip"
+        },
+        {
+          "path": "Metal032_1K-JPG_Roughness.jpg",
+          "archiveMember": "Metal032_1K-JPG_Roughness.jpg",
+          "bytes": 404875,
+          "sha256": "55d3eee2b69008ad3701b18977495531d0e3515105102e56f40a4d1098d10bce",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "Roughness",
+          "downloadUrl": "https://ambientcg.com/get?file=Metal032_1K-JPG.zip"
+        }
+      ]
+    },
+    {
+      "assetId": "Metal029",
+      "title": "Metal 029",
+      "author": "ambientCG",
+      "authorNote": "ambientCG is the credited source brand; official imprint names operator Lennart Demes. Asset pages do not name an additional individual author.",
+      "sourceUrl": "https://ambientcg.com/view?id=Metal029",
+      "shortUrl": "https://ambientcg.com/a/Metal029",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "licenseText": "CC0-1.0.txt",
+      "releaseDate": "2019-06-02 00:00:00",
+      "role": "Fine black powder-coated steel for rack frames and panels.",
+      "archive": {
+        "path": "upstream/Metal029_1K-JPG.zip",
+        "downloadUrl": "https://ambientcg.com/get?file=Metal029_1K-JPG.zip",
+        "bytes": 6543197,
+        "sha256": "c2a233b93b3ab044f744a8356bea4f72c62e190a9d020114787f9b61007ed5a5"
+      },
+      "maps": [
+        {
+          "path": "Metal029_1K-JPG_NormalGL.jpg",
+          "archiveMember": "Metal029_1K-JPG_NormalGL.jpg",
+          "bytes": 1333176,
+          "sha256": "dc06ef43c3f0b02744bfd1042f7c706b810d9ce647f4081dc6bead6f85c903dd",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "NormalGL",
+          "downloadUrl": "https://ambientcg.com/get?file=Metal029_1K-JPG.zip"
+        },
+        {
+          "path": "Metal029_1K-JPG_Roughness.jpg",
+          "archiveMember": "Metal029_1K-JPG_Roughness.jpg",
+          "bytes": 762474,
+          "sha256": "9d021c0dd05b37be4e18a0655cb43fc5d607bed9abf01cf2b5d573a1f8220df8",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "Roughness",
+          "downloadUrl": "https://ambientcg.com/get?file=Metal029_1K-JPG.zip"
+        }
+      ]
+    },
+    {
+      "assetId": "Concrete048",
+      "title": "Concrete 048",
+      "author": "ambientCG",
+      "authorNote": "ambientCG is the credited source brand; official imprint names operator Lennart Demes. Asset pages do not name an additional individual author.",
+      "sourceUrl": "https://ambientcg.com/view?id=Concrete048",
+      "shortUrl": "https://ambientcg.com/a/Concrete048",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "licenseText": "CC0-1.0.txt",
+      "releaseDate": "2025-10-10 13:00:00",
+      "role": "Clean industrial concrete or subtle floor microtexture. Keep raised-floor seams authored by existing scene geometry.",
+      "archive": {
+        "path": "upstream/Concrete048_1K-JPG.zip",
+        "downloadUrl": "https://ambientcg.com/get?file=Concrete048_1K-JPG.zip",
+        "bytes": 7536748,
+        "sha256": "af13b985a7a72c89f2a8e0c8ef5651a8f13126bf792b5ca5f6a0861712156df6"
+      },
+      "maps": [
+        {
+          "path": "Concrete048_1K-JPG_NormalGL.jpg",
+          "archiveMember": "Concrete048_1K-JPG_NormalGL.jpg",
+          "bytes": 1548946,
+          "sha256": "16d110670d8a1ca4dd85d498bb46afaa6953456878dae7ab6717053600dddcfc",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "NormalGL",
+          "downloadUrl": "https://ambientcg.com/get?file=Concrete048_1K-JPG.zip"
+        },
+        {
+          "path": "Concrete048_1K-JPG_Roughness.jpg",
+          "archiveMember": "Concrete048_1K-JPG_Roughness.jpg",
+          "bytes": 702183,
+          "sha256": "cf9b741e1ffc25b89a7d7a8971656463009c25b30c3fd300b3296c60daef729f",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "colorSpace": "NoColorSpace",
+          "mapRole": "Roughness",
+          "downloadUrl": "https://ambientcg.com/get?file=Concrete048_1K-JPG.zip"
+        }
+      ]
+    }
+  ],
+  "recommendedSets": {
+    "realistic": {
+      "files": [
+        "Metal032_1K-JPG_Roughness.jpg",
+        "Metal032_1K-JPG_NormalGL.jpg",
+        "Metal029_1K-JPG_Roughness.jpg",
+        "Metal029_1K-JPG_NormalGL.jpg",
+        "Concrete048_1K-JPG_Roughness.jpg",
+        "Concrete048_1K-JPG_NormalGL.jpg"
+      ],
+      "note": "Six maps, keep existing palette as constant base colors. Add Metal032 Color only if its cool satin-grey hue is desired. Avoid using the beige Concrete048 Color for the entire datacenter. Normal scales start at 0.15 metal, 0.12 powdercoat, 0.10 floor; tune at final camera distance.",
+      "bytes": 5093602,
+      "estimatedRGBA8TextureBytesWithMipmaps": 33554432
+    },
+    "simple": {
+      "files": [
+        "Metal032_1K-JPG_Roughness.jpg",
+        "Metal029_1K-JPG_Roughness.jpg",
+        "Concrete048_1K-JPG_Roughness.jpg"
+      ],
+      "note": "Three roughness maps only. Preserve the current clean silhouette and palette; optional Metal032 NormalGL at normalScale 0.04 if a close view needs it. Use constant metalness values instead of separate metalness textures.",
+      "bytes": 1869532,
+      "estimatedRGBA8TextureBytesWithMipmaps": 16777216
+    }
+  },
+  "notes": [
+    "Color map uses SRGBColorSpace. Roughness and NormalGL are non-color data; leave NoColorSpace.",
+    "NormalGL is OpenGL tangent-space. Do not use NormalDX or invert the green channel when using these NormalGL files.",
+    "Repeat texture tiles at believable small surface scale. Share texture objects/materials across repeated racks. Do not allocate unique maps per rack.",
+    "No displacement, AO, metalness maps, USD, Blender, or preview images needed in the site build. The original zip archives are research provenance only.",
+    "Painted black powdercoat is primarily a dielectric topcoat: start metalness at 0.05. Bare Metal032 may start at 0.8. These are proposed visual settings, not measured material values.",
+    "Roughness maps multiply the material roughness scalar in Three. Check highlights at actual scene lighting; keep floor rougher than metal.",
+    "Use restrained normalScale, with no geometric displacement. Existing mesh seams and ventilation details should remain legible."
+  ]
+}
